@@ -35,16 +35,6 @@ export default class Auth {
         return this._user;
     }
 
-    can(permission: string|string[], every = false): boolean {
-        if (Array.isArray(permission)) {
-            if (!every) {
-                return permission.some(p => this.can(p));
-            }
-            return permission.every(p => this.can(p));
-        }
-        return this.user().roles.some((role: any) => role.permissions.some((p: any) => p.name === permission));
-    }
-
     id(): number {
         return this.user().id;
     }

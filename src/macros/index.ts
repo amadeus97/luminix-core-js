@@ -4,7 +4,6 @@ import Macro from "../containers/Macro";
 import { ModelSchema } from "../types/Model";
 
 import makeCastAttributeFilter from "./makeCastAttributeFilter";
-import userCallHasRoleMethod from "./userCallHasRoleMethod";
 
 export default (app: App) => {
 
@@ -31,11 +30,5 @@ export default (app: App) => {
         });
 
     });
-
-    macro.addFilter(
-        'model_user_call_hasRole',
-        userCallHasRoleMethod,
-        5
-    );
 
 };
