@@ -89,7 +89,7 @@ export default class Repository {
                         if (macros.hasFilter(`model_${className}_call_${prop}`)) {
                             return macros.applyFilters(`model_${className}_call_${prop}`, () => null, target);
                         }
-                        if (Object.keys(target.attributes).includes(prop)) {
+                        if (macros.hasFilter(`model_${className}_get_${prop}_attribute`)) {
                             return macros.applyFilters(`model_${className}_get_${prop}_attribute`, target.attributes[prop], target);
                         }
                         return target[prop];

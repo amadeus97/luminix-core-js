@@ -1,12 +1,10 @@
-import Macro from '../containers/Macro';
 import app from './app';
-import config from './config';
 
 import { RouteReplacer } from "../types/Route";
 
 const route = (name: string, replace: RouteReplacer = false) => {
 
-    const routes = config('boot.routes');
+    const routes = app('config').get('boot.routes');
 
     let { [name]: url } = routes;
 
@@ -20,7 +18,7 @@ const route = (name: string, replace: RouteReplacer = false) => {
     const regex = /{([^}]+)}/g;
 
     if (replace === false) {
-        const macro = app('macro') as Macro;
+        const macro = app('macro');
         return macro.applyFilters('route_without_replace', `/${url}`) as string;
     }
 
@@ -43,6 +41,6 @@ const route = (name: string, replace: RouteReplacer = false) => {
     return `/${newPath}`;
 };
 
-route.exists = (name: string) => !!config('boot.routes')[name];
+route.exists = (name: string) => !!app('config').get('boot.routes')[name];
 
 export default route;

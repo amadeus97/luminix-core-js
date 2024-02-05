@@ -1,10 +1,9 @@
-import Repository from "../containers/Repository";
 import { ModelHelper } from "../types/Model";
 
 import app from './app';
 
 const model = ((className?) => {
-    const repository = app('repository') as Repository;
+    const repository = app('repository');
 
     if (typeof className === 'string') {
         return repository.getModelClass(className);

@@ -1,7 +1,5 @@
 import axios from "axios";
 
-import { Plugin } from "../types/Plugin";
-
 import Config from "./Config";
 import Macro from "./Macro";
 
@@ -9,11 +7,13 @@ import runCoreMacros from '../macros';
 import Repository from "./Repository";
 import Auth from "./Auth";
 
+import { BootOptions } from "../types/App";
+
 export default class App {
 
     private containers: { [key: string]: any } = {};
-    private plugins: Plugin[] = [];
-    private macros?: Function;
+    // private plugins: Plugin[] = [];
+    // private macros?: Function;
 
     getContainer(key: string) {
         if (this.containers[key]) {
@@ -33,39 +33,22 @@ export default class App {
         this.containers[key] = container;
     }
 
-    withPlugins(plugins: Plugin[]): App {
-        if (this.plugins.length > 0) {
-            throw new Error('[Luminix] Plugins already added. Use app().withPlugins() only once.');
-        }
-        this.plugins = plugins;
-        return this;
-    }
+    async boot(options: BootOptions = {}): Promise<App> {
 
-    withConfig(config: any): App {
-        this.registerContainer('config', new Config(config));
-        return this;
-    }
-
-    withMacros(macros: Function): App {
-        if (typeof this.macros === 'function') {
-            throw new Error('[Luminix] Macros already added. Use app().withMacros() only once.');
-        }
-        this.macros = macros;
-        return this;
-    }
-
-    async boot(): Promise<App> {
+        const { 
+            config: configObject = {}, 
+            plugins = [], 
+            macros = () => null 
+        } = options;
 
         // Boot macros
         const macro = new Macro();
         this.registerContainer('macro', macro);
 
-        let config = this.getContainer('config') as Config;
+        // let config = this.getContainer('config') as Config;
+        const config = new Config(configObject);
 
-        if (!config) {
-            config = new Config();
-            this.registerContainer('config', config);
-        }
+        this.registerContainer('config', config);
 
         const { data } = await axios.get(
             config.get('app.bootUrl', '/api/luminix/init')
@@ -78,19 +61,21 @@ export default class App {
             });
         }
 
+        config.lock('boot');
+
         this.registerContainer('auth', new Auth(this));
         this.registerContainer('repository', new Repository(this));
 
         runCoreMacros(this);
 
         // Boot plugins
-        for (const plugin of this.plugins) {
+        for (const plugin of plugins) {
             plugin.boot(this);
         }
 
         // Boot custom macros
-        if (typeof this.macros === 'function') {
-            this.macros(this);
+        if (typeof macros === 'function') {
+            macros(this);
         }
 
         if (config.get('app.setupAxios', false)) {

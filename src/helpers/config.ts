@@ -1,14 +1,13 @@
 import app from './app';
-import Config from '../containers/Config';
 
 import { ConfigHelper } from '../types/Config';
 
-const config: ConfigHelper = (key?, defaultValue?) => {
-    const configInstance = app('config') as Config;
-    if (!key) {
+const config: ConfigHelper = (path?, defaultValue?) => {
+    const configInstance = app('config');
+    if (!path) {
         return configInstance;
     }
-    return configInstance.get(key as string, defaultValue);
+    return configInstance.get(path as string, defaultValue);
 }
 
 export default config;

@@ -8,7 +8,7 @@ Este pacote é parte do Luminix CMS, um sistema de gerenciamento de conteúdo pa
  - comunicação com o backend do Luminix CMS;
  - fornece classes para os Models definidos no backend para serem utilizadas no frontend;
  - fornece um mecanismo de Macros para o frontend, inspirado nos hooks do WordPress;
- - fornece funções helper análogas às funções do Laravel, como `route()`, `auth()`, `config()` e outras;
+ - fornece funções helper, algumas análogas às funções do Laravel: `route()`, `config()`, `auth()`, `error()` e `model()`.
 
 ## Instalação
 
@@ -18,8 +18,8 @@ npm install @luminix/core
 
 ## Roadmap
 
- - Inicializando o `Luminix`
-    - Definindo a configuração
+ - [Inicializando o `Luminix`](./docs/pt-BR/1-Inicializando-cms.md)
+    - [Definindo a configuração](./docs/pt-BR/1.1-Definindo-configuracao.md)
     - Registro de Macros
     - Instalando Plugins
  - Utilizando os Models
