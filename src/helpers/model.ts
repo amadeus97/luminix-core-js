@@ -2,14 +2,11 @@ import { ModelHelper } from "../types/Model";
 
 import app from './app';
 
-const model = ((className?) => {
+export default ((className?: string) => {
     const repository = app('repository');
-
-    if (typeof className === 'string') {
-        return repository.getModelClass(className);
+    if (!className) {
+        return repository;
     }
 
-    return repository;
+    return repository.getModelClass(className);
 }) as ModelHelper;
-
-export default model;

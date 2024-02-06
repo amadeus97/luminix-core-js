@@ -7,15 +7,17 @@ import runCoreMacros from '../macros';
 import Repository from "./Repository";
 import Auth from "./Auth";
 
-import { BootOptions } from "../types/App";
+import { AppContainers, BootOptions } from "../types/App";
 
 export default class App {
+    private containers: AppContainers = {} as AppContainers;
+    private booted = false;
 
-    private containers: { [key: string]: any } = {};
-    // private plugins: Plugin[] = [];
-    // private macros?: Function;
+    getContainers() {
+        return this.containers;
+    }
 
-    getContainer(key: string) {
+    getContainer<T extends keyof AppContainers>(key: T): AppContainers[T] {
         if (this.containers[key]) {
             return this.containers[key];
         }
@@ -28,12 +30,21 @@ export default class App {
 
     registerContainer(key: string, container: any) {
         if (this.containers[key]) {
-            throw new Error(`[Luminix] Container already exists: ${key}`);
+            const config = this.getContainer('config');
+            if (config && config.get('app.debug', false)) {
+                console.warn(`[Luminix] Container ${key} already registered. Registration will be ignored.`);
+            }
+            return;
         }
         this.containers[key] = container;
     }
 
-    async boot(options: BootOptions = {}): Promise<App> {
+    async boot(options: BootOptions = {}): Promise<AppContainers> {
+
+        if (this.booted) {
+            throw new Error('[Luminix] App already booted');
+        }
+        this.booted = true;
 
         const { 
             config: configObject = {}, 
@@ -41,9 +52,12 @@ export default class App {
             macros = () => null 
         } = options;
 
+        for (const plugin of plugins) {
+            plugin.register && plugin.register(this);
+        }
+
         // Boot macros
-        const macro = new Macro();
-        this.registerContainer('macro', macro);
+        this.registerContainer('macro', new Macro());
 
         // let config = this.getContainer('config') as Config;
         const config = new Config(configObject);
@@ -54,11 +68,8 @@ export default class App {
             config.get('app.bootUrl', '/api/luminix/init')
         );
 
-        if (data) {
-            config.set('boot', {
-                ...config.get('boot'),
-                ...data
-            });
+        if (data && typeof data === 'object') {
+            config.merge('boot', data);
         }
 
         config.lock('boot');
@@ -66,23 +77,18 @@ export default class App {
         this.registerContainer('auth', new Auth(this));
         this.registerContainer('repository', new Repository(this));
 
-        runCoreMacros(this);
+        runCoreMacros(this.containers);
 
         // Boot plugins
         for (const plugin of plugins) {
-            plugin.boot(this);
+            plugin.boot && plugin.boot(this.containers);
         }
 
         // Boot custom macros
         if (typeof macros === 'function') {
-            macros(this);
+            macros(this.containers);
         }
 
-        if (config.get('app.setupAxios', false)) {
-            axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-            axios.defaults.withCredentials = true;
-        }
-
-        return this;
+        return this.containers;
     }
 }

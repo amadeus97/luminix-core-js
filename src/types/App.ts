@@ -1,4 +1,3 @@
-import App from '../containers/App';
 import Auth from '../containers/Auth';
 import Config from '../containers/Config';
 import Macro from '../containers/Macro';
@@ -6,20 +5,27 @@ import Repository from '../containers/Repository';
 
 import { Plugin } from './Plugin';
 
-type AppWithNoArguments = () => App;
+export type AppContainers = {
+    auth: Auth;
+    config: Config;
+    macro: Macro;
+    repository: Repository;
+    [key: string]: any;
+};
 
-type AppAuth = (abstract: "auth") => Auth;
-type AppConfig = (abstract: "config") => Config;
-type AppMacro = (abstract: "macro") => Macro;
-type AppRepository = (abstract: "repository") => Repository;
-type AppForContainer = (abstract: string) => any | undefined;
+export type AppContainerName = keyof AppContainers;
 
-export type AppHelper = AppWithNoArguments & AppAuth & AppConfig & AppMacro & AppRepository & AppForContainer;
+type AppGetter = () => ({
+    boot: (options: BootOptions) => Promise<AppContainers>;
+});
+type AppContainerGetter = <T extends AppContainerName>(abstract: T) => AppContainers[T];
+
+export type AppHelper = AppGetter & AppContainerGetter;
 
 export type BootOptions = {
     config?: any;
     plugins?: Plugin[];
-    macros?: Function;
+    macros?: (containers: AppContainers) => void;
 };
 
 

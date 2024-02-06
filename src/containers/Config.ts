@@ -27,6 +27,43 @@ export default class Config {
         objectSetByPath(this.config, path, value);
     }
 
+    merge(path: string, value: any) {
+        if (this.locked.some((item) => path.startsWith(item))) {
+            if (this.get('app.debug', false)) {
+                console.warn(`Config path "${path}" is locked. Cannot set value.`);
+            }
+            return;
+        }
+
+        const currentValue = this.get(path);
+
+        if (typeof currentValue === 'object' && currentValue !== null) {
+            return this.set(path, {
+                ...currentValue,
+                value,
+            });
+        }
+
+        if (currentValue === null || typeof currentValue === 'undefined') {
+            return this.set(path, value);
+        }
+
+        if (this.get('app.debug', false)) {
+            console.warn(`Config is trying to merge a path with non-object`, {
+                path, currentValue, value
+            });
+        }
+
+    }
+
+    has(path: string) {
+        return objectExistsByPath(this.config, path);
+    }
+
+    all() {
+        return this.config;
+    }
+
     delete(path: string) {
         if (this.locked.some((item) => path.startsWith(item))) {
             if (this.get('app.debug', false)) {

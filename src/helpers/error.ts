@@ -9,7 +9,7 @@ const error = (key: string) => {
 };
 
 error.clear = () => {
-    const els = document.querySelectorAll('#react-injections [id^="error-"]');
+    const els = document.querySelectorAll('#luminix-injections [id^="error-"]');
 
     els.forEach((el) => {
         el.remove();

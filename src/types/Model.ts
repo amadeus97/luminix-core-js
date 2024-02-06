@@ -3,11 +3,11 @@
 // import { BaseModel } from "../internals/BaseModel";
 // import { ModelRepository } from "../internals/singletons/ModelRepository";
 // import { FormFieldDefinition } from "./form";
-import BaseModel from "../contracts/Model";
-import Repository from "../containers/Repository";
+import Repository, { BaseModel } from "../containers/Repository";
+import { AppContainers } from "./App";
 
 export interface ModelMaker {
-    modelRepository: Repository,
+    containers: AppContainers,
     className: string,
 }
 
@@ -84,6 +84,6 @@ export declare class Model extends BaseModel {
 
 type ModelHelperWithoutArguments = () => Repository;
 
-type ModelHelperWithArguments = (className?: string) => typeof Model;
+type ModelHelperWithArguments = (className: string) => typeof Model;
 
 export type ModelHelper = ModelHelperWithoutArguments & ModelHelperWithArguments;

@@ -30,11 +30,13 @@ export default class Macro {
     }
 
     removeAction(action: string, callback: MacroActionCallback) {
-        this.actions = this.actions.filter((item) => item.action !== action || item.callback !== callback);
+        // this.actions = this.actions.filter((item) => item.action !== action || item.callback !== callback);
+        this.actions.splice(this.actions.findIndex((item) => item.action === action && item.callback === callback), 1);
     }
 
     removeFilter(filter: string, callback: MacroFilterCallback<any, any>) {
-        this.filters = this.filters.filter((item) => item.filter !== filter || item.callback !== callback);
+        // this.filters = this.filters.filter((item) => item.filter !== filter || item.callback !== callback);
+        this.filters.splice(this.filters.findIndex((item) => item.filter === filter && item.callback === callback), 1);
     }
 
     getActions(): Array<any> {
@@ -54,6 +56,18 @@ export default class Macro {
 
     hasAction(action: string): boolean {
         return this.actions.some((item) => item.action === action);
+    }
+
+    clearActions(action: string) {
+        while (this.hasAction(action)) {
+            this.actions.splice(this.actions.findIndex((item) => item.action === action), 1);
+        }
+    }
+
+    clearFilters(filter: string) {
+        while (this.hasFilter(filter)) {
+            this.filters.splice(this.filters.findIndex((item) => item.filter === filter), 1);
+        }
     }
 
 }

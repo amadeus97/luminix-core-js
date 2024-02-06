@@ -1,15 +1,10 @@
-import App from "../containers/App";
-import Config from "../containers/Config";
-import Macro from "../containers/Macro";
+
+import { AppContainers } from "../types/App";
 import { ModelSchema } from "../types/Model";
 
 import makeCastAttributeFilter from "./makeCastAttributeFilter";
 
-export default (app: App) => {
-
-    const macro = app.getContainer('macro') as Macro;
-    const config = app.getContainer('config') as Config;
-
+export default ({ macro, config }: AppContainers) => {
 
     const modelSchema: ModelSchema = config.get('boot.models');
 
