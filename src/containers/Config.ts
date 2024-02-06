@@ -1,11 +1,12 @@
 import { objectExistsByPath, objectGetByPath, objectSetByPath } from "../support/object";
+import { AppConfiguration } from "../types/Config";
 
 export default class Config {
 
     private locked: string[] = [];
 
     constructor(
-        private readonly config: { [key: string]: any } = {}
+        private readonly config: AppConfiguration = {}
     ) {
 
     }

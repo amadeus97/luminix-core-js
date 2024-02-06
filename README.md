@@ -20,7 +20,7 @@ npm install @luminix/core
 
  - [Inicializando o `Luminix`](./docs/pt-BR/1-Inicializando-cms.md)
     - [Definindo a configuração](./docs/pt-BR/1.1-Definindo-configuracao.md)
-    - Registro de Macros
+    - [Registro de Macros](./docs/pt-BR/1.2-Registro-de-macros.md)
     - Instalando Plugins
  - Utilizando os Models
  - Macros

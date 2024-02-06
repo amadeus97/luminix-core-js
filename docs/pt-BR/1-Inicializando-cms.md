@@ -36,7 +36,7 @@ app().boot({
     config: {
         app: {
             name: import.meta.env.VITE_APP_NAME,
-            version: '1.0.0'
+            debug: import.meta.env.VITE_APP_DEBUG || true,
         }
     },
 }).then(() => console.log(`${config('app.name')} iniciado com sucesso.` ));
@@ -52,11 +52,11 @@ O Luminix permite a adição de macros personalizadas, inspiradas nos hooks do W
 app().boot({
     macros: ({ macro }) => {
         macro.addFilter(
-            'model_user_get_firstName_attribute',
+            'model_user_get_first_name_attribute',
             (value, user) => user.name.split(' ')[0]
         );
     }
-}).then(() => console.log('Luminix iniciado com sucesso.'));
+}).then(({ auth }) => console.log(`Luminix iniciado com sucesso. Bem-vindo, ${auth.user().firstName}!`));
 ```
 
 Veja a [documentação de macros](./1.2-Registro-de-macros.md) para mais informações sobre as macros disponíveis no `@luminix/core`. Cada plugin pode criar suas próprias macros, permitindo que você estenda o sistema de acordo com suas necessidades. Verifique a documentação de cada plugin para obter informações sobre como personalizar o seu comportamento.

@@ -11,7 +11,7 @@ export default defineConfig({
             formats: ['es']
         },
         rollupOptions: {
-            external: ['axios']
+            external: ['axios', 'lodash']
         }
     },
     

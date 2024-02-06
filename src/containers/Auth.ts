@@ -43,7 +43,7 @@ export default class Auth {
     check() {
         const config = this.app.getContainer('config');
 
-        return config.has('boot.data.user');
+        return !!config.get('boot.data.user');
     }
 
     logout() {
@@ -54,12 +54,16 @@ export default class Auth {
         logoutForm.submit();
     }
 
-    user(): Model {
+    user(): Model | null {
         if (!this._user) {
             const { repository, config } = this.app.getContainers();
 
             const User = repository.getModelClass('user');
             const userData = config.get('boot.data.user');
+
+            if (!userData) {
+                return null;
+            }
 
             this._user = new User(userData); 
         }
@@ -67,6 +71,6 @@ export default class Auth {
     }
 
     id(): number {
-        return this.user().id;
+        return this.user()?.id || 0;
     }
 }

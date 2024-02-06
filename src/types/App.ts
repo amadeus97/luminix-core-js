@@ -2,8 +2,21 @@ import Auth from '../containers/Auth';
 import Config from '../containers/Config';
 import Macro from '../containers/Macro';
 import Repository from '../containers/Repository';
+import { AppConfiguration } from './Config';
 
 import { Plugin } from './Plugin';
+
+export type App = {
+    boot: (options: BootOptions) => Promise<AppContainers>;
+};
+
+export type AppInternal = App & {
+    getContainers(): AppContainers;
+    getContainer<T extends keyof AppContainers>(key: T): AppContainers[T];
+    hasContainer(key: string): boolean;
+    registerContainer(key: string, container: any): void;
+    restart(): void;
+};
 
 export type AppContainers = {
     auth: Auth;
@@ -15,15 +28,13 @@ export type AppContainers = {
 
 export type AppContainerName = keyof AppContainers;
 
-type AppGetter = () => ({
-    boot: (options: BootOptions) => Promise<AppContainers>;
-});
+type AppGetter = () => App;
 type AppContainerGetter = <T extends AppContainerName>(abstract: T) => AppContainers[T];
 
 export type AppHelper = AppGetter & AppContainerGetter;
 
 export type BootOptions = {
-    config?: any;
+    config?: AppConfiguration;
     plugins?: Plugin[];
     macros?: (containers: AppContainers) => void;
 };

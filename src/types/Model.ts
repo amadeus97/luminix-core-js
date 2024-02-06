@@ -1,10 +1,14 @@
 
-
-// import { BaseModel } from "../internals/BaseModel";
-// import { ModelRepository } from "../internals/singletons/ModelRepository";
-// import { FormFieldDefinition } from "./form";
-import Repository, { BaseModel } from "../containers/Repository";
+import Repository from "../containers/Repository";
+import BaseModel from "../contracts/BaseModel";
 import { AppContainers } from "./App";
+
+export declare class Model extends BaseModel {
+    constructor(attributes: ModelConstructorAttributes);
+    static getSchemaName(): string;
+    static getSchema(): ModelSchemaAttributes;
+    [key: string]: any;
+}
 
 export interface ModelMaker {
     containers: AppContainers,
@@ -13,7 +17,6 @@ export interface ModelMaker {
 
 export interface ModelSaveOptions {
     additionalPayload?: object,
-    silent?: boolean,
     sendsOnlyModifiedFields?: boolean,
 }
 
@@ -73,13 +76,6 @@ export interface ModelSchemaAttributes {
 
 export interface ModelSchema {
     [className: string]: ModelSchemaAttributes;
-}
-
-export declare class Model extends BaseModel {
-    constructor(attributes?: ModelConstructorAttributes);
-    static getSchemaName(): string;
-    static getSchema(): ModelSchemaAttributes;
-    [key: string]: any,
 }
 
 type ModelHelperWithoutArguments = () => Repository;
