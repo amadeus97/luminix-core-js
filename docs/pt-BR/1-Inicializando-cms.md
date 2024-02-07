@@ -103,3 +103,7 @@ app().boot(options).then(() => console.log(`${config('app.name')} iniciado com s
 ```
 
 Ao seguir estas etapas, seu aplicativo Luminix estará pronto para ser usado, oferecendo uma interação eficiente e personalizada entre o frontend e o backend do seu sistema Laravel.
+
+## Próximos Passos
+
+Conheça mais sobre a configuração do Luminix CMS na seção [Definindo Configuração](./1.1-Definindo-configuracao.md). Aprenda a registrar macros personalizadas na seção [Registro de Macros](./1.2-Registro-de-macros.md). Instale plugins para estender as funcionalidades do Luminix CMS na seção [Instalando Plugins](./1.3-Instalando-plugins.md).

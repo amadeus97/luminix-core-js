@@ -4,7 +4,7 @@ import Macro from '../containers/Macro';
 import Repository from '../containers/Repository';
 import { AppConfiguration } from './Config';
 
-import { Plugin } from './Plugin';
+import Plugin from '../contracts/Plugin';
 
 export type App = {
     boot: (options: BootOptions) => Promise<AppContainers>;

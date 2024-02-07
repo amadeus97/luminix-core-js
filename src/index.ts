@@ -6,6 +6,8 @@ import log from './helpers/log';
 import model from './helpers/model';
 import route from './helpers/route';
 
+import Plugin from './contracts/Plugin';
+
 export {
     app,
     auth,
@@ -13,6 +15,8 @@ export {
     error,
     log,
     model,
+    Plugin,
     route,
+    
 };
 
