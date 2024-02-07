@@ -1,12 +1,22 @@
 
+import { AxiosResponse } from "axios";
 import Repository from "../containers/Repository";
 import BaseModel from "../contracts/BaseModel";
 import { AppContainers } from "./App";
 
 export declare class Model extends BaseModel {
-    constructor(attributes: ModelConstructorAttributes);
+    constructor(attributes?: ModelConstructorAttributes);
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
+    static get(query: object): Promise<ModelPaginatedResponse>;
+    static find(id: number): Promise<Model>;
+    static create(attributes: ModelConstructorAttributes): Promise<Model>;
+    static update(id: number, attributes: ModelConstructorAttributes): Promise<Model>;
+    static delete(id: number): Promise<boolean>;
+    static restore(id: number): Promise<Model>;
+    static forceDelete(id: number): Promise<boolean>;
+    static massDelete(ids: Array<number>): Promise<AxiosResponse>;
+    static massRestore(ids: Array<number>): Promise<AxiosResponse>;
     [key: string]: any;
 }
 
@@ -76,6 +86,26 @@ export interface ModelSchemaAttributes {
 
 export interface ModelSchema {
     [className: string]: ModelSchemaAttributes;
+}
+
+export type ModelPaginatedResponse = {
+    current_page: number,
+    data: Model[],
+    first_page_url: string,
+    from: number,
+    last_page: number,
+    last_page_url: string,
+    links: Array<{
+        url: string,
+        label: string,
+        active: boolean,
+    }>,
+    next_page_url: string | null,
+    path: string,
+    per_page: number,
+    prev_page_url: string | null,
+    to: number,
+    total: number,
 }
 
 type ModelHelperWithoutArguments = () => Repository;

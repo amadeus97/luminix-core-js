@@ -2,11 +2,13 @@
 
 import { objectSetByPath } from '../support/object';
 
-import { Model, ModelConstructorAttributes, ModelSchema } from '../types/Model';
+import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema } from '../types/Model';
 
 import App from './App';
 import BaseModel from '../contracts/BaseModel';
+import route from '../helpers/route';
 
+import axios from 'axios';
 import _ from 'lodash';
 
 
@@ -39,7 +41,7 @@ export default class Repository {
              *
              * @param {object} attributes - Atributos do modelo.
              */
-            constructor(attributes: ModelConstructorAttributes) {
+            constructor(attributes: ModelConstructorAttributes = {}) {
                 super(app.getContainers(), className, attributes);
 
                 return new Proxy(this, {
@@ -78,14 +80,17 @@ export default class Repository {
                     },
                     set: (target, prop: string, value) => {
 
-                        const config = app.getContainer('config');
+                        const { config, macro } = app.getContainers();
 
                         const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
                             ? _.snakeCase(prop)
                             : prop;
 
                         if (target.fillable.includes(lookupKey)) {
-                            target.setAttribute(lookupKey, value);
+                            target.setAttribute(
+                                lookupKey, 
+                                macro.applyFilters(`model_${className}_set_${_.snakeCase(prop)}_attribute`, value, target)
+                            );
                             return true;
                         }
                         return true;
@@ -100,6 +105,84 @@ export default class Repository {
             static getSchema() {
                 return app.getContainer('repository').getClassSchema(className);
             }
+
+            static async get(query?: object): Promise<ModelPaginatedResponse> {
+                const { data } = await axios.get(route(`luminix.${className}.list`), { params: query });
+
+                const Model = app.getContainer('repository').getModelClass(className);
+
+                return {
+                    ...data,
+                    data: data.data.map((item: any) => new Model(item)),
+                };
+            }
+
+            static async find(id: number) {
+                const { data } = await axios.get(route(`luminix.${className}.item`, { id }));
+
+                const Model = app.getContainer('repository').getModelClass(className);
+
+                return new Model(data);
+            }
+
+            static async create(attributes: ModelConstructorAttributes) {
+                const Model = app.getContainer('repository').getModelClass(className);
+                const model = new Model();
+
+                model.fill(attributes);
+
+                await model.save();
+
+                return model;
+            }
+
+            static async update(id: number, attributes: ModelConstructorAttributes) {
+                const Model = app.getContainer('repository').getModelClass(className);
+                const model = new Model({ id });
+ 
+                model.fill(attributes);
+
+                await model.save();
+
+                return model;
+            }
+
+            static delete(id: number) {
+                const Model = app.getContainer('repository').getModelClass(className);
+                const model = new Model({ id });
+
+                return model.delete();
+            }
+
+            static async restore(id: number) {
+                const Model = app.getContainer('repository').getModelClass(className);
+
+                const model = new Model({ id });
+
+                await model.restore();
+
+                return model;
+            }
+
+            static forceDelete(id: number) {
+                const Model = app.getContainer('repository').getModelClass(className);
+
+                const model = new Model({ id });
+
+                return model.forceDelete();
+            }
+
+            static massDelete(ids: number[]) {
+                return axios.post(route(`luminix.${className}.massDelete`), { ids });
+            }
+
+            static massRestore(ids: number[]) {
+                return axios.post(route(`luminix.${className}.massRestore`), { ids });
+            }
+
+
+
+
         };
     }
 

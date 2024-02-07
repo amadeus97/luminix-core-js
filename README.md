@@ -21,13 +21,8 @@ npm install @luminix/core
  - [Inicializando o `Luminix`](./docs/pt-BR/1-Inicializando-cms.md)
     - [Definindo a configuração](./docs/pt-BR/1.1-Definindo-configuracao.md)
     - [Registro de Macros](./docs/pt-BR/1.2-Registro-de-macros.md)
-    - Instalando Plugins
- - Utilizando os Models
- - Macros
-    - Conceito
-    - Definindo Macros
-    - Personalizando o CMS
-    - Listagem de Macros
+    - [Instalando Plugins](./docs/pt-BR/1.3-Instalando-plugins.md)
+ - [Utilizando os Models](./docs/pt-BR/2-Utilizando-models.md)
  - Funções Helper
     - `route()`
     - `auth()`

@@ -1,9 +1,13 @@
 import App from "../containers/App";
 import { AppContainerName, AppHelper } from "../types/App";
 
-const appInstance = new App();
+let appInstance: App;
 
 const app: AppHelper = (abstract?: AppContainerName) => {
+    if (!appInstance) {
+        appInstance = new App();
+    }
+
     if (typeof abstract !== 'string') {
         return {
             boot: appInstance.boot.bind(appInstance),

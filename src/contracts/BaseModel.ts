@@ -151,13 +151,13 @@ export default abstract class BaseModel {
 
 
     setAttribute(key: string, value: any) {
-        if (!this.fillable.includes(key)) {
-            return false;
-        }
+        // if (!this.fillable.includes(key)) {
+        //     return false;
+        // }
         const newAttributes = structuredClone(this.attributes);
         newAttributes[key] = value;
         this._attributes = newAttributes;
-        return true;
+        // return true;
     }
 
     fill(attributes: object) {
@@ -197,7 +197,7 @@ export default abstract class BaseModel {
         return objectDiff(this.original, this.attributes);
     }
 
-    save(options: ModelSaveOptions = {}) {
+    save(options: ModelSaveOptions = {}): Promise<boolean> {
         return new Promise((resolve, reject) => {
             const {
                 additionalPayload = {},
@@ -246,7 +246,7 @@ export default abstract class BaseModel {
         });
     }
 
-    delete() {
+    delete(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             const url = route(`luminix.${this.className}.delete`, { id: this.id });
             if (!url) {
@@ -259,6 +259,7 @@ export default abstract class BaseModel {
             })
                 .then((response) => {
                     if (response.status === 200) {
+                        this.containers.macro.doAction(`model_${this.className}_delete_success`, this);
                         resolve(true);
                         return;
                     }
@@ -272,7 +273,7 @@ export default abstract class BaseModel {
         });
     }
 
-    forceDelete() {
+    forceDelete(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             const url = route(`luminix.${this.className}.forceDelete`, { id: this.id });
 
@@ -287,6 +288,7 @@ export default abstract class BaseModel {
             })
                 .then((response) => {
                     if (response.status === 200) {
+                        this.containers.macro.doAction(`model_${this.className}_force_delete_success`, this);
                         resolve(true);
                         return;
                     }
@@ -300,7 +302,7 @@ export default abstract class BaseModel {
         });
     }
 
-    restore() {
+    restore(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (!this.deletedAt) {
                 reject(new Error('O modelo não foi apagado.'));
@@ -317,6 +319,7 @@ export default abstract class BaseModel {
             })
                 .then((response) => {
                     if (response.status === 200) {
+                        this.containers.macro.doAction(`model_${this.className}_restore_success`, this);
                         resolve(true);
                         return;
                     }

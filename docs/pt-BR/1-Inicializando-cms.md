@@ -53,7 +53,7 @@ app().boot({
     macros: ({ macro }) => {
         macro.addFilter(
             'model_user_get_first_name_attribute',
-            (value, user) => user.name.split(' ')[0]
+            (value, user) => user.attributes.name.split(' ')[0]
         );
     }
 }).then(({ auth }) => console.log(`Luminix iniciado com sucesso. Bem-vindo, ${auth.user().firstName}!`));
@@ -66,7 +66,7 @@ Veja a [documentação de macros](./1.2-Registro-de-macros.md) para mais informa
 O Luminix também suporta a instalação de plugins para estender suas funcionalidades. Para instalar um plugin, basta importá-lo e adicioná-lo à lista de plugins no método `boot()`.
 
 ```javascript
-import DayJsCastPlugin from '@luminix/dayjs-cast-plugin';
+import DayJsCastPlugin from '@luminix/plugin-dayjs-cast';
 
 app().boot({
     plugins: [DayJsCastPlugin]
