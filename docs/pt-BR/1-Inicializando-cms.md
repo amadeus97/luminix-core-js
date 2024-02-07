@@ -69,7 +69,7 @@ O Luminix também suporta a instalação de plugins para estender suas funcional
 import DayJsCastPlugin from '@luminix/plugin-dayjs-cast';
 
 app().boot({
-    plugins: [DayJsCastPlugin]
+    plugins: [new DayJsCastPlugin()]
 }).then(({ auth }) => {
     console.log(
         'Luminix iniciado com sucesso. Seu usário foi criado em: ', 
@@ -88,14 +88,19 @@ Para uma inicialização completa, você pode combinar todas as etapas anteriore
 
 ```javascript
 import { app, config } from '@luminix/core';
-import { MyPlugin } from '@luminix/plugin-my-plugin';
+
+import DayJsCastPlugin from '@luminix/plugin-dayjs-cast';
+import MyPlugin from './plugins/MyPlugin';
 
 import * as jsConfig from './config';
 import myMacros from './macros';
 
 const options = {
     config: jsConfig,
-    plugins: [MyPlugin],
+    plugins: [
+        new DayJsCastPlugin(),
+        new MyPlugin({ option: 'value' }),
+    ],
     macros: myMacros,
 };
 

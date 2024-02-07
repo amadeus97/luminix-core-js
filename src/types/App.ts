@@ -37,6 +37,7 @@ export type BootOptions = {
     config?: AppConfiguration;
     plugins?: Plugin[];
     macros?: (containers: AppContainers) => void;
+    skipBootRequest?: boolean;
 };
 
 

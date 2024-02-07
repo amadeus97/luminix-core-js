@@ -1,4 +1,4 @@
-// import axios from "axios";
+import axios from "axios";
 
 import Config from "./Config";
 import Macro from "./Macro";
@@ -54,7 +54,8 @@ export default class App implements AppInternal {
         const { 
             config: configObject = {}, 
             plugins = [], 
-            macros = () => null 
+            macros = () => null,
+            skipBootRequest = false
         } = options;
 
         if (configObject?.app?.debug) {
@@ -80,17 +81,19 @@ export default class App implements AppInternal {
 
         this.registerContainer('config', config);
 
-        // const { data } = await axios.get(
-        //     config.get('app.bootUrl', '/api/luminix/init')
-        // );
+        if (!skipBootRequest) {
+            const { data } = await axios.get(
+                config.get('app.bootUrl', '/api/luminix/init')
+            );
 
-        // if (config.get('app.debug', false)) {
-        //     console.log('[Luminix] Backend responded with:', data);
-        // }
+            if (config.get('app.debug', false)) {
+                console.log('[Luminix] Backend responded with:', data);
+            }
 
-        // if (data && typeof data === 'object') {
-        //     config.merge('boot', data);
-        // }
+            if (data && typeof data === 'object') {
+                config.merge('boot', data);
+            }
+        }
 
         config.lock('boot');
 
