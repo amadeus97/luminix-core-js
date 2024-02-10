@@ -61,8 +61,8 @@ export default class Repository implements RepositoryFacade {
                         }
 
                         // If there is a macro to handle a method, return it.                        
-                        if (macro.hasFilter(`model_${className}_call_${_.snakeCase(prop)}`)) {
-                            return macro.applyFilters(`model_${className}_call_${_.snakeCase(prop)}`, () => null, target);
+                        if (macro.hasFilter(`model_${className}_call_${_.snakeCase(prop)}_method`)) {
+                            return macro.applyFilters(`model_${className}_call_${_.snakeCase(prop)}_method`, () => null, target);
                         }
 
                         const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)

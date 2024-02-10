@@ -114,7 +114,7 @@ Ao acessar uma propriedade de um modelo, o Luminix leva em conta os seguintes pa
 
  - Se a propriedade existe no modelo base, ela é retornada.
  - Se a propriedade corresponde a um relacionamento, o Luminix irá retornar uma instância ou um array de instâncias do modelo relacionado.
- - Se existe uma macro registrada com o nome `model_{model}_call_{method}`, ela é executada e retornada.
+ - Se existe uma macro registrada com o nome `model_{model}_call_{method}_method`, ela é executada e retornada.
  - Se a propriedade existe no atributo `attributes` do modelo ou existe uma macro registrada com o nome `model_{model}_get_{attribute}_attribute`, o Luminix irá retornar o valor do atributo convertido.
 
 Durante este processo de acesso, o Luminix irá converter automaticamente as propriedades para `snake_case` e vice-versa, e aplicar os casts definidos no modelo Eloquent.

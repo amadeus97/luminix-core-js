@@ -23,6 +23,7 @@ O método boot aceita um objeto de opções que pode ser usado para personalizar
  - `config`: Um objeto de configuração, que será acessível através do helper `config`.
  - `plugins`: Um array de plugins que serão utilizados pelo Luminix.
  - `macros`: Uma função que define e adiciona macros personalizadas ao sistema.
+ - `skipBootRequest`: Se verdadeiro, pula a requisição de inicialização do backend.
 
 
 #### Definindo a Configuração
@@ -42,7 +43,7 @@ app().boot({
 }).then(() => console.log(`${config('app.name')} iniciado com sucesso.` ));
 ```
 
- > **Nota**: O Luminix CMS **não necessita** de uma configuração inicial para funcionar. No entanto, é altamente recomendado que você defina uma configuração inicial para personalizar o comportamento do CMS e de seus plugins.
+ > **Nota**: O Luminix CMS **não necessita** de uma configuração inicial para funcionar. No entanto, é altamente recomendado que você defina uma configuração inicial para personalizar o comportamento do CMS e de seus plugins. Veja a [documentação de configuração](./1.1-Definindo-configuracao.md) para mais informações sobre como definir a configuração inicial.
 
 #### Registro de Macros
 
