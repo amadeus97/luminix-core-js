@@ -16,7 +16,6 @@ export type App = {
 export type AppFacade = App & {
     has(key: string): boolean;
     add(key: string, facade: any): void;
-    restart(): void;
 };
 
 export type AppFacades = {

@@ -42,11 +42,6 @@ export default class App implements AppFacade {
         this.facades[key] = facade;
     }
 
-    restart() {
-        this.booted = false;
-        this.facades = {} as AppFacades;
-    }
-
     plugins() {
         return this._plugins;
     }
@@ -60,7 +55,9 @@ export default class App implements AppFacade {
 
         // Boot macros
         this.add('macro', new Macro());
-        this.facades.macro.doAction('init', this);
+        const { macro } = this.facades;
+
+        macro.doAction('init', this);
 
         const { 
             config: configObject = {}, 
@@ -86,15 +83,15 @@ export default class App implements AppFacade {
             }
         }
 
-        this.facades.macro.doAction('registered', this);
+        macro.doAction('registered', this);
 
         // Boot Config
-        const config = new Config(configObject);
-        this.add('config', config);
+        this.add('config', new Config(configObject));
 
         // Boot Log
-        const logger = new Log(this)
-        this.add('log', logger);
+        this.add('log', new Log(this));
+
+        const { config, log: logger } = this.facades;
 
         if (!skipBootRequest) {
             const { data } = await axios.get(
@@ -116,6 +113,8 @@ export default class App implements AppFacade {
         logger.log('[Luminix] All facades registered:', this.facades);
 
         runCoreMacros(this.facades);
+
+        const { auth } = this.facades;
 
         const bootablePlugins = plugins.filter(p => typeof p.boot === 'function');
         // Boot plugins
@@ -143,19 +142,19 @@ export default class App implements AppFacade {
         logger.log(` + ${plugins.length} plugins registered`);
         logger.log(` + ${Object.keys(config.get('boot.models', {})).length} models loaded`);
         logger.log(` + ${Object.keys(config.get('boot.routes', {})).length} routes available`);
-        logger.log(` + ${this.facades.macro.getActions().length} actions registered`);
-        logger.log(` + ${this.facades.macro.getFilters().length} filters registered`);
+        logger.log(` + ${macro.getActions().length} actions registered`);
+        logger.log(` + ${macro.getFilters().length} filters registered`);
 
         if (config.get('app.debug', false)) {
-            if (!this.facades.auth.check()) {
+            if (!auth.check()) {
                 logger.log('[Luminix] User is not authenticated');
             } else {
                 logger.log('[Luminix] User is authenticated');
-                logger.log(' + User:', this.facades.auth.user());
+                logger.log(' + User:', auth.user());
             }
         }
 
-        this.facades.macro.doAction('booted', this.facades);
+        macro.doAction('booted', this.facades);
 
         return this.facades;
     }

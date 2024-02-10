@@ -2,7 +2,26 @@
 import { AppFacades } from "../types/App";
 import { ModelSchema } from "../types/Model";
 
-import makeCastAttributeFilter from "./makeCastAttributeFilter";
+const makeCastAttributeFilter = (cast: string) => (original: any) => {
+    if (original === null || original === undefined) {
+        return original;
+    }
+    
+    if (cast === 'boolean') {
+        return !!original;
+    }
+    if (['date', 'datetime', 'immutable_date', 'immutable_datetime'].includes(cast)) {
+        return new Date(original);
+    }
+    if (
+        ['float', 'double', 'integer'].includes(cast)
+        || cast.startsWith('decimal:')
+    ) {
+        return Number(original);
+    }
+
+    return original;
+};
 
 export default ({ macro, config }: AppFacades) => {
 
