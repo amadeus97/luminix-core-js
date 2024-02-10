@@ -10,6 +10,6 @@ Conteúdo:
     - `Macro`
     - `Repository`
  - Contratos
-    - `Model`
+    - [Model](./4.3.1-Model.md)
     - `Plugin`
 

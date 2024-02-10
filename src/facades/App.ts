@@ -69,7 +69,7 @@ export default class App implements AppFacade {
         const { 
             config: configObject = {}, 
             plugins = [], 
-            macros = () => null,
+            macros,
             skipBootRequest = false
         } = options;
 
@@ -143,10 +143,12 @@ export default class App implements AppFacade {
 
 
         logger.log('[Luminix] App boot completed');
-        logger.log(' + App Configuration:', config.all());
-        logger.log(` + Number of plugins: ${plugins.length}`);
-        logger.log(` + ${Object.keys(config.get('boot.models', {})).length} models loaded:`);
+        logger.log(' + config:', config.all());
+        logger.log(` + ${plugins.length} plugins registered`);
+        logger.log(` + ${Object.keys(config.get('boot.models', {})).length} models loaded`);
         logger.log(` + ${Object.keys(config.get('boot.routes', {})).length} routes available`);
+        logger.log(` + ${this.facades.macro.getActions().length} actions registered`);
+        logger.log(` + ${this.facades.macro.getFilters().length} filters registered`);
 
         if (!this.make('auth').check()) {
             logger.log('[Luminix] User is not authenticated');
