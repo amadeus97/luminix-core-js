@@ -1,6 +1,6 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMake } from '../types/Model';
+import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMakeFunction, RepositorySchemaFunction } from '../types/Model';
 
 import App from './App';
 import BaseModel from '../contracts/BaseModel';
@@ -193,46 +193,32 @@ export default class Repository implements RepositoryFacade {
         });
     }
 
-    readonly schema = (className: string) => {
-        if (!this._schema || !this._schema[className]) {
+    readonly schema = ((className?: string) => {
+        if (!this._schema || (className && !this._schema[className])) {
             throw new Error(`Schema for class '${className}' not found.`);
         }
 
-        const { [className]: schema } = this._schema;
+        if (className) {
+            return this._schema[className];
+        }
 
-        return schema;
-    };
+        return this._schema;
+        
+    }) as RepositorySchemaFunction;
 
 
     readonly make = ((className?: string) => {
+        if (className && !this._models[className]) {
+            throw new Error(`Model class '${className}' not found.`);
+        }
+
         if (!className) {
             return this._models;
         }
 
-        if (!this._models[className]) {
-            throw new Error(`Model class '${className}' not found.`);
-        }
         return this._models[className];
-    }) as RepositoryMake;
+    }) as RepositoryMakeFunction;
 
-    // /** @deprecated */
-    // createEmptyModelInstance(className: string, schema = 'default') {
-
-    //     const createClassInitialValues = (fields: any[]) => fields
-    //         .reduce((obj, field) => {
-    //             if (field.initialValue !== undefined) {
-    //                 return objectSetByPath(obj, field.name, field.initialValue);
-    //             }
-    //             return obj;
-    //         }, {});
-
-    //     const Model = this.make(className);
-    //     const { fields: { [schema]: schemaFields } } = this.schema(className);
-
-    //     const initialValues: ModelConstructorAttributes = createClassInitialValues(schemaFields);
-
-    //     return new Model(initialValues);
-    // }
 
 }
 

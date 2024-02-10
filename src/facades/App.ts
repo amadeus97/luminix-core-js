@@ -17,9 +17,9 @@ export default class App implements AppFacade {
     private booted = false;
     private _plugins: Plugin[] = [];
 
-    make<T extends keyof AppFacades>(key?: T): AppFacades[T] {
+    make(key?: string) {
         if (!key) {
-            return this.facades as AppFacades[T];
+            return this.facades;
         }
         if (this.facades[key]) {
             return this.facades[key];
@@ -33,7 +33,7 @@ export default class App implements AppFacade {
 
     add(key: string, facade: any) {
         if (this.facades[key]) {
-            const config = this.make('config');
+            const { config } = this.facades;
             if (config && config.get('app.debug', false)) {
                 console.warn(`[Luminix] Facade ${key} already registered. Registration will be ignored.`);
             }
@@ -47,15 +47,11 @@ export default class App implements AppFacade {
         this.facades = {} as AppFacades;
     }
 
-    all() {
-        return this.facades;
-    }
-
     plugins() {
         return this._plugins;
     }
 
-    async boot(options: BootOptions = {}): Promise<AppFacades> {
+    async boot(options: BootOptions = {}) {
 
         if (this.booted) {
             throw new Error('[Luminix] App already booted');
@@ -150,11 +146,13 @@ export default class App implements AppFacade {
         logger.log(` + ${this.facades.macro.getActions().length} actions registered`);
         logger.log(` + ${this.facades.macro.getFilters().length} filters registered`);
 
-        if (!this.make('auth').check()) {
-            logger.log('[Luminix] User is not authenticated');
-        } else {
-            logger.log('[Luminix] User is authenticated');
-            logger.log(' + User:', this.make('auth').user());
+        if (config.get('app.debug', false)) {
+            if (!this.facades.auth.check()) {
+                logger.log('[Luminix] User is not authenticated');
+            } else {
+                logger.log('[Luminix] User is authenticated');
+                logger.log(' + User:', this.facades.auth.user());
+            }
         }
 
         this.facades.macro.doAction('booted', this.facades);

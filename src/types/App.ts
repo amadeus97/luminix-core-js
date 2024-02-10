@@ -8,13 +8,12 @@ import { RepositoryFacade } from './Model';
 
 export type App = {
     boot: (options: BootOptions) => Promise<AppFacades>;
-    all: () => AppFacades;
+    make(): AppFacades;
+    make<T extends keyof AppFacades>(key: T): AppFacades[T];
     plugins: () => Plugin[];
 };
 
 export type AppFacade = App & {
-    make(): AppFacades;
-    make<T extends keyof AppFacades>(key: T): AppFacades[T];
     has(key: string): boolean;
     add(key: string, facade: any): void;
     restart(): void;

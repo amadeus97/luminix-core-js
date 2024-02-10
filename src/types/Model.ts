@@ -103,17 +103,21 @@ export type ModelPaginatedResponse = {
     total: number,
 }
 
+type RepositorySchemaWithoutArguments = () => ModelSchema;
+type RepositorySchemaWithArguments = (className: string) => ModelSchemaAttributes;
+
+export type RepositorySchemaFunction = RepositorySchemaWithoutArguments & RepositorySchemaWithArguments;
+
 type RepositoryMakeWithoutArguments = () => {
     [className: string]: typeof Model;
 };
-
 type RepositoryMakeWithArguments = (className: string) => typeof Model;
 
-export type RepositoryMake = RepositoryMakeWithoutArguments & RepositoryMakeWithArguments;
+export type RepositoryMakeFunction = RepositoryMakeWithoutArguments & RepositoryMakeWithArguments;
 
 export type RepositoryFacade = {
-    schema(className: string): ModelSchemaAttributes;
-    make: RepositoryMake;
+    readonly schema: RepositorySchemaFunction;
+    readonly make: RepositoryMakeFunction;
 }
 
 type ModelHelperWithoutArguments = () => RepositoryFacade;

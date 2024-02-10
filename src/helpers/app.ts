@@ -11,7 +11,7 @@ const app: AppHelper = (facade?: AppFacadeName) => {
     if (typeof facade !== 'string') {
         return {
             boot: appInstance.boot.bind(appInstance),
-            all: appInstance.all.bind(appInstance),
+            make: appInstance.make.bind(appInstance),
             plugins: appInstance.plugins.bind(appInstance),
         };
     }
