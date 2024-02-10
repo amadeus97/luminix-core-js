@@ -7,11 +7,13 @@ import runCoreMacros from '../macros';
 import Repository from "./Repository";
 import Auth from "./Auth";
 
-import { AppContainers, AppInternal, BootOptions } from "../types/App";
+import { AppContainers, AppFacade, BootOptions } from "../types/App";
+import Log from "./Log";
 
-export default class App implements AppInternal {
+export default class App implements AppFacade {
     private containers: AppContainers = {} as AppContainers;
     private booted = false;
+    private pluginsRegistered = false;
 
     getContainers() {
         return this.containers;
@@ -73,6 +75,10 @@ export default class App implements AppInternal {
             }
         }
 
+        // Boot Log
+        const logger = new Log(this)
+        this.registerContainer('log', logger);
+
         // Boot macros
         this.registerContainer('macro', new Macro());
 
@@ -86,9 +92,7 @@ export default class App implements AppInternal {
                 config.get('app.bootUrl', '/api/luminix/init')
             );
 
-            if (config.get('app.debug', false)) {
-                console.log('[Luminix] Backend responded with:', data);
-            }
+            logger.log('[Luminix] Backend responded with:', data);
 
             if (data && typeof data === 'object') {
                 config.merge('boot', data);
@@ -100,44 +104,42 @@ export default class App implements AppInternal {
         this.registerContainer('auth', new Auth(this));
         this.registerContainer('repository', new Repository(this));
 
-        if (config.get('app.debug', false)) {
-            console.log('[Luminix] All containers registered:', this.containers);
-        }
+        logger.log('[Luminix] All containers registered:', this.containers);
 
         runCoreMacros(this.containers);
 
         const bootablePlugins = plugins.filter(p => typeof p.boot === 'function');
         // Boot plugins
         for (const plugin of bootablePlugins) {
-            if (config.get('app.debug', false)) {
-                console.log(`[Luminix] Booting plugin: "${plugin.name}"`);
-            }
+
+            logger.log(`[Luminix] Booting plugin: "${plugin.name}"`);
+
             (plugin.boot as Function)(this.containers);
-            if (config.get('app.debug', false)) {
-                console.log(`[Luminix] Plugin "${plugin.name}" booted`);
-            }
+
+            logger.log(`[Luminix] Plugin "${plugin.name}" booted`);
+            
         }
 
         // Boot custom macros
         if (typeof macros === 'function') {
             macros(this.containers);
-            if (config.get('app.debug', false)) {
-                console.log('[Luminix] User-defined macros booted');
-            }
+
+            logger.log('[Luminix] User-defined macros booted');
+            
         }
 
-        if (config.get('app.debug', false)) {
-            console.log('[Luminix] App boot completed');
-            console.log(' + App Configuration:', config.all());
-            console.log(` + Number of plugins: ${plugins.length}`);
-            console.log(' + Models loaded:', Object.keys(config.get('boot.models', {})).join(', '));
-            console.log(' + Routes available:', Object.keys(config.get('boot.routes', {})).join(', '));
-            if (!this.getContainer('auth').check()) {
-                console.log('[Luminix] User is not authenticated');
-            } else {
-                console.log('[Luminix] User is authenticated');
-                console.log(' + User:', this.getContainer('auth').user());
-            }
+
+        logger.log('[Luminix] App boot completed');
+        logger.log(' + App Configuration:', config.all());
+        logger.log(` + Number of plugins: ${plugins.length}`);
+        logger.log(' + Models loaded:', Object.keys(config.get('boot.models', {})).join(', '));
+        logger.log(' + Routes available:', Object.keys(config.get('boot.routes', {})).join(', '));
+
+        if (!this.getContainer('auth').check()) {
+            logger.log('[Luminix] User is not authenticated');
+        } else {
+            logger.log('[Luminix] User is authenticated');
+            logger.log(' + User:', this.getContainer('auth').user());
         }
 
         return this.containers;

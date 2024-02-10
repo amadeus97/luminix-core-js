@@ -1,4 +1,4 @@
-import App from "../containers/App";
+import App from "../facades/App";
 import { AppContainerName, AppHelper } from "../types/App";
 
 let appInstance: App;

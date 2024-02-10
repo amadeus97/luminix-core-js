@@ -1,19 +1,19 @@
 
 
 import axios from 'axios';
-import { AuthCredentials } from '../types/Auth';
+import { AuthCredentials, AuthFacade } from '../types/Auth';
 import { Model } from '../types/Model';
-
-import App from './App';
 
 import route from '../helpers/route';
 
-export default class Auth {
+import { AppFacade } from '../types/App';
+
+export default class Auth implements AuthFacade {
 
     private _user: Model | undefined;
 
     constructor(
-        private readonly app: App
+        private readonly app: AppFacade
     ) { }
 
     async attempt(credentials: AuthCredentials, remember: boolean = false) {
@@ -47,18 +47,29 @@ export default class Auth {
     }
 
     logout() {
-        const logoutForm = document.querySelector('form#logout-form');
-        if (!(logoutForm instanceof HTMLFormElement)) {
-            throw new Error('Logout form not found');
-        }
-        logoutForm.submit();
+        // Append a form to the document and submit it
+        const form = document.createElement('form');
+
+        form.method = 'post';
+        form.action = route('logout');
+        form.style.display = 'none';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_token';
+        input.value = '';
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+
+        form.submit();
     }
 
     user(): Model | null {
         if (!this._user) {
             const { repository, config } = this.app.getContainers();
 
-            const User = repository.getModelClass('user');
+            const User = repository.make('user');
             const userData = config.get('boot.data.user');
 
             if (!userData) {

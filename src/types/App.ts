@@ -1,16 +1,16 @@
-import Auth from '../containers/Auth';
-import Config from '../containers/Config';
-import Macro from '../containers/Macro';
-import Repository from '../containers/Repository';
-import { AppConfiguration } from './Config';
+import { AppConfiguration, ConfigFacade } from './Config';
 
 import Plugin from '../contracts/Plugin';
+import { LogFacade } from './Log';
+import { AuthFacade } from './Auth';
+import { MacroFacade } from './Macro';
+import { RepositoryFacade } from './Model';
 
 export type App = {
     boot: (options: BootOptions) => Promise<AppContainers>;
 };
 
-export type AppInternal = App & {
+export type AppFacade = App & {
     getContainers(): AppContainers;
     getContainer<T extends keyof AppContainers>(key: T): AppContainers[T];
     hasContainer(key: string): boolean;
@@ -19,10 +19,11 @@ export type AppInternal = App & {
 };
 
 export type AppContainers = {
-    auth: Auth;
-    config: Config;
-    macro: Macro;
-    repository: Repository;
+    auth: AuthFacade;
+    config: ConfigFacade;
+    log: LogFacade;
+    macro: MacroFacade;
+    repository: RepositoryFacade;
     [key: string]: any;
 };
 

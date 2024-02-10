@@ -1,16 +1,18 @@
 
-import config from './config';
+import app from './app';
+import { LogHelper } from '../types/Log';
 
-/**
- * A helper function for console.log. Will only log if app.debug is set to true.
- *
- * @param message 
- * @param args 
- */
-const log = (message: string, ...args: any[]) => {
-    if (config('app.debug', false)) {
-        console.log(message, ...args);
+const log = ((...data: any[]) => {
+    const logFacade = app('log');
+    const config = app('config');
+
+    if (data.length === 0) {
+        return logFacade;
     }
-};
+
+    if (config.get('app.debug')) {
+        console.log(...data);
+    }
+}) as LogHelper;
 
 export default log;

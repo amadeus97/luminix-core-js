@@ -4,8 +4,8 @@
 import { createObjectWithKeys, createObjectWithoutKeys, objectDiff } from '../support/object';
 
 import { Model, ModelConstructorAttributes, ModelAttributes, ModelSaveOptions } from '../types/Model';
-
 import { AppContainers } from '../types/App';
+
 import route from '../helpers/route';
 import axios from 'axios';
 import _ from 'lodash';
@@ -34,7 +34,7 @@ export default abstract class BaseModel {
     construct(attributes: ModelConstructorAttributes) {
         this._key = crypto.randomUUID();
 
-        const { fillable, relations } = this.containers.repository.getClassSchema(this.className);
+        const { fillable, relations } = this.containers.repository.schema(this.className);
 
         const excludedKeys = [
             'id', 'created_at', 'updated_at', 'deleted_at', 'created_by',
@@ -66,7 +66,7 @@ export default abstract class BaseModel {
                     return;
                 }
 
-                const Model = this.containers.repository.getModelClass(
+                const Model = this.containers.repository.make(
                     type === 'MorphTo'
                         ? attributes[`${key}_type`] as string
                         : model
@@ -168,7 +168,7 @@ export default abstract class BaseModel {
     }
 
     json() {
-        const modelRelations = this.containers.repository.getClassSchema(this.className).relations;
+        const modelRelations = this.containers.repository.schema(this.className).relations;
 
         const relations: any = Object.entries(this.relations).reduce((acc: any, [key, value]) => {
             const { type } = modelRelations[key];

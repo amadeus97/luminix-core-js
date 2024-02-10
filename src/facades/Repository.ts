@@ -2,7 +2,7 @@
 
 import { objectSetByPath } from '../support/object';
 
-import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema } from '../types/Model';
+import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMake } from '../types/Model';
 
 import App from './App';
 import BaseModel from '../contracts/BaseModel';
@@ -12,7 +12,7 @@ import axios from 'axios';
 import _ from 'lodash';
 
 
-export default class Repository {
+export default class Repository implements RepositoryFacade {
 
     private _schema: ModelSchema | undefined;
     private _models: { [className: string]: typeof Model } = {};
@@ -103,13 +103,13 @@ export default class Repository {
             }
 
             static getSchema() {
-                return app.getContainer('repository').getClassSchema(className);
+                return app.getContainer('repository').schema(className);
             }
 
             static async get(query?: object): Promise<ModelPaginatedResponse> {
                 const { data } = await axios.get(route(`luminix.${className}.list`), { params: query });
 
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
 
                 return {
                     ...data,
@@ -120,13 +120,13 @@ export default class Repository {
             static async find(id: number) {
                 const { data } = await axios.get(route(`luminix.${className}.item`, { id }));
 
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
 
                 return new Model(data);
             }
 
             static async create(attributes: ModelConstructorAttributes) {
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
                 const model = new Model();
 
                 model.fill(attributes);
@@ -137,7 +137,7 @@ export default class Repository {
             }
 
             static async update(id: number, attributes: ModelConstructorAttributes) {
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
                 const model = new Model({ id });
  
                 model.fill(attributes);
@@ -148,14 +148,14 @@ export default class Repository {
             }
 
             static delete(id: number) {
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
                 const model = new Model({ id });
 
                 return model.delete();
             }
 
             static async restore(id: number) {
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
 
                 const model = new Model({ id });
 
@@ -165,7 +165,7 @@ export default class Repository {
             }
 
             static forceDelete(id: number) {
-                const Model = app.getContainer('repository').getModelClass(className);
+                const Model = app.getContainer('repository').make(className);
 
                 const model = new Model({ id });
 
@@ -195,7 +195,7 @@ export default class Repository {
         });
     }
 
-    getClassSchema(className: string) {
+    readonly schema = (className: string) => {
         if (!this._schema || !this._schema[className]) {
             throw new Error(`Schema for class '${className}' not found.`);
         }
@@ -206,34 +206,35 @@ export default class Repository {
     };
 
 
-    getModelClass(className: string) {
+    readonly make = ((className?: string) => {
+        if (!className) {
+            return this._models;
+        }
+
         if (!this._models[className]) {
             throw new Error(`Model class '${className}' not found.`);
         }
         return this._models[className];
-    }
+    }) as RepositoryMake;
 
-    getModels() {
-        return this._models;
-    }
+    // /** @deprecated */
+    // createEmptyModelInstance(className: string, schema = 'default') {
 
-    createEmptyModelInstance(className: string, schema = 'default') {
+    //     const createClassInitialValues = (fields: any[]) => fields
+    //         .reduce((obj, field) => {
+    //             if (field.initialValue !== undefined) {
+    //                 return objectSetByPath(obj, field.name, field.initialValue);
+    //             }
+    //             return obj;
+    //         }, {});
 
-        const createClassInitialValues = (fields: any[]) => fields
-            .reduce((obj, field) => {
-                if (field.initialValue !== undefined) {
-                    return objectSetByPath(obj, field.name, field.initialValue);
-                }
-                return obj;
-            }, {});
+    //     const Model = this.make(className);
+    //     const { fields: { [schema]: schemaFields } } = this.schema(className);
 
-        const Model = this.getModelClass(className);
-        const { fields: { [schema]: schemaFields } } = this.getClassSchema(className);
+    //     const initialValues: ModelConstructorAttributes = createClassInitialValues(schemaFields);
 
-        const initialValues: ModelConstructorAttributes = createClassInitialValues(schemaFields);
-
-        return new Model(initialValues);
-    }
+    //     return new Model(initialValues);
+    // }
 
 }
 

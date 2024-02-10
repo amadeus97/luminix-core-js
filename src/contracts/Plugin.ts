@@ -1,5 +1,5 @@
 
-import App from "../containers/App";
+import App from "../facades/App";
 import { AppContainers } from "../types/App";
 
 export default abstract class Plugin {

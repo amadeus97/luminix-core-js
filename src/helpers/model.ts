@@ -8,5 +8,5 @@ export default ((className?: string) => {
         return repository;
     }
 
-    return repository.getModelClass(className);
+    return repository.make(className);
 }) as ModelHelper;

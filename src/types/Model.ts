@@ -1,7 +1,8 @@
 
 import { AxiosResponse } from "axios";
-import Repository from "../containers/Repository";
+
 import BaseModel from "../contracts/BaseModel";
+
 import { AppContainers } from "./App";
 
 export declare class Model extends BaseModel {
@@ -108,7 +109,20 @@ export type ModelPaginatedResponse = {
     total: number,
 }
 
-type ModelHelperWithoutArguments = () => Repository;
+type RepositoryMakeWithoutArguments = () => {
+    [className: string]: typeof Model;
+};
+
+type RepositoryMakeWithArguments = (className: string) => typeof Model;
+
+export type RepositoryMake = RepositoryMakeWithoutArguments & RepositoryMakeWithArguments;
+
+export type RepositoryFacade = {
+    schema(className: string): ModelSchemaAttributes;
+    make: RepositoryMake;
+}
+
+type ModelHelperWithoutArguments = () => RepositoryFacade;
 
 type ModelHelperWithArguments = (className: string) => typeof Model;
 

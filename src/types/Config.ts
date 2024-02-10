@@ -1,4 +1,3 @@
-import Config from '../containers/Config';
 import { ModelSchema } from './Model';
 
 export type AppConfiguration = {
@@ -24,9 +23,20 @@ export type AppConfiguration = {
     [key: string]: any;
 };
 
-type ConfigWithNoArguments = () => Config;
+export type ConfigFacade = {
+    get(path: string, defaultValue?: any): any;
+    set(path: string, value: any): void;
+    merge(path: string, value: any): void;
+    has(path: string): boolean;
+    lock(path: string): void;
+    all(): AppConfiguration;
+    delete(path: string): void;
 
-type ConfigWithKey = (key: string, defaultValue?: any) => any;
+};
+
+type ConfigWithNoArguments = () => ConfigFacade;
+
+type ConfigWithKey = (path: string, defaultValue?: any) => any;
 
 
 export type ConfigHelper = ConfigWithNoArguments & ConfigWithKey;

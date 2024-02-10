@@ -1,7 +1,7 @@
 import { objectExistsByPath, objectGetByPath, objectSetByPath } from "../support/object";
-import { AppConfiguration } from "../types/Config";
+import { AppConfiguration, ConfigFacade } from "../types/Config";
 
-export default class Config {
+export default class Config implements ConfigFacade {
 
     private locked: string[] = [];
 

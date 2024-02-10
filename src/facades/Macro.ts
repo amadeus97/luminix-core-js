@@ -1,8 +1,8 @@
-import { ActionRepository, FilterRepository, MacroActionCallback, MacroFilterCallback } from '../types/Macro';
+import { ActionRepository, FilterRepository, MacroActionCallback, MacroFacade, MacroFilterCallback } from '../types/Macro';
 /**
  * Macro Container
  */
-export default class Macro {
+export default class Macro implements MacroFacade {
 
     private actions: ActionRepository = [];
     private filters: FilterRepository<any, any> = [];
@@ -39,7 +39,10 @@ export default class Macro {
         this.filters.splice(this.filters.findIndex((item) => item.filter === filter && item.callback === callback), 1);
     }
 
-    getActions(): Array<any> {
+    getActions(action?: string): Array<any> {
+        if (action) {
+            return this.actions.filter((item) => item.action === action);
+        }
         return this.actions;
     }
 
