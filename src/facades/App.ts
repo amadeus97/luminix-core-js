@@ -13,7 +13,6 @@ import Log from "./Log";
 export default class App implements AppFacade {
     private containers: AppContainers = {} as AppContainers;
     private booted = false;
-    private pluginsRegistered = false;
 
     getContainers() {
         return this.containers;

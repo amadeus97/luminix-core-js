@@ -1,7 +1,5 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { objectSetByPath } from '../support/object';
-
 import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMake } from '../types/Model';
 
 import App from './App';
