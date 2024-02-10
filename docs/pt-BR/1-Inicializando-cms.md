@@ -12,7 +12,7 @@ import { app } from '@luminix/core';
 app().boot().then(() => console.log('Luminix iniciado com sucesso.'));
 ```
 
-O método `boot()` é responsável por iniciar os containers internos do Luminix, como `Config`, `Macro`, `Auth`, e `Repository`. Além disso, realiza a configuração inicial do Axios, carrega os dados iniciais do backend e inicializa os plugins e macros personalizadas.
+O método `boot()` é responsável por iniciar os facades internos do Luminix, como `Config`, `Macro`, `Auth`, e `Repository`. Além disso, realiza a configuração inicial do Axios, carrega os dados iniciais do backend e inicializa os plugins e macros personalizadas.
 
 ## Modificadores de Inicialização
 
@@ -46,7 +46,7 @@ app().boot({
 
 #### Registro de Macros
 
-O Luminix permite a adição de macros personalizadas, inspiradas nos hooks do WordPress. Isso permite que você adicione funcionalidades personalizadas ao sistema, e também estenda as funcionalidades existentes. As macros são registradas através dos métodos do container `Macro`.
+O Luminix permite a adição de macros personalizadas, inspiradas nos hooks do WordPress. Isso permite que você adicione funcionalidades personalizadas ao sistema, e também estenda as funcionalidades existentes. As macros são registradas através dos métodos do facade `Macro`.
 
 ```javascript
 app().boot({

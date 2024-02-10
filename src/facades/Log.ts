@@ -8,7 +8,7 @@ export default class Log implements LogFacade {
     constructor(
         private app: AppFacade,
     ) { 
-        this.enabled = this.app.getContainer('config').get('app.debug', false);
+        this.enabled = this.app.make('config').get('app.debug', false);
     }
 
     public emergency(...args: any[]) {

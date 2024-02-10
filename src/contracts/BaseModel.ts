@@ -4,7 +4,7 @@
 import { createObjectWithKeys, createObjectWithoutKeys, objectDiff } from '../support/object';
 
 import { Model, ModelConstructorAttributes, ModelAttributes, ModelSaveOptions } from '../types/Model';
-import { AppContainers } from '../types/App';
+import { AppFacades } from '../types/App';
 
 import route from '../helpers/route';
 import axios from 'axios';
@@ -24,7 +24,7 @@ export default abstract class BaseModel {
 
 
     constructor(
-        private readonly containers: AppContainers,
+        private readonly facades: AppFacades,
         public readonly className: string,
         attributes: ModelConstructorAttributes = { id: 0 }
     ) {
@@ -34,7 +34,7 @@ export default abstract class BaseModel {
     construct(attributes: ModelConstructorAttributes) {
         this._key = crypto.randomUUID();
 
-        const { fillable, relations } = this.containers.repository.schema(this.className);
+        const { fillable, relations } = this.facades.repository.schema(this.className);
 
         const excludedKeys = [
             'id', 'created_at', 'updated_at', 'deleted_at', 'created_by',
@@ -66,7 +66,7 @@ export default abstract class BaseModel {
                     return;
                 }
 
-                const Model = this.containers.repository.make(
+                const Model = this.facades.repository.make(
                     type === 'MorphTo'
                         ? attributes[`${key}_type`] as string
                         : model
@@ -92,7 +92,7 @@ export default abstract class BaseModel {
         this._fillable = fillable;
 
         this._createdAt = createdAt
-            ? this.containers.macro.applyFilters(
+            ? this.facades.macro.applyFilters(
                 `model_${this.className}_get_created_at_attribute`,
                 createdAt,
                 this
@@ -100,7 +100,7 @@ export default abstract class BaseModel {
             : null;
 
         this._updatedAt = updatedAt
-            ? this.containers.macro.applyFilters(
+            ? this.facades.macro.applyFilters(
                 `model_${this.className}_get_updated_at_attribute`,
                 updatedAt,
                 this
@@ -108,7 +108,7 @@ export default abstract class BaseModel {
             : null;
         
         this._deletedAt = deletedAt
-            ? this.containers.macro.applyFilters(
+            ? this.facades.macro.applyFilters(
                 `model_${this.className}_get_deleted_at_attribute`,
                 deletedAt,
                 this
@@ -168,7 +168,7 @@ export default abstract class BaseModel {
     }
 
     json() {
-        const modelRelations = this.containers.repository.schema(this.className).relations;
+        const modelRelations = this.facades.repository.schema(this.className).relations;
 
         const relations: any = Object.entries(this.relations).reduce((acc: any, [key, value]) => {
             const { type } = modelRelations[key];
@@ -230,7 +230,7 @@ export default abstract class BaseModel {
                 .then((response) => {
                     if (response.status === 200) {
                         this.construct(response.data);
-                        this.containers.macro.doAction(`model_${this.className}_save_success`, this);
+                        this.facades.macro.doAction(`model_${this.className}_save_success`, this);
                         resolve(true);
                         return;
                     }
@@ -239,7 +239,7 @@ export default abstract class BaseModel {
                 .catch((error) => {
                     console.error(error);
 
-                    this.containers.macro.doAction(`model_${this.className}_save_error`, error, this);
+                    this.facades.macro.doAction(`model_${this.className}_save_error`, error, this);
 
                     reject(error);
                 });
@@ -259,7 +259,7 @@ export default abstract class BaseModel {
             })
                 .then((response) => {
                     if (response.status === 200) {
-                        this.containers.macro.doAction(`model_${this.className}_delete_success`, this);
+                        this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
                         resolve(true);
                         return;
                     }
@@ -267,7 +267,7 @@ export default abstract class BaseModel {
                 })
                 .catch((error) => {
                     console.error(error);
-                    this.containers.macro.doAction(`model_${this.className}_delete_error`, error, this);
+                    this.facades.macro.doAction(`model_${this.className}_delete_error`, error, this);
                     reject(error);
                 });
         });
@@ -288,7 +288,7 @@ export default abstract class BaseModel {
             })
                 .then((response) => {
                     if (response.status === 200) {
-                        this.containers.macro.doAction(`model_${this.className}_force_delete_success`, this);
+                        this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
                         resolve(true);
                         return;
                     }
@@ -296,7 +296,7 @@ export default abstract class BaseModel {
                 })
                 .catch((error) => {
                     console.error(error);
-                    this.containers.macro.doAction(`model_${this.className}_force_delete_error`, error, this);
+                    this.facades.macro.doAction(`model_${this.className}_force_delete_error`, error, this);
                     reject(error);
                 });
         });
@@ -319,7 +319,7 @@ export default abstract class BaseModel {
             })
                 .then((response) => {
                     if (response.status === 200) {
-                        this.containers.macro.doAction(`model_${this.className}_restore_success`, this);
+                        this.facades.macro.doAction(`model_${this.className}_restore_success`, this);
                         resolve(true);
                         return;
                     }
@@ -327,7 +327,7 @@ export default abstract class BaseModel {
                 })
                 .catch((error) => {
                     console.error(error);
-                    this.containers.macro.doAction(`model_${this.className}_restore_error`, error, this);
+                    this.facades.macro.doAction(`model_${this.className}_restore_error`, error, this);
                     reject(error);
                 });
         });

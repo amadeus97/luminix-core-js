@@ -7,18 +7,18 @@ import { MacroFacade } from './Macro';
 import { RepositoryFacade } from './Model';
 
 export type App = {
-    boot: (options: BootOptions) => Promise<AppContainers>;
+    boot: (options: BootOptions) => Promise<AppFacades>;
 };
 
 export type AppFacade = App & {
-    getContainers(): AppContainers;
-    getContainer<T extends keyof AppContainers>(key: T): AppContainers[T];
-    hasContainer(key: string): boolean;
-    registerContainer(key: string, container: any): void;
+    make(): AppFacades;
+    make<T extends keyof AppFacades>(key: T): AppFacades[T];
+    has(key: string): boolean;
+    add(key: string, facade: any): void;
     restart(): void;
 };
 
-export type AppContainers = {
+export type AppFacades = {
     auth: AuthFacade;
     config: ConfigFacade;
     log: LogFacade;
@@ -27,17 +27,17 @@ export type AppContainers = {
     [key: string]: any;
 };
 
-export type AppContainerName = keyof AppContainers;
+export type AppFacadeName = keyof AppFacades;
 
 type AppGetter = () => App;
-type AppContainerGetter = <T extends AppContainerName>(abstract: T) => AppContainers[T];
+type AppFacadeGetter = <T extends AppFacadeName>(facade: T) => AppFacades[T];
 
-export type AppHelper = AppGetter & AppContainerGetter;
+export type AppHelper = AppGetter & AppFacadeGetter;
 
 export type BootOptions = {
     config?: AppConfiguration;
     plugins?: Plugin[];
-    macros?: (containers: AppContainers) => void;
+    macros?: (facades: AppFacades) => void;
     skipBootRequest?: boolean;
 };
 

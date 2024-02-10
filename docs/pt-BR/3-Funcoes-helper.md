@@ -4,11 +4,11 @@ Todas as funcionalidades do Luminix são acessadas através das funções helper
 
 ## `app()`
 
-A função `app()` retorna a instância do aplicativo Luminix. Esta instância é utilizada para inicializar o aplicativo. Ela também aceita um string como argumento que permite acessar os containers do Luminix.
+A função `app()` retorna a instância do aplicativo Luminix. Esta instância é utilizada para inicializar o aplicativo. Ela também aceita um string como argumento que permite acessar os facades do Luminix.
 
 ```typescript
 app(): App;
-app<T extends keyof AppContainers>(container: T): AppContainers[T];
+app<T extends keyof AppFacades>(facade: T): AppFacades[T];
 ```
 
 Exemplo:
@@ -18,7 +18,7 @@ import { app } from '@luminix/core';
 
 // Inicializando o app
 app().boot().then(() => {
-    // Acessando o container `Auth`
+    // Acessando o facade `Auth`
     const auth = app('auth');
     auth.user().name; // John Doe
 });
@@ -26,7 +26,7 @@ app().boot().then(() => {
 
 ## `auth()`
 
-A função `auth()` retorna a instância do container `Auth`. Este container é utilizado para autenticar usuários, para acessar informações sobre o usuário autenticado e outras ações relacionadas à autenticação.
+A função `auth()` retorna a instância do facade `Auth`. Este facade é utilizado para autenticar usuários, para acessar informações sobre o usuário autenticado e outras ações relacionadas à autenticação.
 
 ```typescript
 auth(): Auth;
@@ -47,7 +47,7 @@ if (auth().check()) {
 
 ## `config()`
 
-A função `config()` retorna a configuração do aplicativo. Esta configuração é definida durante a inicialização do aplicativo, e é acessível em todo o aplicativo. É análoga ao helper `config()` do Laravel. Pode ser chamada com um argumento para acessar uma chave específica da configuração, ou sem argumentos para acessar o container `Config`.
+A função `config()` retorna a configuração do aplicativo. Esta configuração é definida durante a inicialização do aplicativo, e é acessível em todo o aplicativo. É análoga ao helper `config()` do Laravel. Pode ser chamada com um argumento para acessar uma chave específica da configuração, ou sem argumentos para acessar o facade `Config`.
 
 ```typescript
 config(): Config;
@@ -121,7 +121,7 @@ log('Usuário autenticado com sucesso.');
 
 ## `model()`
 
-A função `model()` retorna a instância de um modelo. Esta função é utilizada para interagir com os modelos do backend, como criar, atualizar, deletar e obter dados dos modelos. Ela poderá ser chamada com um argumento para retornar a instância de um modelo específico, ou sem argumentos para acessar o container `Repository`.
+A função `model()` retorna a instância de um modelo. Esta função é utilizada para interagir com os modelos do backend, como criar, atualizar, deletar e obter dados dos modelos. Ela poderá ser chamada com um argumento para retornar a instância de um modelo específico, ou sem argumentos para acessar o facade `Repository`.
 
 ```typescript
 model(): Repository;

@@ -1,24 +1,24 @@
 import App from "../facades/App";
-import { AppContainerName, AppHelper } from "../types/App";
+import { AppFacadeName, AppHelper } from "../types/App";
 
 let appInstance: App;
 
-const app: AppHelper = (abstract?: AppContainerName) => {
+const app: AppHelper = (facade?: AppFacadeName) => {
     if (!appInstance) {
         appInstance = new App();
     }
 
-    if (typeof abstract !== 'string') {
+    if (typeof facade !== 'string') {
         return {
             boot: appInstance.boot.bind(appInstance),
         };
     }
 
-    if (!appInstance.hasContainer(abstract)) {
-        throw new Error(`[Luminix] Container not found: ${abstract}`);
+    if (!appInstance.has(facade)) {
+        throw new Error(`[Luminix] Facade not found: ${facade}`);
     }
 
-    return appInstance.getContainer(abstract);
+    return appInstance.make(facade);
 
 }
 

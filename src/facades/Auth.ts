@@ -31,7 +31,7 @@ export default class Auth implements AuthFacade {
         }
 
         // this method is not fully implemented
-        const config = this.app.getContainer('config');
+        const config = this.app.make('config');
 
         if (config.get('app.debug', false)) {
             console.warn('Auth.attempt() is not fully implemented');
@@ -41,7 +41,7 @@ export default class Auth implements AuthFacade {
     }
 
     check() {
-        const config = this.app.getContainer('config');
+        const config = this.app.make('config');
 
         return !!config.get('boot.data.user');
     }
@@ -67,7 +67,7 @@ export default class Auth implements AuthFacade {
 
     user(): Model | null {
         if (!this._user) {
-            const { repository, config } = this.app.getContainers();
+            const { repository, config } = this.app.make();
 
             const User = repository.make('user');
             const userData = config.get('boot.data.user');

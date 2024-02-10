@@ -7,45 +7,45 @@ import runCoreMacros from '../macros';
 import Repository from "./Repository";
 import Auth from "./Auth";
 
-import { AppContainers, AppFacade, BootOptions } from "../types/App";
+import { AppFacades, AppFacade, BootOptions } from "../types/App";
 import Log from "./Log";
 
 export default class App implements AppFacade {
-    private containers: AppContainers = {} as AppContainers;
+
+    private facades: AppFacades = {} as AppFacades;
     private booted = false;
 
-    getContainers() {
-        return this.containers;
-    }
-
-    getContainer<T extends keyof AppContainers>(key: T): AppContainers[T] {
-        if (this.containers[key]) {
-            return this.containers[key];
+    make<T extends keyof AppFacades>(key?: T): AppFacades[T] {
+        if (!key) {
+            return this.facades as AppFacades[T];
+        }
+        if (this.facades[key]) {
+            return this.facades[key];
         }
         return undefined;
     }
 
-    hasContainer(key: string) {
-        return !!this.containers[key];
+    has(key: string) {
+        return !!this.facades[key];
     }
 
-    registerContainer(key: string, container: any) {
-        if (this.containers[key]) {
-            const config = this.getContainer('config');
+    add(key: string, facade: any) {
+        if (this.facades[key]) {
+            const config = this.make('config');
             if (config && config.get('app.debug', false)) {
-                console.warn(`[Luminix] Container ${key} already registered. Registration will be ignored.`);
+                console.warn(`[Luminix] Facade ${key} already registered. Registration will be ignored.`);
             }
             return;
         }
-        this.containers[key] = container;
+        this.facades[key] = facade;
     }
 
     restart() {
         this.booted = false;
-        this.containers = {} as AppContainers;
+        this.facades = {} as AppFacades;
     }
 
-    async boot(options: BootOptions = {}): Promise<AppContainers> {
+    async boot(options: BootOptions = {}): Promise<AppFacades> {
 
         if (this.booted) {
             throw new Error('[Luminix] App already booted');
@@ -76,15 +76,14 @@ export default class App implements AppFacade {
 
         // Boot Log
         const logger = new Log(this)
-        this.registerContainer('log', logger);
+        this.add('log', logger);
 
         // Boot macros
-        this.registerContainer('macro', new Macro());
+        this.add('macro', new Macro());
 
-        // let config = this.getContainer('config') as Config;
         const config = new Config(configObject);
 
-        this.registerContainer('config', config);
+        this.add('config', config);
 
         if (!skipBootRequest) {
             const { data } = await axios.get(
@@ -100,12 +99,12 @@ export default class App implements AppFacade {
 
         config.lock('boot');
 
-        this.registerContainer('auth', new Auth(this));
-        this.registerContainer('repository', new Repository(this));
+        this.add('auth', new Auth(this));
+        this.add('repository', new Repository(this));
 
-        logger.log('[Luminix] All containers registered:', this.containers);
+        logger.log('[Luminix] All facades registered:', this.facades);
 
-        runCoreMacros(this.containers);
+        runCoreMacros(this.facades);
 
         const bootablePlugins = plugins.filter(p => typeof p.boot === 'function');
         // Boot plugins
@@ -113,7 +112,7 @@ export default class App implements AppFacade {
 
             logger.log(`[Luminix] Booting plugin: "${plugin.name}"`);
 
-            (plugin.boot as Function)(this.containers);
+            (plugin.boot as Function)(this.facades);
 
             logger.log(`[Luminix] Plugin "${plugin.name}" booted`);
             
@@ -121,7 +120,7 @@ export default class App implements AppFacade {
 
         // Boot custom macros
         if (typeof macros === 'function') {
-            macros(this.containers);
+            macros(this.facades);
 
             logger.log('[Luminix] User-defined macros booted');
             
@@ -134,13 +133,13 @@ export default class App implements AppFacade {
         logger.log(' + Models loaded:', Object.keys(config.get('boot.models', {})).join(', '));
         logger.log(' + Routes available:', Object.keys(config.get('boot.routes', {})).join(', '));
 
-        if (!this.getContainer('auth').check()) {
+        if (!this.make('auth').check()) {
             logger.log('[Luminix] User is not authenticated');
         } else {
             logger.log('[Luminix] User is authenticated');
-            logger.log(' + User:', this.getContainer('auth').user());
+            logger.log(' + User:', this.make('auth').user());
         }
 
-        return this.containers;
+        return this.facades;
     }
 }

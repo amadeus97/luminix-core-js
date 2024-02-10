@@ -3,7 +3,7 @@
 Conteúdo:
  - Macros
     - [Lista de macros disponíveis](./4.1-Macros.md)
- - Containers
+ - Facades
     - `App`
     - `Auth`
     - `Config`

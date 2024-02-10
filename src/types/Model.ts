@@ -3,8 +3,6 @@ import { AxiosResponse } from "axios";
 
 import BaseModel from "../contracts/BaseModel";
 
-import { AppContainers } from "./App";
-
 export declare class Model extends BaseModel {
     constructor(attributes?: ModelConstructorAttributes);
     static getSchemaName(): string;
@@ -21,10 +19,6 @@ export declare class Model extends BaseModel {
     [key: string]: any;
 }
 
-export interface ModelMaker {
-    containers: AppContainers,
-    className: string,
-}
 
 export interface ModelSaveOptions {
     additionalPayload?: object,

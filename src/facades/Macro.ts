@@ -1,7 +1,5 @@
 import { ActionRepository, FilterRepository, MacroActionCallback, MacroFacade, MacroFilterCallback } from '../types/Macro';
-/**
- * Macro Container
- */
+
 export default class Macro implements MacroFacade {
 
     private actions: ActionRepository = [];

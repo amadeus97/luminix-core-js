@@ -18,7 +18,7 @@ export default class Repository implements RepositoryFacade {
     constructor(
         private readonly app: App
     ) {
-        const config = this.app.getContainer('config');
+        const config = this.app.make('config');
         this._schema = config.get('boot.models');
 
         
@@ -40,12 +40,12 @@ export default class Repository implements RepositoryFacade {
              * @param {object} attributes - Atributos do modelo.
              */
             constructor(attributes: ModelConstructorAttributes = {}) {
-                super(app.getContainers(), className, attributes);
+                super(app.make(), className, attributes);
 
                 return new Proxy(this, {
                     get: (target: BaseModel, prop: string) => {
-                        // const macros = app.getContainer('macro');
-                        const { macro, config } = app.getContainers();
+
+                        const { macro, config } = app.make();
 
                         // If the property exists in the target, return it.
                         if (prop in target) {
@@ -78,7 +78,7 @@ export default class Repository implements RepositoryFacade {
                     },
                     set: (target, prop: string, value) => {
 
-                        const { config, macro } = app.getContainers();
+                        const { config, macro } = app.make();
 
                         const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
                             ? _.snakeCase(prop)
@@ -101,13 +101,13 @@ export default class Repository implements RepositoryFacade {
             }
 
             static getSchema() {
-                return app.getContainer('repository').schema(className);
+                return app.make('repository').schema(className);
             }
 
             static async get(query?: object): Promise<ModelPaginatedResponse> {
                 const { data } = await axios.get(route(`luminix.${className}.list`), { params: query });
 
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
 
                 return {
                     ...data,
@@ -118,13 +118,13 @@ export default class Repository implements RepositoryFacade {
             static async find(id: number) {
                 const { data } = await axios.get(route(`luminix.${className}.item`, { id }));
 
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
 
                 return new Model(data);
             }
 
             static async create(attributes: ModelConstructorAttributes) {
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
                 const model = new Model();
 
                 model.fill(attributes);
@@ -135,7 +135,7 @@ export default class Repository implements RepositoryFacade {
             }
 
             static async update(id: number, attributes: ModelConstructorAttributes) {
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
                 const model = new Model({ id });
  
                 model.fill(attributes);
@@ -146,14 +146,14 @@ export default class Repository implements RepositoryFacade {
             }
 
             static delete(id: number) {
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
                 const model = new Model({ id });
 
                 return model.delete();
             }
 
             static async restore(id: number) {
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
 
                 const model = new Model({ id });
 
@@ -163,7 +163,7 @@ export default class Repository implements RepositoryFacade {
             }
 
             static forceDelete(id: number) {
-                const Model = app.getContainer('repository').make(className);
+                const Model = app.make('repository').make(className);
 
                 const model = new Model({ id });
 
