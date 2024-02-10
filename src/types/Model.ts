@@ -11,9 +11,9 @@ export declare class Model extends BaseModel {
     static find(id: number): Promise<Model>;
     static create(attributes: ModelConstructorAttributes): Promise<Model>;
     static update(id: number, attributes: ModelConstructorAttributes): Promise<Model>;
-    static delete(id: number): Promise<boolean>;
+    static delete(id: number): Promise<void>;
     static restore(id: number): Promise<Model>;
-    static forceDelete(id: number): Promise<boolean>;
+    static forceDelete(id: number): Promise<void>;
     static massDelete(ids: Array<number>): Promise<AxiosResponse>;
     static massRestore(ids: Array<number>): Promise<AxiosResponse>;
     [key: string]: any;

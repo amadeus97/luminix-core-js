@@ -1,19 +1,21 @@
-import axios from "axios";
+import axios from 'axios';
 
-import Config from "./Config";
-import Macro from "./Macro";
+import Config from './Config';
+import Macro from './Macro';
 
 import runCoreMacros from '../macros';
-import Repository from "./Repository";
-import Auth from "./Auth";
+import Repository from './Repository';
+import Auth from './Auth';
 
-import { AppFacades, AppFacade, BootOptions } from "../types/App";
-import Log from "./Log";
+import { AppFacades, AppFacade, BootOptions } from '../types/App';
+import Log from './Log';
+import Plugin from '../contracts/Plugin';
 
 export default class App implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
+    private _plugins: Plugin[] = [];
 
     make<T extends keyof AppFacades>(key?: T): AppFacades[T] {
         if (!key) {
@@ -45,12 +47,24 @@ export default class App implements AppFacade {
         this.facades = {} as AppFacades;
     }
 
+    all() {
+        return this.facades;
+    }
+
+    plugins() {
+        return this._plugins;
+    }
+
     async boot(options: BootOptions = {}): Promise<AppFacades> {
 
         if (this.booted) {
             throw new Error('[Luminix] App already booted');
         }
         this.booted = true;
+
+        // Boot macros
+        this.add('macro', new Macro());
+        this.facades.macro.doAction('init', this);
 
         const { 
             config: configObject = {}, 
@@ -63,6 +77,8 @@ export default class App implements AppFacade {
             console.log('[Luminix] Booting app with options:', options);
         }
 
+        this._plugins = plugins;
+
         const registrablePlugins = plugins.filter(p => typeof p.register === 'function');
         for (const plugin of registrablePlugins) {
             if (configObject?.app?.debug) {
@@ -74,16 +90,15 @@ export default class App implements AppFacade {
             }
         }
 
+        this.facades.macro.doAction('registered', this);
+
+        // Boot Config
+        const config = new Config(configObject);
+        this.add('config', config);
+
         // Boot Log
         const logger = new Log(this)
         this.add('log', logger);
-
-        // Boot macros
-        this.add('macro', new Macro());
-
-        const config = new Config(configObject);
-
-        this.add('config', config);
 
         if (!skipBootRequest) {
             const { data } = await axios.get(
@@ -130,8 +145,8 @@ export default class App implements AppFacade {
         logger.log('[Luminix] App boot completed');
         logger.log(' + App Configuration:', config.all());
         logger.log(` + Number of plugins: ${plugins.length}`);
-        logger.log(' + Models loaded:', Object.keys(config.get('boot.models', {})).join(', '));
-        logger.log(' + Routes available:', Object.keys(config.get('boot.routes', {})).join(', '));
+        logger.log(` + ${Object.keys(config.get('boot.models', {})).length} models loaded:`);
+        logger.log(` + ${Object.keys(config.get('boot.routes', {})).length} routes available`);
 
         if (!this.make('auth').check()) {
             logger.log('[Luminix] User is not authenticated');
@@ -139,6 +154,8 @@ export default class App implements AppFacade {
             logger.log('[Luminix] User is authenticated');
             logger.log(' + User:', this.make('auth').user());
         }
+
+        this.facades.macro.doAction('booted', this.facades);
 
         return this.facades;
     }

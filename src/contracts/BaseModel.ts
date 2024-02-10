@@ -14,7 +14,6 @@ export default abstract class BaseModel {
 
     private _attributes: ModelAttributes = {};
     private _id: number = 0;
-    private _key?: string;
     private _fillable: string[] = [];
     private _original?: object;
     private _relations: { [relationName: string]: Model | Model[] } = {};
@@ -31,9 +30,7 @@ export default abstract class BaseModel {
         this.construct(attributes);
     }
 
-    construct(attributes: ModelConstructorAttributes) {
-        this._key = crypto.randomUUID();
-
+    private construct(attributes: ModelConstructorAttributes) {
         const { fillable, relations } = this.facades.repository.schema(this.className);
 
         const excludedKeys = [
@@ -151,9 +148,10 @@ export default abstract class BaseModel {
 
 
     setAttribute(key: string, value: any) {
-        // if (!this.fillable.includes(key)) {
-        //     return false;
-        // }
+        if (!this.fillable.includes(key)) {
+            this.facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${this.className}"`);
+            return;
+        }
         const newAttributes = structuredClone(this.attributes);
         newAttributes[key] = value;
         this._attributes = newAttributes;
@@ -181,7 +179,7 @@ export default abstract class BaseModel {
             return acc;
         }, {});
 
-        return {
+        return this.facades.macro.applyFilters(`model_${this.className}_json`, {
             id: this.id,
             ...this.attributes,
             ...relations,
@@ -189,15 +187,14 @@ export default abstract class BaseModel {
             created_at: this.createdAt,
             // eslint-disable-next-line camelcase
             updated_at: this.updatedAt,
-            _key: this.key(),
-        };
+        });
     }
 
     diff() {
         return objectDiff(this.original, this.attributes);
     }
 
-    save(options: ModelSaveOptions = {}): Promise<boolean> {
+    save(options: ModelSaveOptions = {}): Promise<void> {
         return new Promise((resolve, reject) => {
             const {
                 additionalPayload = {},
@@ -231,10 +228,10 @@ export default abstract class BaseModel {
                     if (response.status === 200) {
                         this.construct(response.data);
                         this.facades.macro.doAction(`model_${this.className}_save_success`, this);
-                        resolve(true);
+                        resolve();
                         return;
                     }
-                    reject(new Error('Unknown error'));
+                    reject(response);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -246,7 +243,7 @@ export default abstract class BaseModel {
         });
     }
 
-    delete(): Promise<boolean> {
+    delete(): Promise<void> {
         return new Promise((resolve, reject) => {
             const url = route(`luminix.${this.className}.delete`, { id: this.id });
             if (!url) {
@@ -260,10 +257,10 @@ export default abstract class BaseModel {
                 .then((response) => {
                     if (response.status === 200) {
                         this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
-                        resolve(true);
+                        resolve();
                         return;
                     }
-                    reject(new Error('Unknown error'));
+                    reject(response);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -273,7 +270,7 @@ export default abstract class BaseModel {
         });
     }
 
-    forceDelete(): Promise<boolean> {
+    forceDelete(): Promise<void> {
         return new Promise((resolve, reject) => {
             const url = route(`luminix.${this.className}.forceDelete`, { id: this.id });
 
@@ -289,10 +286,10 @@ export default abstract class BaseModel {
                 .then((response) => {
                     if (response.status === 200) {
                         this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
-                        resolve(true);
+                        resolve();
                         return;
                     }
-                    reject(new Error('Unknown error'));
+                    reject(response);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -302,12 +299,8 @@ export default abstract class BaseModel {
         });
     }
 
-    restore(): Promise<boolean> {
+    restore(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (!this.deletedAt) {
-                reject(new Error('O modelo não foi apagado.'));
-            }
-    
             const url = route(`luminix.${this.className}.restore`, { id: this.id });
 
             if (!url) {
@@ -320,10 +313,10 @@ export default abstract class BaseModel {
                 .then((response) => {
                     if (response.status === 200) {
                         this.facades.macro.doAction(`model_${this.className}_restore_success`, this);
-                        resolve(true);
+                        resolve();
                         return;
                     }
-                    reject(new Error('Unknown error'));
+                    reject(response);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -331,10 +324,6 @@ export default abstract class BaseModel {
                     reject(error);
                 });
         });
-    }
-
-    key() {
-        return this._key;
     }
 
     [key: string]: any;

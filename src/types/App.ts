@@ -8,6 +8,8 @@ import { RepositoryFacade } from './Model';
 
 export type App = {
     boot: (options: BootOptions) => Promise<AppFacades>;
+    all: () => AppFacades;
+    plugins: () => Plugin[];
 };
 
 export type AppFacade = App & {
