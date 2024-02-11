@@ -69,16 +69,25 @@ export default class Repository implements RepositoryFacade {
                             ? _.snakeCase(prop)
                             : prop;
 
-                        // If there is a macro to handle a property or the property exists in attributes, return it.
-                        if (macro.hasFilter(`model_${className}_get_${_.snakeCase(prop)}_attribute`) || Object.keys(target.attributes).includes(lookupKey)) {
-                            return macro.applyFilters(`model_${className}_get_${_.snakeCase(prop)}_attribute`, target.attributes[lookupKey], target);
+                        // If the property exists in attributes, return it.
+                        if (Object.keys(target.attributes).includes(lookupKey)) {
+                            return target.getAttribute(lookupKey);
+                        }
+
+                        // If there is a macro to handle a property, return it.
+                        if (macro.hasFilter(`model_${className}_get_${lookupKey}_attribute`)) {
+                            return macro.applyFilters(
+                                `model_${className}_get_${lookupKey}_attribute`,
+                                undefined,
+                                target
+                            );
                         }
 
                         return target[prop];
                     },
                     set: (target, prop: string, value) => {
 
-                        const { config, macro } = app.make();
+                        const { config } = app.make();
 
                         const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
                             ? _.snakeCase(prop)
@@ -87,11 +96,12 @@ export default class Repository implements RepositoryFacade {
                         if (target.fillable.includes(lookupKey)) {
                             target.setAttribute(
                                 lookupKey, 
-                                macro.applyFilters(`model_${className}_set_${_.snakeCase(prop)}_attribute`, value, target)
+                                value
                             );
                             return true;
                         }
-                        return true;
+                        
+                        throw new Error(`Cannot set attribute '${prop}' on model '${className}'`);
                     },
                 });
             }

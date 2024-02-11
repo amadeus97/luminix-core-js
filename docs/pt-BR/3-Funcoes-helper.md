@@ -107,7 +107,8 @@ error('name'); // O campo nome é obrigatório.
 A função `log()` é utilizada para exibir mensagens de log no console do navegador. Somente executará se a configuração `app.debug` estiver definida como `true`.
 
 ```typescript
-log(message: string, ...args: any[]): void;
+log(): LogFacade;
+log(...args: any[]): void;
 ```
 
 Exemplo:
@@ -117,6 +118,7 @@ import { log } from '@luminix/core';
 
 // Exibindo uma mensagem de log
 log('Usuário autenticado com sucesso.');
+log().warning('Usuário não deu estrela no repositório.');
 ```
 
 ## `model()`

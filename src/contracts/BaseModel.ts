@@ -91,7 +91,7 @@ export default abstract class BaseModel {
         this._createdAt = createdAt
             ? this.facades.macro.applyFilters(
                 `model_${this.className}_get_created_at_attribute`,
-                createdAt,
+                this.cast(createdAt, 'datetime'),
                 this
             )
             : null;
@@ -99,7 +99,7 @@ export default abstract class BaseModel {
         this._updatedAt = updatedAt
             ? this.facades.macro.applyFilters(
                 `model_${this.className}_get_updated_at_attribute`,
-                updatedAt,
+                this.cast(updatedAt, 'datetime'),
                 this
             )
             : null;
@@ -107,11 +107,32 @@ export default abstract class BaseModel {
         this._deletedAt = deletedAt
             ? this.facades.macro.applyFilters(
                 `model_${this.className}_get_deleted_at_attribute`,
-                deletedAt,
+                this.cast(deletedAt, 'datetime'),
                 this
             )
             : null;
 
+    }
+
+    private cast(value: any, cast: string) {
+        if (value === null || value === undefined) {
+            return value;
+        }
+
+        if (cast === 'boolean') {
+            return !!value;
+        }
+        if (['date', 'datetime', 'immutable_date', 'immutable_datetime'].includes(cast)) {
+            return new Date(value);
+        }
+        if (
+            ['float', 'double', 'integer'].includes(cast)
+            || cast.startsWith('decimal:')
+        ) {
+            return Number(value);
+        }
+
+        return value;
     }
 
     get id() {
@@ -146,6 +167,18 @@ export default abstract class BaseModel {
         return this._deletedAt;
     }
 
+    getAttribute(key: string) {
+        let value = this.attributes[key];
+        const { casts } = this.facades.repository.schema(this.className);
+        if (casts && casts[key]) {
+            value = this.cast(value, casts[key]);
+        }
+        return this.facades.macro.applyFilters(
+            `model_${this.className}_get_${key}_attribute`,
+            value,
+            this
+        );
+    }
 
     setAttribute(key: string, value: any) {
         if (!this.fillable.includes(key)) {
@@ -153,9 +186,12 @@ export default abstract class BaseModel {
             return;
         }
         const newAttributes = structuredClone(this.attributes);
-        newAttributes[key] = value;
+        newAttributes[key] = this.facades.macro.applyFilters(
+            `model_${this.className}_set_${key}_attribute`,
+            value,
+            this
+        );
         this._attributes = newAttributes;
-        // return true;
     }
 
     fill(attributes: object) {
@@ -187,7 +223,7 @@ export default abstract class BaseModel {
             created_at: this.createdAt,
             // eslint-disable-next-line camelcase
             updated_at: this.updatedAt,
-        });
+        }, this);
     }
 
     diff() {

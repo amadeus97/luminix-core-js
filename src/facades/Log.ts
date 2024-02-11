@@ -13,55 +13,49 @@ export default class Log implements LogFacade {
 
     public emergency(...args: any[]) {
         if (this.enabled) {
-            console.error('[Emergency]', ...args);
+            console.error(...args);
         }
     }
 
     public alert(...args: any[]) {
         if (this.enabled) {
-            console.warn('[Alert]', ...args);
+            console.error(...args);
         }
     }
 
     public critical(...args: any[]) {
         if (this.enabled) {
-            console.error('[Critical]', ...args);
+            console.error(...args);
         }
     }
 
     public error(...args: any[]) {
         if (this.enabled) {
-            console.error('[Error]', ...args);
+            console.error(...args);
         }
     }
 
     public warning(...args: any[]) {
         if (this.enabled) {
-            console.warn('[Warning]', ...args);
+            console.warn(...args);
         }
     }
 
     public notice(...args: any[]) {
         if (this.enabled) {
-            console.info('[Notice]', ...args);
+            console.info(...args);
         }
     }
 
     public info(...args: any[]) {
         if (this.enabled) {
-            console.info('[Info]', ...args);
+            console.info(...args);
         }
     }
 
     public debug(...args: any[]) {
         if (this.enabled) {
-            console.debug('[Debug]', ...args);
-        }
-    }
-
-    public log(...args: any[]) {
-        if (this.enabled) {
-            console.log(...args);
+            console.debug(...args);
         }
     }
 }
