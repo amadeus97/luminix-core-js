@@ -6,7 +6,7 @@ O Luminix fornece uma maneira fácil de utilizar os Models do backend no fronten
 
 Sempre que um modelo é chamado através de uma string, ele deve ser escrito em `snake_case`. Por exemplo, se você tem um modelo chamado `User`, você deve chamá-lo como `user`, `UserProfile` como `user_profile`, e assim por diante.
 
-## Criando um Model
+## Utilizando um Model
 
 Para obter a classe de um Model, utilize a função `model()` do pacote `@luminix/core`. Esta função aceita o nome do Model como argumento, e retorna uma instância do Model. Este modelo é análogo ao modelo Eloquent do Laravel, e possui métodos para interagir com o backend.
 
@@ -115,7 +115,12 @@ Ao acessar uma propriedade de um modelo, o Luminix leva em conta os seguintes pa
  - Se a propriedade existe no modelo base, ela é retornada.
  - Se a propriedade corresponde a um relacionamento, o Luminix irá retornar uma instância ou um array de instâncias do modelo relacionado.
  - Se existe uma macro registrada com o nome `model_{model}_call_{method}_method`, ela é executada e retornada.
- - Se a propriedade existe no atributo `attributes` do modelo ou existe uma macro registrada com o nome `model_{model}_get_{attribute}_attribute`, o Luminix irá retornar o valor do atributo convertido.
+ - Se a propriedade existe no `attributes` do modelo, ela é retornada com o filtro `model_{model}_get_{attribute}_attribute`.
+ - Se existe uma macro registrada com o nome `model_{model}_get_{attribute}_attribute`, o Luminix irá retornar o valor do atributo convertido.
 
 Durante este processo de acesso, o Luminix irá converter automaticamente as propriedades para `snake_case` e vice-versa, e aplicar os casts definidos no modelo Eloquent.
+
+## Próximos Passos
+
+Veja como utilizar as [funções helper](./3-Funcoes-helper.md) do Luminix para criar aplicações mais complexas, ou aprofunde-se na [Model API](./4.3.1-Model.md) para entender todas as funcionalidades disponíveis.
 
