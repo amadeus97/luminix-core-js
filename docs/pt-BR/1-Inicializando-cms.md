@@ -37,10 +37,10 @@ app().boot({
     config: {
         app: {
             name: import.meta.env.VITE_APP_NAME,
-            debug: import.meta.env.VITE_APP_DEBUG || true,
+            debug: true,
         }
     },
-}).then(() => console.log(`${config('app.name')} iniciado com sucesso.` ));
+}).then(({ log }) => log.info(`${config('app.name')} iniciado com sucesso.` ));
 ```
 
  > **Nota**: O Luminix CMS **não necessita** de uma configuração inicial para funcionar. No entanto, é altamente recomendado que você defina uma configuração inicial para personalizar o comportamento do CMS e de seus plugins. Veja a [documentação de configuração](./1.1-Definindo-configuracao.md) para mais informações sobre como definir a configuração inicial.
@@ -57,7 +57,7 @@ app().boot({
             (value, user) => user.attributes.name.split(' ')[0]
         );
     }
-}).then(({ auth }) => console.log(`Luminix iniciado com sucesso. Bem-vindo, ${auth.user().firstName}!`));
+}).then(({ auth, log }) => log.info(`Luminix iniciado com sucesso. Bem-vindo, ${auth.user().firstName}!`));
 ```
 
 Veja a [documentação de macros](./1.2-Registro-de-macros.md) para mais informações sobre as macros disponíveis no `@luminix/core`. Cada plugin pode criar suas próprias macros, permitindo que você estenda o sistema de acordo com suas necessidades. Verifique a documentação de cada plugin para obter informações sobre como personalizar o seu comportamento.
@@ -71,8 +71,8 @@ import DayJsCastPlugin from '@luminix/plugin-dayjs-cast';
 
 app().boot({
     plugins: [new DayJsCastPlugin()]
-}).then(({ auth }) => {
-    console.log(
+}).then(({ auth, log }) => {
+    log.info(
         'Luminix iniciado com sucesso. Seu usário foi criado em: ', 
         auth.user().createdAt.format('DD/MM/YYYY')
     );
@@ -105,7 +105,7 @@ const options = {
     macros: myMacros,
 };
 
-app().boot(options).then(() => console.log(`${config('app.name')} iniciado com sucesso.` ));
+app().boot(options).then(({ log }) => log.info(`${config('app.name')} iniciado com sucesso.` ));
 ```
 
 Ao seguir estas etapas, seu aplicativo Luminix estará pronto para ser usado, oferecendo uma interação eficiente e personalizada entre o frontend e o backend do seu sistema Laravel.

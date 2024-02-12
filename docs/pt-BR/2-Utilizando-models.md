@@ -11,7 +11,7 @@ Sempre que um modelo é chamado através de uma string, ele deve ser escrito em 
 Para obter a classe de um Model, utilize a função `model()` do pacote `@luminix/core`. Esta função aceita o nome do Model como argumento, e retorna uma instância do Model. Este modelo é análogo ao modelo Eloquent do Laravel, e possui métodos para interagir com o backend.
 
 ```javascript
-import { model } from '@luminix/core';
+import { model, log } from '@luminix/core';
 
 const User = model('user');
 // also valid:
@@ -23,7 +23,7 @@ user.name = 'Jane Doe';
 user.email = 'janedoe@example.com';
 user.password = 'super strong password';
 
-user.save().then(() => console.log('Usuário salvo com sucesso.'));
+user.save().then(() => log().info('Usuário salvo com sucesso.'));
 ```
 
 Ao executar o código acima, o Luminix irá enviar uma requisição para o backend, que irá criar um novo usuário com os dados fornecidos. Após a criação, o Luminix irá atualizar o modelo com os dados retornados pelo backend, incluindo o `id` do usuário.
@@ -33,26 +33,26 @@ Ao executar o código acima, o Luminix irá enviar uma requisição para o backe
 Para obter dados do backend, utilize a função `get()` da classe `Model`. Esta função aceita um objeto de parâmetros, e retorna uma Promise que resolve com dados de paginação e um array de instâncias do Model.
 
 ```javascript
-import { model } from '@luminix/core';
+import { model, log } from '@luminix/core';
 
 const { data: users } = await model('user').get({ per_page: 10 });
 // also valid:
 // const { data: users } = await User.get({ per_page: 10 });
 
-console.log(users[0].name); // John Doe
+log().info(users[0].name); // John Doe
 ```
 
 Também é possível utilizar a função `find()` para obter um único modelo. Esta função aceita o `id` do modelo como argumento, e retorna uma Promise que resolve com uma instância do Model.
 
 ```javascript
-import { model } from '@luminix/core';
+import { model, log } from '@luminix/core';
 
 const user = await model('user').find(1);
 // also valid:
 // const user = await User.find(1);
 
 user.name = 'Jane Doe';
-user.save().then(() => console.log('Usuário salvo com sucesso.'));
+user.save().then(() => log().info('Usuário salvo com sucesso.'));
 ```
 
 ## Atributos
@@ -62,8 +62,8 @@ Os atributos de um modelo são acessados como propriedades do modelo. O Luminix 
 ```javascript
 const user = new User({ name: 'John Doe', avatar_src: 'https://example.com/avatar.jpg' });
 
-console.log(user.name); // John Doe
-console.log(user.avatarSrc); // https://example.com/avatar.jpg
+log().info(user.name); // John Doe
+log().info(user.avatarSrc); // https://example.com/avatar.jpg
 ```
 
 ## Relacionamentos
@@ -74,10 +74,10 @@ Os relacionamentos de um modelo são acessados como propriedades do modelo. Se o
 const user = new User({ name: 'John Doe', posts: [{ id: 1, title: 'Lorem Ipsum', content: 'Hello, World' }] });
 const post = user.posts[0];
 
-console.log(post.title); // Lorem Ipsum
+log().info(post.title); // Lorem Ipsum
 
 post.title = 'Hello, World';
-post.save().then(() => console.log('Post salvo com sucesso.'));
+post.save().then(() => log().info('Post salvo com sucesso.'));
 ```
 
  > Os relacionamentos devem ter seus métodos de acesso definidos no modelo Eloquent, utilizando dicas de tipo. Isso permite que o Luminix saiba como converter os dados do backend para instâncias de modelos.
@@ -89,8 +89,8 @@ Os casts de um modelo são definidos no modelo Eloquent, e são automaticamente 
 ```javascript
 const user = new User({ name: 'John Doe', created_at: '2021-01-01T00:00:00.000Z' });
 
-console.log(user.createdAt); // Date { 2021-01-01T00:00:00.000Z }
-console.log(user.createdAt.toLocaleDateString()); // 01/01/2021
+log().info(user.createdAt); // Date { 2021-01-01T00:00:00.000Z }
+log().info(user.createdAt.toLocaleDateString()); // 01/01/2021
 ```
 
  > Os campos de timestamps do Laravel são automaticamente convertidos para instâncias de `Date` pelo Luminix.
@@ -105,9 +105,9 @@ const Post = model('post');
 
 const post = new Post({ title: 'Hello, World', thumbnail_src: 'https://example.com/thumbnail.jpg' });
 
-console.log(post.attributes); // { title: 'Hello, World', thumbnail_src: 'https://example.com/thumbnail.jpg' }
-console.log(post.title); // Hello, World
-console.log(post.thumbnailSrc); // https://example.com/thumbnail.jpg
+log().info(post.attributes); // { title: 'Hello, World', thumbnail_src: 'https://example.com/thumbnail.jpg' }
+log().info(post.title); // Hello, World
+log().info(post.thumbnailSrc); // https://example.com/thumbnail.jpg
 ```
 
 Ao acessar uma propriedade de um modelo, o Luminix leva em conta os seguintes parâmetros, nesta ordem:

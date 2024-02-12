@@ -5,6 +5,7 @@ import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
 import { MacroFacade } from './Macro';
 import { RepositoryFacade } from './Model';
+import { RouteFacade } from './Route';
 
 export type App = {
     boot: (options: BootOptions) => Promise<AppFacades>;
@@ -24,6 +25,7 @@ export type AppFacades = {
     log: LogFacade;
     macro: MacroFacade;
     repository: RepositoryFacade;
+    route: RouteFacade;
     [key: string]: any;
 };
 

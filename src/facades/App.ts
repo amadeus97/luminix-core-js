@@ -9,6 +9,7 @@ import Auth from './Auth';
 import { AppFacades, AppFacade, BootOptions } from '../types/App';
 import Log from './Log';
 import Plugin from '../contracts/Plugin';
+import Route from './Route';
 
 export default class App implements AppFacade {
 
@@ -49,10 +50,7 @@ export default class App implements AppFacade {
         this.booted = true;
 
         // Boot macros
-        this.add('macro', new Macro());
-        const { macro } = this.facades;
-
-        macro.doAction('init', this);
+        
 
         const { 
             config: configObject = {}, 
@@ -78,13 +76,19 @@ export default class App implements AppFacade {
             }
         }
 
-        macro.doAction('registered', this);
+        this.add('macro', new Macro());
+        const { macro } = this.facades;
 
-        // Boot Config
-        this.add('config', new Config(configObject));
+        macro.doAction('init', this);
 
         // Boot Log
         this.add('log', new Log(this));
+
+        // Boot Config
+        this.add('config', new Config(configObject, this.facades.log));
+        
+        // Boot Route
+        this.add('route', new Route(this));
 
         const { config, log: logger } = this.facades;
 

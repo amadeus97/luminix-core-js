@@ -2,12 +2,11 @@
 
 import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMakeFunction, RepositorySchemaFunction } from '../types/Model';
 
-import App from './App';
 import BaseModel from '../contracts/BaseModel';
-import route from '../helpers/route';
 
 import axios from 'axios';
 import _ from 'lodash';
+import { AppFacade } from '../types/App';
 
 
 export default class Repository implements RepositoryFacade {
@@ -16,7 +15,7 @@ export default class Repository implements RepositoryFacade {
     private _models: { [className: string]: typeof Model } = {};
 
     constructor(
-        private readonly app: App
+        private readonly app: AppFacade,
     ) {
         const config = this.app.make('config');
         this._schema = config.get('boot.models');
@@ -33,6 +32,8 @@ export default class Repository implements RepositoryFacade {
         const app = this.app;
 
         return class extends BaseModel {
+
+            static name = _.upperFirst(_.camelCase(className));
 
             /**
              * Cria uma nova instância de Model, utilizando Proxy para acesso fluente aos atributos.
@@ -115,7 +116,7 @@ export default class Repository implements RepositoryFacade {
             }
 
             static async get(query?: object): Promise<ModelPaginatedResponse> {
-                const { data } = await axios.get(route(`luminix.${className}.list`), { params: query });
+                const { data } = await axios.get(app.make('route').get(`luminix.${className}.list`), { params: query });
 
                 const Model = app.make('repository').make(className);
 
@@ -126,7 +127,7 @@ export default class Repository implements RepositoryFacade {
             }
 
             static async find(id: number) {
-                const { data } = await axios.get(route(`luminix.${className}.item`, { id }));
+                const { data } = await axios.get(app.make('route').get(`luminix.${className}.item`, { id }));
 
                 const Model = app.make('repository').make(className);
 
@@ -181,11 +182,11 @@ export default class Repository implements RepositoryFacade {
             }
 
             static massDelete(ids: number[]) {
-                return axios.post(route(`luminix.${className}.massDelete`), { ids });
+                return axios.post(app.make('route').get(`luminix.${className}.massDelete`), { ids });
             }
 
             static massRestore(ids: number[]) {
-                return axios.post(route(`luminix.${className}.massRestore`), { ids });
+                return axios.post(app.make('route').get(`luminix.${className}.massRestore`), { ids });
             }
 
 

@@ -1,12 +1,14 @@
 import { objectExistsByPath, objectGetByPath, objectSetByPath } from "../support/object";
 import { AppConfiguration, ConfigFacade } from "../types/Config";
+import { LogFacade } from "../types/Log";
 
 export default class Config implements ConfigFacade {
 
     private locked: string[] = [];
 
     constructor(
-        private readonly config: AppConfiguration = {}
+        private readonly config: AppConfiguration = {},
+        private readonly log: LogFacade,
     ) {
 
     }
@@ -19,20 +21,16 @@ export default class Config implements ConfigFacade {
     }
 
     set(path: string, value: any) {
-        if (this.locked.some((item) => path.startsWith(item))) {
-            if (this.get('app.debug', false)) {
-                console.warn(`Config path "${path}" is locked. Cannot set value.`);
-            }
+        if (!this.locked.some((item) => path.startsWith(item))) {
+            objectSetByPath(this.config, path, value);
             return;
         }
-        objectSetByPath(this.config, path, value);
+        this.log.warning(`Config path "${path}" is locked. Cannot set value.`, this.locked);
     }
 
     merge(path: string, value: any) {
         if (this.locked.some((item) => path.startsWith(item))) {
-            if (this.get('app.debug', false)) {
-                console.warn(`Config path "${path}" is locked. Cannot set value.`);
-            }
+            this.log.warning(`Config path "${path}" is locked. Cannot set value.`, this.locked);
             return;
         }
 
@@ -41,7 +39,7 @@ export default class Config implements ConfigFacade {
         if (typeof currentValue === 'object' && currentValue !== null) {
             return this.set(path, {
                 ...currentValue,
-                value,
+                ...value,
             });
         }
 
@@ -49,12 +47,9 @@ export default class Config implements ConfigFacade {
             return this.set(path, value);
         }
 
-        if (this.get('app.debug', false)) {
-            console.warn(`Config is trying to merge a path with non-object`, {
-                path, currentValue, value
-            });
-        }
-
+        this.log.warning(`Config is trying to merge a path with non-object`, {
+            path, currentValue, value
+        });
     }
 
     has(path: string) {
@@ -67,16 +62,14 @@ export default class Config implements ConfigFacade {
 
     delete(path: string) {
         if (this.locked.some((item) => path.startsWith(item))) {
-            if (this.get('app.debug', false)) {
-                console.warn(`Config path "${path}" is locked. Cannot delete value.`);
-            }
+            this.log.warning(`Config path "${path}" is locked. Cannot delete value.`);
             return;
         }
         objectSetByPath(this.config, path, undefined);
     }
 
     lock(path: string) {
-        if (this.locked.some((item) => path.startsWith(item))) {
+        if (this.locked.length && this.locked.some((item) => path.startsWith(item))) {
             return;
         }
         this.locked.push(path);

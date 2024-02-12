@@ -53,9 +53,9 @@ export interface ModelTableColumnDefinition {
 }
 
 export interface ModelSchemaAttributes {
-    fields: {
-        [fieldSchema: string]: Array<any>
-    },
+    // fields: {
+    //     [fieldSchema: string]: Array<any>
+    // },
     fillable: string[],
     relations: {
         [relationName: string]: {
@@ -63,12 +63,12 @@ export interface ModelSchemaAttributes {
             type: 'HasOne' | 'HasMany' | 'BelongsTo' | 'BelongsToMany' | 'MorphOne' | 'MorphMany' | 'MorphTo' | 'MorphToMany' | 'MorphedByMany',
         }
     },
-    tables: {
-        [tableName: string]: {
-            columns: Array<ModelTableColumnDefinition>,
-            filter?: Array<any>,
-        }
-    },
+    // tables: {
+    //     [tableName: string]: {
+    //         columns: Array<ModelTableColumnDefinition>,
+    //         filter?: Array<any>,
+    //     }
+    // },
     web: string[],
     softDelete?: boolean,
     class: string,

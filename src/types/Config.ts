@@ -1,7 +1,9 @@
 import { ModelSchema } from './Model';
+import { RouteDefinition } from './Route';
 
 export type AppConfiguration = {
     app?: {
+        env?: string;
         debug?: boolean;
         bootUrl?: string;
         enforceCamelCaseForModelAttributes?: boolean;
@@ -14,11 +16,11 @@ export type AppConfiguration = {
                 name: string;
                 email: string;
                 [key: string]: any;
-            }
+            } | null;
             [key: string]: any;
         };
         models?: ModelSchema;
-        routes?: { [routeName:string]: string };
+        routes?: RouteDefinition;
     }
     [key: string]: any;
 };

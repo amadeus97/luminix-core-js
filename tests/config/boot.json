@@ -1,0 +1,141 @@
+{
+    "models": {
+        "comment": {
+            "fillable": [
+                "post_id",
+                "user_id",
+                "body"
+            ],
+            "softDelete": false,
+            "importable": false,
+            "exportable": false,
+            "web": [
+                "index"
+            ],
+            "relations": {
+                "post": {
+                    "type": "BelongsTo",
+                    "model": "post"
+                },
+                "user": {
+                    "type": "BelongsTo",
+                    "model": "user"
+                }
+            },
+            "casts": {
+                "id": "int"
+            },
+            "class": "App\\Models\\Comment"
+        },
+        "post": {
+            "fillable": [
+                "title",
+                "description",
+                "author_id",
+                "content",
+                "slug",
+                "published_at"
+            ],
+            "softDelete": false,
+            "importable": false,
+            "exportable": false,
+            "web": [
+                "index",
+                "single"
+            ],
+            "relations": {
+                "author": {
+                    "type": "BelongsTo",
+                    "model": "user"
+                },
+                "comments": {
+                    "type": "HasMany",
+                    "model": "comment"
+                }
+            },
+            "casts": {
+                "id": "int",
+                "content": "Arandu\\LaravelSafeJsonCast\\Json",
+                "published_at": "datetime"
+            },
+            "class": "App\\Models\\Post"
+        },
+        "user": {
+            "fillable": [
+                "name",
+                "email",
+                "password",
+                "avatar_src"
+            ],
+            "softDelete": true,
+            "importable": false,
+            "exportable": false,
+            "web": [
+                "index"
+            ],
+            "relations": {
+                "posts": {
+                    "type": "HasMany",
+                    "model": "post"
+                },
+                "comments": {
+                    "type": "HasMany",
+                    "model": "comment"
+                }
+            },
+            "casts": {
+                "id": "int",
+                "email_verified_at": "datetime"
+            },
+            "class": "App\\Models\\User"
+        }
+    },
+    "routes": {
+        "luminix": {
+            "comment": {
+                "list": "api\/luminix\/comments",
+                "item": "api\/luminix\/comment\/{id}",
+                "create": "api\/luminix\/comments",
+                "update": "api\/luminix\/comment\/{id}",
+                "delete": "api\/luminix\/comment\/{id}",
+                "massDelete": "api\/luminix\/comments\/delete",
+                "index": "comments"
+            },
+            "post": {
+                "list": "api\/luminix\/posts",
+                "item": "api\/luminix\/post\/{id}",
+                "create": "api\/luminix\/posts",
+                "update": "api\/luminix\/post\/{id}",
+                "delete": "api\/luminix\/post\/{id}",
+                "massDelete": "api\/luminix\/posts\/delete",
+                "index": "posts",
+                "single": "post\/{slug}"
+            },
+            "user": {
+                "list": "api\/luminix\/users",
+                "item": "api\/luminix\/user\/{id}",
+                "create": "api\/luminix\/users",
+                "update": "api\/luminix\/user\/{id}",
+                "delete": "api\/luminix\/user\/{id}",
+                "massDelete": "api\/luminix\/users\/delete",
+                "restore": "api\/luminix\/user\/{id}\/restore",
+                "forceDelete": "api\/luminix\/user\/{id}\/force",
+                "massRestore": "api\/luminix\/users\/restore",
+                "massForceDelete": "api\/luminix\/users\/forceDelete",
+                "index": "users"
+            }
+        },
+        "login": "login",
+        "logout": "logout",
+        "password": {
+            "request": "password\/reset",
+            "email": "password\/email",
+            "reset": "password\/reset\/{token}",
+            "update": "password\/reset",
+            "confirm": "password\/confirm"
+        },
+        "home": "\/",
+        "profile": "profile"
+        
+    }
+}

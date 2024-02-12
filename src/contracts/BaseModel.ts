@@ -6,7 +6,6 @@ import { createObjectWithKeys, createObjectWithoutKeys, objectDiff } from '../su
 import { Model, ModelConstructorAttributes, ModelAttributes, ModelSaveOptions } from '../types/Model';
 import { AppFacades } from '../types/App';
 
-import route from '../helpers/route';
 import axios from 'axios';
 import _ from 'lodash';
 
@@ -223,6 +222,9 @@ export default abstract class BaseModel {
             created_at: this.createdAt,
             // eslint-disable-next-line camelcase
             updated_at: this.updatedAt,
+            ...(this.facades.repository.schema(this.className).softDelete
+                ? { deleted_at: this.deletedAt }
+                : {}),
         }, this);
     }
 
@@ -239,7 +241,7 @@ export default abstract class BaseModel {
     
             const routeName = `luminix.${this.className}.${this.id === 0 ? 'create' : 'update'}`;
 
-            const url = route(
+            const url = this.facades.route.get(
                 routeName,
                 this.id === 0
                     ? false
@@ -250,15 +252,11 @@ export default abstract class BaseModel {
                 reject(new Error(`URL for "${routeName}" not found.`));
                 return;
             }
-            axios({
-                url,
-                method: 'POST',
-                data: {
-                    ...sendsOnlyModifiedFields
-                        ? this.diff()
-                        : createObjectWithKeys(this.fillable, this.attributes),
-                    ...additionalPayload,
-                },
+            axios.post(url, {
+                ...sendsOnlyModifiedFields
+                    ? this.diff()
+                    : createObjectWithKeys(this.fillable, this.attributes),
+                ...additionalPayload,
             })
                 .then((response) => {
                     if (response.status === 200) {
@@ -281,15 +279,12 @@ export default abstract class BaseModel {
 
     delete(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const url = route(`luminix.${this.className}.delete`, { id: this.id });
+            const url = this.facades.route.get(`luminix.${this.className}.delete`, { id: this.id });
             if (!url) {
                 reject(new Error(`URL for "luminix.${this.className}.delete" not found.`));
                 return;
             }
-            axios({
-                url,
-                method: 'DELETE',
-            })
+            axios.delete(url)
                 .then((response) => {
                     if (response.status === 200) {
                         this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
@@ -308,17 +303,14 @@ export default abstract class BaseModel {
 
     forceDelete(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const url = route(`luminix.${this.className}.forceDelete`, { id: this.id });
+            const url = this.facades.route.get(`luminix.${this.className}.forceDelete`, { id: this.id });
 
             if (!url) {
                 reject(new Error(`URL for "luminix.${this.className}.forceDelete" not found.`));
                 return;
             }
 
-            axios({
-                url,
-                method: 'DELETE',
-            })
+            axios.delete(url)
                 .then((response) => {
                     if (response.status === 200) {
                         this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
@@ -337,15 +329,12 @@ export default abstract class BaseModel {
 
     restore(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const url = route(`luminix.${this.className}.restore`, { id: this.id });
+            const url = this.facades.route.get(`luminix.${this.className}.restore`, { id: this.id });
 
             if (!url) {
                 reject(new Error(`URL for "luminix.${this.className}.restore" not found.`));
             }
-            axios({
-                url,
-                method: 'POST',
-            })
+            axios.post(url)
                 .then((response) => {
                     if (response.status === 200) {
                         this.facades.macro.doAction(`model_${this.className}_restore_success`, this);
