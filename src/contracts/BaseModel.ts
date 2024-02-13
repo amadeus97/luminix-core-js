@@ -184,7 +184,7 @@ export default abstract class BaseModel {
             this.facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${this.className}"`);
             return;
         }
-        const newAttributes = structuredClone(this.attributes);
+        const newAttributes = _.cloneDeep(this.attributes);
         newAttributes[key] = this.facades.macro.applyFilters(
             `model_${this.className}_set_${key}_attribute`,
             value,

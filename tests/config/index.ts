@@ -1,9 +1,10 @@
+import _ from 'lodash';
 import { AppConfiguration } from '../../src/types/Config';
 import app from './app';
 import boot from './boot.json'
 
 export default () => {
-    return structuredClone({ app, boot }) as AppConfiguration;
+    return _.cloneDeep({ app, boot }) as AppConfiguration;
 }
 
 

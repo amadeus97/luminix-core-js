@@ -121,7 +121,7 @@
                 "restore": "api\/luminix\/user\/{id}\/restore",
                 "forceDelete": "api\/luminix\/user\/{id}\/force",
                 "massRestore": "api\/luminix\/users\/restore",
-                "massForceDelete": "api\/luminix\/users\/forceDelete",
+                "massForceDelete": "api\/luminix\/users\/force",
                 "index": "users"
             }
         },

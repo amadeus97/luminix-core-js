@@ -115,6 +115,33 @@ describe('testing models', () => {
 
     });
 
+    test('model mass delete, restore and force delete', async () => {
+        const app: AppFacade = new App();
+
+        await app.boot({ config: makeConfig() });
+
+        const User = app.make('repository').make('user');
+
+        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        await User.massDelete([1, 2, 3]);
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/delete', { params: { ids: [1, 2, 3] } });
+
+        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        await User.massRestore([1, 2, 3]);
+        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users/restore', { ids: [1, 2, 3] });
+
+        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        await User.massForceDelete([1, 2, 3]);
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/force', { params: { ids: [1, 2, 3] } });
+
+        const Post = app.make('repository').make('post');
+
+        const post = new Post({ id: 1 });
+
+        await expect(post.forceDelete()).rejects.toThrow("Route data for 'luminix.post.forceDelete' was not found.");
+
+    });
+
     test('model fillable attributes are respected', async () => {
         const app: AppFacade = new App();
 

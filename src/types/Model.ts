@@ -16,6 +16,7 @@ export declare class Model extends BaseModel {
     static forceDelete(id: number): Promise<void>;
     static massDelete(ids: Array<number>): Promise<AxiosResponse>;
     static massRestore(ids: Array<number>): Promise<AxiosResponse>;
+    static massForceDelete(ids: Array<number>): Promise<AxiosResponse>;
     [key: string]: any;
 }
 

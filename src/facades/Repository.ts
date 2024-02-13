@@ -182,14 +182,16 @@ export default class Repository implements RepositoryFacade {
             }
 
             static massDelete(ids: number[]) {
-                return axios.post(app.make('route').get(`luminix.${className}.massDelete`), { ids });
+                return axios.delete(app.make('route').get(`luminix.${className}.massDelete`), { params: { ids } });
             }
 
             static massRestore(ids: number[]) {
                 return axios.post(app.make('route').get(`luminix.${className}.massRestore`), { ids });
             }
 
-
+            static massForceDelete(ids: number[]) {
+                return axios.delete(app.make('route').get(`luminix.${className}.massForceDelete`), { params: { ids } });
+            }
 
 
         };

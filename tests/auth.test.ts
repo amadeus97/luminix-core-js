@@ -58,6 +58,41 @@ describe('testing authentication', () => {
 
     });
 
+    test('auth attempt works', async () => {
+        const app = new App();
+        const config = makeConfig();
+
+        
+
+        await app.boot({ config });
+
+        expect(app.make('auth')).toBeInstanceOf(Auth);
+
+        const auth = app.make('auth');
+
+        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        await auth.attempt({
+            email: 'test@foo.com',
+            password: 'password'
+        }, true);
+
+        expect(mockAxios.post).toHaveBeenCalledWith('/login', { email: 'test@foo.com', password: 'password', remember: true });
+
+    });
+
+    test('auth logout works', async () => {
+        const app = new App();
+        const config = makeConfig();
+
+        await app.boot({ config });
+
+        expect(app.make('auth')).toBeInstanceOf(Auth);
+
+        const auth = app.make('auth');
+        auth.logout();
+
+    });
+
 });
 
 
