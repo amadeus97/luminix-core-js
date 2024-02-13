@@ -40,7 +40,7 @@ export default class Auth implements AuthFacade {
         return !!config.get('boot.data.user');
     }
 
-    logout() {
+    logout(onSubmit?: (e: Event) => void) {
         // Append a form to the document and submit it
         const form = document.createElement('form');
 
@@ -55,6 +55,10 @@ export default class Auth implements AuthFacade {
 
         form.appendChild(input);
         document.body.appendChild(form);
+
+        if (onSubmit) {
+            form.addEventListener('submit', onSubmit);
+        }
 
         form.submit();
     }

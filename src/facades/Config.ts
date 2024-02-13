@@ -7,7 +7,7 @@ export default class Config implements ConfigFacade {
     private locked: string[] = [];
 
     constructor(
-        private readonly config: AppConfiguration = {},
+        private readonly config: AppConfiguration,
         private readonly log: LogFacade,
     ) {
 

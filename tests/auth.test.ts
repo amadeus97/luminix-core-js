@@ -1,5 +1,6 @@
 import App from '../src/facades/App';
 import Auth from '../src/facades/Auth';
+import { AppFacade } from '../src/types/App';
 import makeConfig from './config';
 import mockAxios from 'axios';
 
@@ -81,7 +82,7 @@ describe('testing authentication', () => {
     });
 
     test('auth logout works', async () => {
-        const app = new App();
+        const app: AppFacade = new App();
         const config = makeConfig();
 
         await app.boot({ config });
@@ -89,7 +90,12 @@ describe('testing authentication', () => {
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
         const auth = app.make('auth');
-        auth.logout();
+        auth.logout(jest.fn((e) => e.preventDefault()));
+
+        // a form should exist with the logout route in the DOM
+        const form = document.querySelector('form');
+        expect(form).toBeInstanceOf(HTMLFormElement);
+        expect(form?.getAttribute('action')).toBe('/logout');
 
     });
 

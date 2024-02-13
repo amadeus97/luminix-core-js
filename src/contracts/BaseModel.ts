@@ -24,7 +24,7 @@ export default abstract class BaseModel {
     constructor(
         private readonly facades: AppFacades,
         public readonly className: string,
-        attributes: ModelConstructorAttributes = { id: 0 }
+        attributes: ModelConstructorAttributes
     ) {
         this.construct(attributes);
     }
@@ -118,15 +118,35 @@ export default abstract class BaseModel {
             return value;
         }
 
-        if (cast === 'boolean') {
+        if (['boolean', 'bool'].includes(cast)) {
             return !!value;
         }
         if (['date', 'datetime', 'immutable_date', 'immutable_datetime'].includes(cast)) {
             return new Date(value);
         }
         if (
-            ['float', 'double', 'integer'].includes(cast)
+            ['float', 'double', 'integer', 'int'].includes(cast)
             || cast.startsWith('decimal:')
+        ) {
+            return Number(value);
+        }
+
+        return value;
+    }
+
+    private mutate(value: any, mutator: string) {
+        if (value === null || value === undefined || !mutator) {
+            return value;
+        }
+        if (['boolean', 'bool'].includes(mutator)) {
+            return !!value;
+        }
+        if (['date', 'datetime', 'immutable_date', 'immutable_datetime'].includes(mutator) && value instanceof Date) {
+            return value.toISOString();
+        }
+        if (
+            ['float', 'double', 'integer', 'int'].includes(mutator)
+            || mutator.startsWith('decimal:')
         ) {
             return Number(value);
         }
@@ -185,9 +205,10 @@ export default abstract class BaseModel {
             return;
         }
         const newAttributes = _.cloneDeep(this.attributes);
+        const { casts } = this.facades.repository.schema(this.className);
         newAttributes[key] = this.facades.macro.applyFilters(
             `model_${this.className}_set_${key}_attribute`,
-            value,
+            this.mutate(value, casts[key]),
             this
         );
         this._attributes = newAttributes;
@@ -232,8 +253,8 @@ export default abstract class BaseModel {
         return objectDiff(this.original, this.attributes);
     }
 
-    save(options: ModelSaveOptions = {}): Promise<void> {
-        return new Promise((resolve, reject) => {
+    async save(options: ModelSaveOptions = {}): Promise<void> {
+        try {
             const {
                 additionalPayload = {},
                 sendsOnlyModifiedFields = true,
@@ -246,109 +267,84 @@ export default abstract class BaseModel {
                 this.id === 0
                     ? false
                     : { id: this.id }
-                );    
+                );
 
-            if (!url) {
-                reject(new Error(`URL for "${routeName}" not found.`));
-                return;
-            }
-            axios.post(url, {
+            const response = await axios.post(url, {
                 ...sendsOnlyModifiedFields
                     ? this.diff()
                     : createObjectWithKeys(this.fillable, this.attributes),
                 ...additionalPayload,
             })
-                .then((response) => {
-                    if (response.status === 200) {
-                        this.construct(response.data);
-                        this.facades.macro.doAction(`model_${this.className}_save_success`, this);
-                        resolve();
-                        return;
-                    }
-                    reject(response);
-                })
-                .catch((error) => {
-                    console.error(error);
-
-                    this.facades.macro.doAction(`model_${this.className}_save_error`, error, this);
-
-                    reject(error);
-                });
-        });
-    }
-
-    delete(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const url = this.facades.route.get(`luminix.${this.className}.delete`, { id: this.id });
-            if (!url) {
-                reject(new Error(`URL for "luminix.${this.className}.delete" not found.`));
+                
+            if ([200, 201].includes(response.status)) {
+                this.construct(response.data);
+                this.facades.macro.doAction(`model_${this.className}_save_success`, this);
                 return;
             }
-            axios.delete(url)
-                .then((response) => {
-                    if (response.status === 200) {
-                        this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
-                        resolve();
-                        return;
-                    }
-                    reject(response);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    this.facades.macro.doAction(`model_${this.className}_delete_error`, error, this);
-                    reject(error);
-                });
-        });
+
+            throw response;
+        } catch (error) {
+            this.facades.log.error(error);
+            this.facades.macro.doAction(`model_${this.className}_save_error`, error, this);
+            throw error;
+        }
     }
 
-    forceDelete(): Promise<void> {
-        return new Promise((resolve, reject) => {
+    async delete(): Promise<void> {
+        try {
+            const url = this.facades.route.get(`luminix.${this.className}.delete`, { id: this.id });
+
+            const response = await axios.delete(url);
+
+            if (response.status === 200) {
+                this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
+                return;
+            }
+
+            throw response;
+        } catch (error) {
+            this.facades.log.error(error);
+            this.facades.macro.doAction(`model_${this.className}_delete_error`, error, this);
+            throw error;
+        }
+    }
+
+    async forceDelete(): Promise<void> {
+        try {
             const url = this.facades.route.get(`luminix.${this.className}.forceDelete`, { id: this.id });
 
-            if (!url) {
-                reject(new Error(`URL for "luminix.${this.className}.forceDelete" not found.`));
+            const response = await axios.delete(url);
+
+            if (response.status === 200) {
+                this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
                 return;
             }
 
-            axios.delete(url)
-                .then((response) => {
-                    if (response.status === 200) {
-                        this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
-                        resolve();
-                        return;
-                    }
-                    reject(response);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    this.facades.macro.doAction(`model_${this.className}_force_delete_error`, error, this);
-                    reject(error);
-                });
-        });
+            throw response;
+        } catch (error) {
+            this.facades.log.error(error);
+            this.facades.macro.doAction(`model_${this.className}_force_delete_error`, error, this);
+            throw error;
+        }
     }
 
-    restore(): Promise<void> {
-        return new Promise((resolve, reject) => {
+    async restore(): Promise<void> {
+        try {
             const url = this.facades.route.get(`luminix.${this.className}.restore`, { id: this.id });
 
-            if (!url) {
-                reject(new Error(`URL for "luminix.${this.className}.restore" not found.`));
+            const response = await axios.post(url);
+
+            if (response.status === 200) {
+                this.facades.macro.doAction(`model_${this.className}_restore_success`, this);
+                return;
             }
-            axios.post(url)
-                .then((response) => {
-                    if (response.status === 200) {
-                        this.facades.macro.doAction(`model_${this.className}_restore_success`, this);
-                        resolve();
-                        return;
-                    }
-                    reject(response);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    this.facades.macro.doAction(`model_${this.className}_restore_error`, error, this);
-                    reject(error);
-                });
-        });
+
+            throw response;
+        } catch (error) {
+            this.facades.log.error(error);
+            this.facades.macro.doAction(`model_${this.className}_restore_error`, error, this);
+            throw error;
+        }
     }
 
     [key: string]: any;

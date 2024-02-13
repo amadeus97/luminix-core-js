@@ -3,8 +3,4 @@ import { AppConfiguration } from '../../src/types/Config';
 import app from './app';
 import boot from './boot.json'
 
-export default () => {
-    return _.cloneDeep({ app, boot }) as AppConfiguration;
-}
-
-
+export default () => _.cloneDeep({ app, boot }) as AppConfiguration;

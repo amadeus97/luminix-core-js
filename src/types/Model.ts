@@ -75,7 +75,7 @@ export interface ModelSchemaAttributes {
     class: string,
     importable?: boolean,
     exportable?: boolean,
-    casts?: {
+    casts: {
         [field: string]: string,
     },
 }

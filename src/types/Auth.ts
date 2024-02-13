@@ -9,7 +9,7 @@ export type AuthCredentials = {
 export type AuthFacade = {
     attempt(credentials: AuthCredentials, remember: boolean): Promise<any>;
     check(): boolean;
-    logout(): void;
+    logout(onSubmit?: (e: Event) => void): void;
     user(): Model | null;
 };
 
