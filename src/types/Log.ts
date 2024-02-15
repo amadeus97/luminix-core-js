@@ -45,8 +45,3 @@ export type LogFacade = {
     debug(...args: any[]): void;
 };
 
-type LogHelperWithNoArguments = () => LogFacade;
-type LogHelperWithArguments = (...args: any[]) => void;
-
-export type LogHelper = LogHelperWithNoArguments & LogHelperWithArguments;
-

@@ -1,7 +1,7 @@
 
 export default {
     transform: {
-        '^.+\\.ts?$': 'ts-jest',
+        '^.+\\.(j|t)s?$': 'ts-jest',
     },
     testEnvironment: 'jsdom',
     testRegex: '/tests/.*\\.(test|spec)?\\.(ts|tsx)$',

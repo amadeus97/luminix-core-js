@@ -36,11 +36,8 @@ export type ConfigFacade = {
 
 };
 
-type ConfigWithNoArguments = () => ConfigFacade;
-
-type ConfigWithKey = (path: string, defaultValue?: any) => any;
-
-
-export type ConfigHelper = ConfigWithNoArguments & ConfigWithKey;
-
+export type ConfigHelper = {
+    (): ConfigFacade;
+    (path: string, defaultValue?: any): any;
+};
 

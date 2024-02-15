@@ -1,11 +1,16 @@
 import app from './app';
 
-import { RouteReplacer } from "../types/Route";
+import { RouteFacade, RouteReplacer } from "../types/Route";
 
-const route = (name: string, replace: RouteReplacer = false) => {
-    return app('route').get(name, replace);
-};
+function route(): RouteFacade;
+function route(name: string, parameters?: RouteReplacer): string;
+function route(name?: string, parameters?: RouteReplacer) {
+    const route = app('route');
+    if (!name) {
+        return route;
+    }
 
-route.exists = (name: string) => app('route').exists(name);
+    return route.get(name, parameters);
+}
 
 export default route;

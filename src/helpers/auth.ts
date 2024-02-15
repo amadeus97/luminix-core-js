@@ -1,4 +1,6 @@
 import app from './app';
 
-export default () => app('auth');
+export default function () {
+    return app('auth');
+} 
 

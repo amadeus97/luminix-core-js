@@ -49,13 +49,15 @@ describe('testing configuration', () => {
             skipBootRequest: true,
         }).then(({ config }) => {
             config.lock('app');
-            config.set('app.name', 'New Name');
-            expect(config.get('app.name')).toBe('Test App');
+            
+            // expect(config.get('app.name')).toBe('Test App');
+            expect(() => config.set('app.name', 'New Name')).toThrow('Cannot set a locked path "app.name"');
 
             config.set('foo', { bar: 'baz' });
             config.lock('foo');
-            config.merge('foo.ban', { baz: 'qux' });
-            expect(config.get('foo.ban')).toBeUndefined();
+
+            expect(() => config.merge('foo.ban', { baz: 'qux' })).toThrow('Cannot set a locked path "foo.ban"');
+            
         });
     });
 
@@ -84,13 +86,8 @@ describe('testing configuration', () => {
     });
 
 
-    test('configuration warnings', () => {
+    test('configuration errors', () => {
         const app = new App();
-
-        console.log = jest.fn();
-        console.warn = jest.fn();
-        console.error = jest.fn();
-        console.info = jest.fn();
 
         const jsConfig = makeConfig();
         app.boot({
@@ -98,27 +95,23 @@ describe('testing configuration', () => {
                 ...jsConfig,
                 app: {
                     ...jsConfig.app,
-                    debug: true,
+                    // debug: true,
                 }
             },
             skipBootRequest: true,
         }).then(({ config }) => {
             config.set('qux', 'quux');
-            config.merge('qux', { quuz: 'corge' });
-            
-            expect(console.warn).toHaveBeenCalledTimes(1);
-            expect(console.warn).toHaveBeenCalledWith('Config is trying to merge a path with non-object', {
-                path: 'qux',
-                currentValue: 'quux',
-                value: { quuz: 'corge' }
-            });
 
-            config.lock('qux');
-            config.lock('qux');
-            config.delete('qux');
+            expect(() => config.merge('qux', { quuz: 'corge' })).toThrow('Config is trying to merge a path with non-object');
 
-            expect(console.warn).toHaveBeenCalledTimes(2);
-            expect(console.warn).toHaveBeenCalledWith('Config path "qux" is locked. Cannot delete value.');
+            expect(() => config.lock('qux')).toThrow('Cannot lock a non-object path "qux"');
+
+            config.set('foo', { bar: { deep: { deeper: { evenDeeper: 'baz' } } }});
+
+            config.lock('foo.bar.deep.deeper');
+
+            expect(() => config.merge('foo.bar', { deep: { deeper: { evenDeeper: 'qux' } } })).toThrow('Cannot set a path "foo.bar" that would override a locked path');
+
         });
     });
 });

@@ -7,6 +7,8 @@ import Config from '../src/facades/Config';
 import Log from '../src/facades/Log';
 import Macro from '../src/facades/Macro';
 import Repository from '../src/facades/Repository';
+import { AuthFacade } from '../src/types/Auth';
+import { MacroFacade } from '../src/types/Macro';
 
 describe('testing application', () => {
 
@@ -28,7 +30,7 @@ describe('testing application', () => {
     test('facades can be added', async () => {
         const app = new App();
 
-        app.add('foo', 'bar');
+        app.bind('foo', 'bar');
         expect(app.make('foo')).toBe('bar');
     });
 
@@ -38,7 +40,7 @@ describe('testing application', () => {
         const plugin = {
             name: 'test',
             register: (application: App) => {
-                application.add('auth', 'bar');
+                application.bind('auth', {} as AuthFacade);
             }
         };
 
@@ -46,7 +48,7 @@ describe('testing application', () => {
             plugins: [plugin]
         });
 
-        expect(app.make('auth')).toBe('bar');
+        expect(app.make('auth')).toEqual({});
     });
 
     test('facades cant be replaced after boot', async () => {
@@ -54,7 +56,7 @@ describe('testing application', () => {
 
         await app.boot();
 
-        app.add('auth', 'bar');
+        app.bind('auth', {} as AuthFacade);
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
     });
@@ -68,7 +70,7 @@ describe('testing application', () => {
             getFilters: jest.fn(() => [])
         };
 
-        app.add('macro', macro);
+        app.bind('macro', macro as unknown as MacroFacade);
 
         await app.boot();
 

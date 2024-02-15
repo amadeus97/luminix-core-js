@@ -7,16 +7,16 @@ import { MacroFacade } from './Macro';
 import { RepositoryFacade } from './Model';
 import { RouteFacade } from './Route';
 
-export type App = {
-    boot: (options: BootOptions) => Promise<AppFacades>;
+export type AppExternal = {
+    boot: (options?: BootOptions) => Promise<AppFacades>;
     make(): AppFacades;
     make<T extends keyof AppFacades>(key: T): AppFacades[T];
     plugins: () => Plugin[];
 };
 
-export type AppFacade = App & {
+export interface AppFacade extends AppExternal {
     has(key: string): boolean;
-    add(key: string, facade: any): void;
+    bind<T extends keyof AppFacades>(key: T, facade: AppFacades[T]): void;
 };
 
 export type AppFacades = {
@@ -30,11 +30,6 @@ export type AppFacades = {
 };
 
 export type AppFacadeName = keyof AppFacades;
-
-type AppGetter = () => App;
-type AppFacadeGetter = <T extends AppFacadeName>(facade: T) => AppFacades[T];
-
-export type AppHelper = AppGetter & AppFacadeGetter;
 
 export type BootOptions = {
     config?: AppConfiguration;

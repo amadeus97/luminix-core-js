@@ -54,6 +54,10 @@ describe('testing authentication', () => {
 
         const user = auth.user();
 
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         expect(user.id).toBe(1);
         expect(user.name).toBe('John Doe');
 

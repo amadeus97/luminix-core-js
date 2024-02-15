@@ -1,9 +1,11 @@
 import App from "../facades/App";
-import { AppFacadeName, AppHelper } from "../types/App";
+import { AppExternal, AppFacades } from "../types/App";
 
 let appInstance: App;
 
-const app: AppHelper = (facade?: AppFacadeName) => {
+function app(): AppExternal;
+function app<T extends keyof AppFacades>(facade:T): AppFacades[T];
+function app(facade = undefined) {
     if (!appInstance) {
         appInstance = new App();
     }

@@ -1,12 +1,17 @@
-import { ModelHelper } from "../types/Model";
+import { Model, RepositoryFacade } from "../types/Model";
 
 import app from './app';
 
-export default ((className?: string) => {
+function model(): RepositoryFacade;
+function model(className: string): typeof Model;
+
+function model(className?: string) {
     const repository = app('repository');
     if (!className) {
         return repository;
     }
 
     return repository.make(className);
-}) as ModelHelper;
+}
+
+export default model;

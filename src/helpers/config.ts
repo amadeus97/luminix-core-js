@@ -1,13 +1,15 @@
 import app from './app';
 
-import { ConfigHelper } from '../types/Config';
+import { ConfigFacade } from '../types/Config';
 
-const config: ConfigHelper = (path?, defaultValue?) => {
+function config(): ConfigFacade;
+function config(path: string, defaultValue?: any): any;
+function config(path?: string, defaultValue?: any) {
     const configInstance = app('config');
-    if (typeof path !== 'string') {
+    if (typeof path === 'undefined') {
         return configInstance;
     }
-    return configInstance.get(path as string, defaultValue);
+    return configInstance.get(path, defaultValue);
 }
 
 export default config;

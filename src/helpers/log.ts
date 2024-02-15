@@ -1,13 +1,17 @@
 
 import app from './app';
-import { LogHelper } from '../types/Log';
+import { LogFacade } from '../types/Log';
 
-const log = ((...data: any[]) => {
+function log(): LogFacade;
+function log(...data: any[]): void;
+function log(...data: any[]) {
     const logFacade = app('log');
-    if (data.length === 0) {
+
+    if (!data.length) {
         return logFacade;
     }
-    logFacade.info(...data);
-}) as LogHelper;
+
+    return logFacade.debug(...data);
+}
 
 export default log;

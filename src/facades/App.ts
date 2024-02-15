@@ -6,7 +6,7 @@ import Macro from './Macro';
 import Repository from './Repository';
 import Auth from './Auth';
 
-import { AppFacades, AppFacade, BootOptions } from '../types/App';
+import { AppFacades, AppFacade } from '../types/App';
 import Log from './Log';
 import Plugin from '../contracts/Plugin';
 import Route from './Route';
@@ -17,32 +17,32 @@ export default class App implements AppFacade {
     private booted = false;
     private _plugins: Plugin[] = [];
 
-    make(key?: string) {
+    readonly make: AppFacade['make'] = (key = undefined) => {
         if (!key) {
             return this.facades;
         }
-        if (this.facades[key]) {
+        if (key in this.facades) {
             return this.facades[key];
         }
         return undefined;
     }
 
-    has(key: string) {
+    readonly has: AppFacade['has'] = (key) => {
         return !!this.facades[key];
     }
 
-    add(key: string, facade: any) {
+    readonly bind: AppFacade['bind'] = (key, facade) => {
         if (this.facades[key]) {
             return;
         }
         this.facades[key] = facade;
     }
 
-    plugins() {
+    readonly plugins = () => {
         return this._plugins;
     }
 
-    async boot(options: BootOptions = {}) {
+    readonly boot: AppFacade['boot'] = async (options = {}) => {
 
         if (this.booted) {
             throw new Error('[Luminix] App already booted');
@@ -76,19 +76,19 @@ export default class App implements AppFacade {
             }
         }
 
-        this.add('macro', new Macro());
+        this.bind('macro', new Macro());
         const { macro } = this.facades;
 
         macro.doAction('init', this);
 
         // Boot Log
-        this.add('log', new Log(this));
+        this.bind('log', new Log(this));
 
         // Boot Config
-        this.add('config', new Config(configObject, this.facades.log));
+        this.bind('config', new Config(configObject, this.facades.log));
         
         // Boot Route
-        this.add('route', new Route(this));
+        this.bind('route', new Route(this));
 
         const { config, log: logger } = this.facades;
 
@@ -106,8 +106,8 @@ export default class App implements AppFacade {
 
         config.lock('boot');
 
-        this.add('auth', new Auth(this));
-        this.add('repository', new Repository(this));
+        this.bind('auth', new Auth(this));
+        this.bind('repository', new Repository(this));
 
         logger.info('[Luminix] All facades registered:', this.facades);
 

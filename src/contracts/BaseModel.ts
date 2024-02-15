@@ -1,13 +1,36 @@
 
 /* eslint-disable i18next/no-literal-string */
-
-import { createObjectWithKeys, createObjectWithoutKeys, objectDiff } from '../support/object';
-
 import { Model, ModelConstructorAttributes, ModelAttributes, ModelSaveOptions } from '../types/Model';
 import { AppFacades } from '../types/App';
 
 import axios from 'axios';
 import _ from 'lodash';
+import { diff } from 'deep-object-diff';
+
+
+const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
+    .filter((key) => keys.includes(key))
+    .reduce((acc: any, key) => {
+        acc[key] = obj[key];
+        return acc;
+    }, {});
+
+const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
+    .filter((key) => !keys.includes(key))
+    .reduce((acc: any, key) => {
+        acc[key] = obj[key];
+        return acc;
+    }, {});
+
+const objectDiff = (original: any, modified: any) => {
+    try {
+        return diff(original, modified);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('objectDiff error: ', error);
+        return false;
+    }
+};
 
 export default abstract class BaseModel {
 

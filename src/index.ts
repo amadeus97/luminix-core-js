@@ -17,6 +17,14 @@ export {
     model,
     Plugin,
     route,
-    
 };
 
+// types
+export type { AppFacade } from './types/App';
+export type { AuthFacade } from './types/Auth';
+export type { ConfigFacade } from './types/Config';
+export type { LogFacade } from './types/Log';
+export type { MacroFacade } from './types/Macro';
+export type { RepositoryFacade } from './types/Model';
+export type { RouteFacade } from './types/Route';
+export type { Model } from './types/Model';
