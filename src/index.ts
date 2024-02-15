@@ -7,6 +7,7 @@ import model from './helpers/model';
 import route from './helpers/route';
 
 import Plugin from './contracts/Plugin';
+import PropertyBag from './contracts/PropertyBag';
 
 export {
     app,
@@ -15,14 +16,15 @@ export {
     error,
     log,
     model,
-    Plugin,
     route,
+
+    Plugin,
+    PropertyBag,
 };
 
 // types
 export type { AppFacade } from './types/App';
 export type { AuthFacade } from './types/Auth';
-export type { ConfigFacade } from './types/Config';
 export type { LogFacade } from './types/Log';
 export type { MacroFacade } from './types/Macro';
 export type { RepositoryFacade } from './types/Model';

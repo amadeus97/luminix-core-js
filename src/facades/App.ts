@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-import Config from './Config';
-import Macro from './Macro';
-
-import Repository from './Repository';
-import Auth from './Auth';
-
 import { AppFacades, AppFacade } from '../types/App';
+
+import Auth from './Auth';
 import Log from './Log';
-import Plugin from '../contracts/Plugin';
+import Macro from './Macro';
+import Repository from './Repository';
 import Route from './Route';
+
+import Plugin from '../contracts/Plugin';
+import PropertyBag from '../contracts/PropertyBag';
 
 export default class App implements AppFacade {
 
@@ -85,7 +85,7 @@ export default class App implements AppFacade {
         this.bind('log', new Log(this));
 
         // Boot Config
-        this.bind('config', new Config(configObject, this.facades.log));
+        this.bind('config', new PropertyBag(configObject));
         
         // Boot Route
         this.bind('route', new Route(this));

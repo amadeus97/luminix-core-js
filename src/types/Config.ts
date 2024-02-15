@@ -25,19 +25,4 @@ export type AppConfiguration = {
     [key: string]: any;
 };
 
-export type ConfigFacade = {
-    get(path: string, defaultValue?: any): any;
-    set(path: string, value: any): void;
-    merge(path: string, value: any): void;
-    has(path: string): boolean;
-    lock(path: string): void;
-    all(): AppConfiguration;
-    delete(path: string): void;
-
-};
-
-export type ConfigHelper = {
-    (): ConfigFacade;
-    (path: string, defaultValue?: any): any;
-};
 

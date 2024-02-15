@@ -1,4 +1,4 @@
-import { AppConfiguration, ConfigFacade } from './Config';
+import { AppConfiguration } from './Config';
 
 import Plugin from '../contracts/Plugin';
 import { LogFacade } from './Log';
@@ -6,6 +6,7 @@ import { AuthFacade } from './Auth';
 import { MacroFacade } from './Macro';
 import { RepositoryFacade } from './Model';
 import { RouteFacade } from './Route';
+import PropertyBag from '../contracts/PropertyBag';
 
 export type AppExternal = {
     boot: (options?: BootOptions) => Promise<AppFacades>;
@@ -21,15 +22,13 @@ export interface AppFacade extends AppExternal {
 
 export type AppFacades = {
     auth: AuthFacade;
-    config: ConfigFacade;
+    config: PropertyBag<AppConfiguration>;
     log: LogFacade;
     macro: MacroFacade;
     repository: RepositoryFacade;
     route: RouteFacade;
     [key: string]: any;
 };
-
-export type AppFacadeName = keyof AppFacades;
 
 export type BootOptions = {
     config?: AppConfiguration;

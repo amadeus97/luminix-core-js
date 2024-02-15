@@ -1,6 +1,5 @@
 // import { getProperty, setProperty, hasProperty, deleteProperty } from "dot-prop";
 import { produce } from 'immer';
-import _ from 'lodash';
 import objectPath from 'object-path';
 
 export default class PropertyBag<T extends object = any> {
@@ -12,7 +11,6 @@ export default class PropertyBag<T extends object = any> {
     }
 
     get(path: string, defaultValue?: any) {
-        // return getProperty(this.bag, path, defaultValue);
         return objectPath.get(this.bag, path, defaultValue);
     }
 
@@ -20,16 +18,11 @@ export default class PropertyBag<T extends object = any> {
         if (this.locked.some((item) => path.startsWith(item))) {
             throw new Error(`Cannot set a locked path "${path}"`);
         }
+
         if (this.locked.some((item) => item.startsWith(path) 
-            && objectPath.has(value, item.slice(path.length))
+            && objectPath.has(value, item.slice(path.length + 1))
         )) {
             throw new Error(`Cannot set a path "${path}" that would override a locked path`);
-        }
-        if (path === 'foo.bar') {
-            console.log('set', path, value);
-            console.log('locked', this.locked);
-            console.log('slice', 'foo.bar.deep.deeper'.slice(path.length));
-            console.log('has', objectPath.has(value, 'deep.deeper'));
         }
 
         this.bag = produce(this.bag, (draft) => {
@@ -77,7 +70,7 @@ export default class PropertyBag<T extends object = any> {
 
     clone()
     {
-        return new PropertyBag(_.cloneDeep(this.bag));
+        return new PropertyBag(this.bag);
     }
 
     all() {

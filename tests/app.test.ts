@@ -3,12 +3,12 @@ import mockAxios from 'axios';
 
 import App from '../src/facades/App';
 import Auth from '../src/facades/Auth';
-import Config from '../src/facades/Config';
 import Log from '../src/facades/Log';
 import Macro from '../src/facades/Macro';
 import Repository from '../src/facades/Repository';
 import { AuthFacade } from '../src/types/Auth';
 import { MacroFacade } from '../src/types/Macro';
+import PropertyBag from '../src/contracts/PropertyBag';
 
 describe('testing application', () => {
 
@@ -18,7 +18,7 @@ describe('testing application', () => {
         await app.boot();
         expect(app.plugins().length).toBe(0);
         expect(app.make('auth')).toBeInstanceOf(Auth);
-        expect(app.make('config')).toBeInstanceOf(Config);
+        expect(app.make('config')).toBeInstanceOf(PropertyBag);
         expect(app.make('log')).toBeInstanceOf(Log);
         expect(app.make('macro')).toBeInstanceOf(Macro);
         expect(app.make('repository')).toBeInstanceOf(Repository);
@@ -36,11 +36,12 @@ describe('testing application', () => {
 
     test('plugins can replace facades', async () => {
         const app = new App();
+        const auth = {} as AuthFacade;
 
         const plugin = {
             name: 'test',
             register: (application: App) => {
-                application.bind('auth', {} as AuthFacade);
+                application.bind('auth', auth);
             }
         };
 
@@ -48,7 +49,7 @@ describe('testing application', () => {
             plugins: [plugin]
         });
 
-        expect(app.make('auth')).toEqual({});
+        expect(app.make('auth')).toBe(auth);
     });
 
     test('facades cant be replaced after boot', async () => {

@@ -58,7 +58,6 @@ describe('testing log', () => {
         log.debug('debug');
         expect(console.debug).toHaveBeenCalledTimes(1);
         expect(console.debug).toHaveBeenCalledWith('debug');
-
     });
 
 });
