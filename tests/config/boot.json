@@ -8,12 +8,11 @@
                 "attachable_type",
                 "size"
             ],
-            "softDelete": false,
+            "softDeletes": false,
             "importable": false,
             "exportable": false,
-            "web": [
-                "index"
-            ],
+            "primaryKey": "id",
+            "timestamps": true,
             "relations": {
                 "attachable": {
                     "type": "MorphTo",
@@ -36,12 +35,11 @@
                 "user_id",
                 "body"
             ],
-            "softDelete": false,
+            "softDeletes": false,
             "importable": false,
             "exportable": false,
-            "web": [
-                "index"
-            ],
+            "primaryKey": "id",
+            "timestamps": true,
             "relations": {
                 "post": {
                     "type": "BelongsTo",
@@ -67,13 +65,11 @@
                 "published_at",
                 "published"
             ],
-            "softDelete": false,
+            "softDeletes": false,
             "importable": false,
             "exportable": false,
-            "web": [
-                "index",
-                "single"
-            ],
+            "primaryKey": "id",
+            "timestamps": true,
             "relations": {
                 "author": {
                     "type": "BelongsTo",
@@ -101,15 +97,13 @@
             "fillable": [
                 "name",
                 "email",
-                "password",
-                "avatar_src"
+                "password"
             ],
-            "softDelete": true,
+            "softDeletes": false,
             "importable": false,
             "exportable": false,
-            "web": [
-                "index"
-            ],
+            "primaryKey": "id",
+            "timestamps": true,
             "relations": {
                 "posts": {
                     "type": "HasMany",
@@ -122,7 +116,8 @@
             },
             "casts": {
                 "id": "int",
-                "email_verified_at": "datetime"
+                "email_verified_at": "datetime",
+                "password": "hashed"
             },
             "class": "App\\Models\\User"
         }
@@ -130,36 +125,29 @@
     "routes": {
         "luminix": {
             "comment": {
-                "list": "api\/luminix\/comments",
-                "item": "api\/luminix\/comment\/{id}",
-                "create": "api\/luminix\/comments",
+                "index": "api\/luminix\/comments",
+                "show": "api\/luminix\/comment\/{id}",
+                "store": "api\/luminix\/comments",
                 "update": "api\/luminix\/comment\/{id}",
-                "delete": "api\/luminix\/comment\/{id}",
-                "massDelete": "api\/luminix\/comments\/delete",
-                "index": "comments"
+                "destroy": "api\/luminix\/comment\/{id}",
+                "destroyMany": "api\/luminix\/comments"
             },
             "post": {
-                "list": "api\/luminix\/posts",
-                "item": "api\/luminix\/post\/{id}",
-                "create": "api\/luminix\/posts",
+                "index": "api\/luminix\/posts",
+                "show": "api\/luminix\/post\/{id}",
+                "store": "api\/luminix\/posts",
                 "update": "api\/luminix\/post\/{id}",
-                "delete": "api\/luminix\/post\/{id}",
-                "massDelete": "api\/luminix\/posts\/delete",
-                "index": "posts",
-                "single": "post\/{slug}"
+                "destroy": "api\/luminix\/post\/{id}",
+                "destroyMany": "api\/luminix\/posts"
             },
             "user": {
-                "list": "api\/luminix\/users",
-                "item": "api\/luminix\/user\/{id}",
-                "create": "api\/luminix\/users",
+                "index": "api\/luminix\/users",
+                "show": "api\/luminix\/user\/{id}",
+                "store": "api\/luminix\/users",
                 "update": "api\/luminix\/user\/{id}",
-                "delete": "api\/luminix\/user\/{id}",
-                "massDelete": "api\/luminix\/users\/delete",
-                "restore": "api\/luminix\/user\/{id}\/restore",
-                "forceDelete": "api\/luminix\/user\/{id}\/force",
-                "massRestore": "api\/luminix\/users\/restore",
-                "massForceDelete": "api\/luminix\/users\/force",
-                "index": "users"
+                "destroy": "api\/luminix\/user\/{id}",
+                "destroyMany": "api\/luminix\/users",
+                "restoreMany": "api\/luminix\/users"
             }
         },
         "login": "login",

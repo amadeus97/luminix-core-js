@@ -1,12 +1,13 @@
 
 /* eslint-disable i18next/no-literal-string */
-import { Model, ModelConstructorAttributes, ModelAttributes, ModelSaveOptions } from '../types/Model';
+import PropertyBag from './PropertyBag';
+
+import { Model, ModelAttributes, ModelSaveOptions } from '../types/Model';
 import { AppFacades } from '../types/App';
 
 import axios from 'axios';
 import _ from 'lodash';
 import { diff } from 'deep-object-diff';
-
 
 const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
     .filter((key) => keys.includes(key))
@@ -34,106 +35,20 @@ const objectDiff = (original: any, modified: any) => {
 
 export default abstract class BaseModel {
 
-    private _attributes: ModelAttributes = {};
-    private _id: number = 0;
-    private _fillable: string[] = [];
-    private _original?: object;
+    private _attributes: PropertyBag<ModelAttributes>;
+    private _original: ModelAttributes;
     private _relations: { [relationName: string]: Model | Model[] } = {};
-    private _createdAt: any = null;
-    private _updatedAt: any = null;
-    private _deletedAt: any = null;
-
 
     constructor(
         private readonly facades: AppFacades,
         public readonly className: string,
-        attributes: ModelConstructorAttributes
+        attributes: ModelAttributes,
     ) {
-        this.construct(attributes);
-    }
+        const { attributes: newAttributes, relations } = this.makeAttributes(attributes);
 
-    private construct(attributes: ModelConstructorAttributes) {
-        const { fillable, relations } = this.facades.repository.schema(this.className);
-
-        const excludedKeys = [
-            'id', 'created_at', 'updated_at', 'deleted_at', 'created_by',
-            'updated_by', ...Object.keys(relations || {})
-        ];
-
-        const newAttributes = createObjectWithoutKeys(excludedKeys, attributes);
-
-        const {
-            id = 0, created_at: createdAt, updated_at: updatedAt,
-            deleted_at: deletedAt,
-        } = attributes;
-
-        fillable.forEach((key) => {
-            if (newAttributes[key] === undefined) {
-                newAttributes[key] = null;
-            }
-        });
-
-        this._attributes = newAttributes;
-
-        const newRelations: any = {};
-
-        if (relations) {
-            Object.entries(relations).forEach(([key, relation]) => {
-                const { type, model } = relation;
-
-                if (type === 'MorphTo' && !attributes[`${key}_type`]) {
-                    return;
-                }
-
-                const Model = this.facades.repository.make(
-                    type === 'MorphTo'
-                        ? attributes[`${key}_type`] as string
-                        : model
-                );
-
-                const relationData = attributes[key];
-                const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo'].includes(type);
-
-                if (isSingle && typeof relationData === 'object' && relationData !== null) {
-                    newRelations[key] = new Model(relationData as ModelConstructorAttributes);
-                }
-
-                if (!isSingle && Array.isArray(attributes[key])) {
-                    newRelations[key] = (attributes[key] as object[]).map((item) => new Model(item as ModelConstructorAttributes));
-                }
-            });
-        }
-
-        this._relations = newRelations;
-
-        this._original = { ...this._attributes };
-        this._id = id;
-        this._fillable = fillable;
-
-        this._createdAt = createdAt
-            ? this.facades.macro.applyFilters(
-                `model_${this.className}_get_created_at_attribute`,
-                this.cast(createdAt, 'datetime'),
-                this
-            )
-            : null;
-
-        this._updatedAt = updatedAt
-            ? this.facades.macro.applyFilters(
-                `model_${this.className}_get_updated_at_attribute`,
-                this.cast(updatedAt, 'datetime'),
-                this
-            )
-            : null;
-        
-        this._deletedAt = deletedAt
-            ? this.facades.macro.applyFilters(
-                `model_${this.className}_get_deleted_at_attribute`,
-                this.cast(deletedAt, 'datetime'),
-                this
-            )
-            : null;
-
+        this._attributes = new PropertyBag(newAttributes);
+        this._original = newAttributes;
+        this._relations = relations;
     }
 
     private cast(value: any, cast: string) {
@@ -177,40 +92,93 @@ export default abstract class BaseModel {
         return value;
     }
 
-    get id() {
-        return this._id;
+    private makeAttributes(attributes: ModelAttributes)
+    {
+        const { fillable, relations } = this.facades.repository.schema(this.className);
+
+        // remove relations from attributes
+        const excludedKeys = Object.keys(relations || {});
+        const newAttributes = createObjectWithoutKeys(excludedKeys, attributes);
+
+        // fill missing fillable attributes with null
+        fillable.filter((key) => !(key in newAttributes)).forEach((key) => {
+            newAttributes[key] = null;
+        });
+
+        const newRelations: any = {};
+
+        if (relations) {
+            Object.entries(relations).forEach(([key, relation]) => {
+                const { type, model } = relation;
+
+                if (type === 'MorphTo' && !attributes[`${key}_type`]) {
+                    return;
+                }
+
+                const Model = this.facades.repository.make(
+                    type === 'MorphTo'
+                        ? attributes[`${key}_type`] as string
+                        : model
+                );
+
+                const relationData = attributes[key];
+                const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo'].includes(type);
+
+                if (isSingle && typeof relationData === 'object' && relationData !== null) {
+                    newRelations[key] = new Model(relationData as ModelAttributes);
+                }
+
+                if (!isSingle && Array.isArray(attributes[key])) {
+                    newRelations[key] = (attributes[key] as object[]).map((item) => new Model(item as ModelAttributes));
+                }
+            });
+        }
+
+        return {
+            attributes: newAttributes,
+            relations: newRelations,
+        }
     }
 
     get attributes() {
-        return this._attributes;
+        return this._attributes.all();
     }
 
     get original() {
         return this._original;
     }
 
-    get fillable() {
-        return this._fillable;
-    }
-
     get relations() {
         return this._relations;
     }
 
-    get createdAt() {
-        return this._createdAt;
+    get fillable() {
+        return this.facades.repository.schema(this.className).fillable;
     }
 
-    get updatedAt() {
-        return this._updatedAt;
+    get primaryKey() {
+        return this.facades.repository.schema(this.className).primaryKey;
     }
 
-    get deletedAt() {
-        return this._deletedAt;
+    get timestamps() {
+        return this.facades.repository.schema(this.className).timestamps;
+    }
+
+    get softDeletes() {
+        return this.facades.repository.schema(this.className).softDeletes;
+    }
+
+    get casts() {
+        return this.facades.repository.schema(this.className).casts;
+    }
+
+    get exists()
+    {
+        return this.getAttribute(this.primaryKey) !== null;
     }
 
     getAttribute(key: string) {
-        let value = this.attributes[key];
+        let value = this._attributes.get(key, null);
         const { casts } = this.facades.repository.schema(this.className);
         if (casts && casts[key]) {
             value = this.cast(value, casts[key]);
@@ -227,14 +195,14 @@ export default abstract class BaseModel {
             this.facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${this.className}"`);
             return;
         }
-        const newAttributes = _.cloneDeep(this.attributes);
+
         const { casts } = this.facades.repository.schema(this.className);
-        newAttributes[key] = this.facades.macro.applyFilters(
+
+        this._attributes.set(key, this.facades.macro.applyFilters(
             `model_${this.className}_set_${key}_attribute`,
             this.mutate(value, casts[key]),
             this
-        );
-        this._attributes = newAttributes;
+        ));
     }
 
     fill(attributes: object) {
@@ -259,16 +227,8 @@ export default abstract class BaseModel {
         }, {});
 
         return this.facades.macro.applyFilters(`model_${this.className}_json`, {
-            id: this.id,
             ...this.attributes,
             ...relations,
-            // eslint-disable-next-line camelcase
-            created_at: this.createdAt,
-            // eslint-disable-next-line camelcase
-            updated_at: this.updatedAt,
-            ...(this.facades.repository.schema(this.className).softDelete
-                ? { deleted_at: this.deletedAt }
-                : {}),
         }, this);
     }
 
@@ -282,25 +242,28 @@ export default abstract class BaseModel {
                 additionalPayload = {},
                 sendsOnlyModifiedFields = true,
             } = options;
-    
-            const routeName = `luminix.${this.className}.${this.id === 0 ? 'create' : 'update'}`;
 
             const url = this.facades.route.get(
-                routeName,
-                this.id === 0
-                    ? false
-                    : { id: this.id }
-                );
+                `luminix.${this.className}.${this.exists ? 'update' : 'store'}`,
+                this.exists && ({ [this.primaryKey]: this.getAttribute(this.primaryKey) as string })
+            );
 
-            const response = await axios.post(url, {
+            const method = this.exists ? 'put' : 'post';
+
+            const response = await axios[method](url, {
                 ...sendsOnlyModifiedFields
                     ? this.diff()
                     : createObjectWithKeys(this.fillable, this.attributes),
                 ...additionalPayload,
-            })
-                
+            });
+
             if ([200, 201].includes(response.status)) {
-                this.construct(response.data);
+                const { attributes, relations } = this.makeAttributes(response.data);
+
+                this._attributes = new PropertyBag(attributes);
+                this._original = attributes;
+                this._relations = relations;
+
                 this.facades.macro.doAction(`model_${this.className}_save_success`, this);
                 return;
             }
@@ -315,7 +278,7 @@ export default abstract class BaseModel {
 
     async delete(): Promise<void> {
         try {
-            const url = this.facades.route.get(`luminix.${this.className}.delete`, { id: this.id });
+            const url = this.facades.route.get(`luminix.${this.className}.destroy`, { [this.primaryKey]: this.getAttribute(this.primaryKey) as string });
 
             const response = await axios.delete(url);
 
@@ -334,9 +297,9 @@ export default abstract class BaseModel {
 
     async forceDelete(): Promise<void> {
         try {
-            const url = this.facades.route.get(`luminix.${this.className}.forceDelete`, { id: this.id });
+            const url = this.facades.route.get(`luminix.${this.className}.destroy`, { [this.primaryKey]: this.getAttribute(this.primaryKey) as string });
 
-            const response = await axios.delete(url);
+            const response = await axios.delete(`${url}?force`);
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
@@ -353,9 +316,9 @@ export default abstract class BaseModel {
 
     async restore(): Promise<void> {
         try {
-            const url = this.facades.route.get(`luminix.${this.className}.restore`, { id: this.id });
+            const url = this.facades.route.get(`luminix.${this.className}.update`, { [this.primaryKey]: this.getAttribute(this.primaryKey) as string });
 
-            const response = await axios.post(url);
+            const response = await axios.put(`${url}?restore`);
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_restore_success`, this);

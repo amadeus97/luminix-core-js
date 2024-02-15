@@ -24,7 +24,7 @@ describe('testing models', () => {
 
         const user2 = new User();
 
-        expect(user2.id).toBe(0);
+        expect(user2.id).toBeUndefined();
 
     });
 
@@ -35,14 +35,14 @@ describe('testing models', () => {
 
         const User = app.make('repository').make('user');
 
-        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ data: { id: 1, name: 'John Doe', email: 'johndoe@example.com' }, status: 200 }));
+        (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ data: { id: 1, name: 'John Doe', email: 'johndoe@example.com' }, status: 200 }));
 
         const user = await User.update(1, {
             name: 'John Doe',
             email: 'johndoe@example.com'
         });
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/user/1', { name: 'John Doe', email: 'johndoe@example.com' });
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/user/1', { name: 'John Doe', email: 'johndoe@example.com' });
         expect(user.id).toBe(1);
 
     });
@@ -83,7 +83,7 @@ describe('testing models', () => {
 
         user.name = 'Jane Doe';
 
-        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({
+        (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({
             data: {
                 id: 1,
                 name: 'Jane Doe',
@@ -94,7 +94,7 @@ describe('testing models', () => {
 
         await user.save();
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/user/1', { name: 'Jane Doe' });
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/user/1', { name: 'Jane Doe' });
 
     });
 
@@ -105,17 +105,17 @@ describe('testing models', () => {
 
         const User = app.make('repository').make('user');
 
-        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
 
         await User.restore(1);
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/user/1/restore');
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/user/1?restore');
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
 
         await User.forceDelete(1);
 
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/user/1/force');
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/user/1?force');
 
     });
 
@@ -128,21 +128,15 @@ describe('testing models', () => {
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
         await User.massDelete([1, 2, 3]);
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/delete', { params: { ids: [1, 2, 3] } });
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 
-        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
         await User.massRestore([1, 2, 3]);
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users/restore', { ids: [1, 2, 3] });
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users', { ids: [1, 2, 3] });
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
         await User.massForceDelete([1, 2, 3]);
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/force', { params: { ids: [1, 2, 3] } });
-
-        const Post = app.make('repository').make('post');
-
-        const post = new Post({ id: 1 });
-
-        await expect(post.forceDelete()).rejects.toThrow("Route data for 'luminix.post.forceDelete' was not found.");
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 
     });
 
@@ -180,11 +174,7 @@ describe('testing models', () => {
             id: 1,
             name: 'Jane Doe',
             email: 'johndoe@example.com',
-            password: 'password',
-            avatar_src: null,
-            created_at: null,
-            updated_at: null,
-            deleted_at: null
+            password: 'password'
         });
 
         const user2 = new User({
@@ -363,12 +353,12 @@ describe('testing models', () => {
 
         const Attachment = app.make('repository').make('attachment');
 
-        expect(() => Attachment.create({})).rejects.toThrow("Route data for 'luminix.attachment.create' was not found.");
+        expect(() => Attachment.create({})).rejects.toThrow("Route data for 'luminix.attachment.store' was not found.");
         expect(() => Attachment.update(1, {})).rejects.toThrow("Route data for 'luminix.attachment.update' was not found.");
-        expect(() => Attachment.delete(1)).rejects.toThrow("Route data for 'luminix.attachment.delete' was not found.");
-        expect(() => Attachment.find(1)).rejects.toThrow("Route data for 'luminix.attachment.item' was not found.");
-        expect(() => Attachment.restore(1)).rejects.toThrow("Route data for 'luminix.attachment.restore' was not found.");
-        expect(() => Attachment.forceDelete(1)).rejects.toThrow("Route data for 'luminix.attachment.forceDelete' was not found.");
+        expect(() => Attachment.delete(1)).rejects.toThrow("Route data for 'luminix.attachment.destroy' was not found.");
+        expect(() => Attachment.find(1)).rejects.toThrow("Route data for 'luminix.attachment.show' was not found.");
+        expect(() => Attachment.restore(1)).rejects.toThrow("Route data for 'luminix.attachment.update' was not found.");
+        expect(() => Attachment.forceDelete(1)).rejects.toThrow("Route data for 'luminix.attachment.destroy' was not found.");
 
     });
 

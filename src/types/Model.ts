@@ -4,13 +4,13 @@ import { AxiosResponse } from "axios";
 import BaseModel from "../contracts/BaseModel";
 
 export declare class Model extends BaseModel {
-    constructor(attributes?: ModelConstructorAttributes);
+    constructor(attributes?: ModelAttributes);
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
     static get(query: object): Promise<ModelPaginatedResponse>;
     static find(id: number): Promise<Model>;
-    static create(attributes: ModelConstructorAttributes): Promise<Model>;
-    static update(id: number, attributes: ModelConstructorAttributes): Promise<Model>;
+    static create(attributes: ModelAttributes): Promise<Model>;
+    static update(id: number, attributes: ModelAttributes): Promise<Model>;
     static delete(id: number): Promise<void>;
     static restore(id: number): Promise<Model>;
     static forceDelete(id: number): Promise<void>;
@@ -19,7 +19,6 @@ export declare class Model extends BaseModel {
     static massForceDelete(ids: Array<number>): Promise<AxiosResponse>;
     [key: string]: any;
 }
-
 
 export interface ModelSaveOptions {
     additionalPayload?: object,
@@ -30,13 +29,6 @@ export interface ModelAttributes {
     [key: string]: string | number | boolean | object | null | undefined,
 }
 
-export interface ModelConstructorAttributes {
-    id?: number,
-    created_at?: string,
-    updated_at?: string,
-    deleted_at?: string,
-    [key: string]: string | number | boolean | object | null | undefined,
-}
 export type ModelSetAttributeCallback = (attributeName: string, value: any) => void;
 
 export type ModelFillCallback = (data: object) => void;
@@ -64,20 +56,20 @@ export interface ModelSchemaAttributes {
             type: 'HasOne' | 'HasMany' | 'BelongsTo' | 'BelongsToMany' | 'MorphOne' | 'MorphMany' | 'MorphTo' | 'MorphToMany' | 'MorphedByMany',
         }
     },
+    casts: {
+        [field: string]: string,
+    },
     // tables: {
     //     [tableName: string]: {
     //         columns: Array<ModelTableColumnDefinition>,
     //         filter?: Array<any>,
     //     }
     // },
-    web: string[],
-    softDelete?: boolean,
-    class: string,
+    primaryKey: string,
+    timestamps: boolean,
+    softDeletes: boolean,
     importable?: boolean,
     exportable?: boolean,
-    casts: {
-        [field: string]: string,
-    },
 }
 
 export interface ModelSchema {

@@ -1,6 +1,6 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { Model, ModelConstructorAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMakeFunction, RepositorySchemaFunction } from '../types/Model';
+import { Model, ModelAttributes, ModelPaginatedResponse, ModelSchema, RepositoryFacade, RepositoryMakeFunction, RepositorySchemaFunction } from '../types/Model';
 
 import BaseModel from '../contracts/BaseModel';
 
@@ -40,7 +40,7 @@ export default class Repository implements RepositoryFacade {
              *
              * @param {object} attributes - Atributos do modelo.
              */
-            constructor(attributes: ModelConstructorAttributes = {}) {
+            constructor(attributes: ModelAttributes = {}) {
                 super(app.make(), className, attributes);
 
                 return new Proxy(this, {
@@ -116,7 +116,7 @@ export default class Repository implements RepositoryFacade {
             }
 
             static async get(query?: object): Promise<ModelPaginatedResponse> {
-                const { data } = await axios.get(app.make('route').get(`luminix.${className}.list`), { params: query });
+                const { data } = await axios.get(app.make('route').get(`luminix.${className}.index`), { params: query });
 
                 const Model = app.make('repository').make(className);
 
@@ -127,14 +127,14 @@ export default class Repository implements RepositoryFacade {
             }
 
             static async find(id: number) {
-                const { data } = await axios.get(app.make('route').get(`luminix.${className}.item`, { id }));
+                const { data } = await axios.get(app.make('route').get(`luminix.${className}.show`, { id }));
 
                 const Model = app.make('repository').make(className);
 
                 return new Model(data);
             }
 
-            static async create(attributes: ModelConstructorAttributes) {
+            static async create(attributes: ModelAttributes) {
                 const Model = app.make('repository').make(className);
                 const model = new Model();
 
@@ -145,7 +145,7 @@ export default class Repository implements RepositoryFacade {
                 return model;
             }
 
-            static async update(id: number, attributes: ModelConstructorAttributes) {
+            static async update(id: number, attributes: ModelAttributes) {
                 const Model = app.make('repository').make(className);
                 const model = new Model({ id });
  
@@ -182,15 +182,15 @@ export default class Repository implements RepositoryFacade {
             }
 
             static massDelete(ids: number[]) {
-                return axios.delete(app.make('route').get(`luminix.${className}.massDelete`), { params: { ids } });
+                return axios.delete(app.make('route').get(`luminix.${className}.destroyMany`), { params: { ids } });
             }
 
             static massRestore(ids: number[]) {
-                return axios.post(app.make('route').get(`luminix.${className}.massRestore`), { ids });
+                return axios.put(app.make('route').get(`luminix.${className}.restoreMany`), { ids });
             }
 
             static massForceDelete(ids: number[]) {
-                return axios.delete(app.make('route').get(`luminix.${className}.massForceDelete`), { params: { ids } });
+                return axios.delete(app.make('route').get(`luminix.${className}.destroyMany`), { params: { ids, force: true } });
             }
 
 
