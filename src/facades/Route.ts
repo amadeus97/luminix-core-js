@@ -27,10 +27,8 @@ export default class Route implements RouteFacade {
             return false;
         }
 
-        // Check if path is a string and follows a valid URL pattern
-        // const pathRegex = /^\/[a-zA-Z0-9/]*(\{[a-zA-Z0-9]+\})*$/;
-        const pathRegex = /^\/?[a-zA-Z0-9\/]*(\{[a-zA-Z0-9]+\})*$/;
-        if (typeof path !== 'string' || !pathRegex.test(path)) {
+        // Check if path is a string
+        if (typeof path !== 'string') {
             return false;
         }
 

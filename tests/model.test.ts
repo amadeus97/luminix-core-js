@@ -96,6 +96,38 @@ describe('testing models', () => {
 
         expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', { name: 'Jane Doe' }, {});
 
+
+        const PostComment = app.make('repository').make('post_comment');
+
+        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({
+            data: {
+                id: 1,
+                body: 'First Comment',
+                post_id: 1,
+                user_id: 1,
+            }
+        }));
+
+        const comment = await PostComment.find(1);
+
+        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/post_comments/1', {});
+
+        comment.body = 'First Comment Updated';
+
+        (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({
+            data: {
+                id: 1,
+                body: 'First Comment Updated',
+                post_id: 1,
+                user_id: 1,
+            },
+            status: 200 
+        }));
+
+        await comment.save();
+
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/post_comments/1/update', { body: 'First Comment Updated' }, {});
+
     });
 
     test('model restore and force delete', async () => {
@@ -197,7 +229,7 @@ describe('testing models', () => {
         await app.boot({ config: makeConfig() });
 
         const {
-            attachment: Attachment, user: User, post: Post, comment: Comment
+            attachment: Attachment, user: User, post: Post, post_comment: Comment
         } = app.make('repository').make();
     
         const user = new User({

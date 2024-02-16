@@ -26,10 +26,9 @@
             "casts": {
                 "id": "int",
                 "size": "integer"
-            },
-            "class": "App\\Models\\Attachment"
+            }
         },
-        "comment": {
+        "post_comment": {
             "fillable": [
                 "post_id",
                 "user_id",
@@ -52,8 +51,7 @@
             },
             "casts": {
                 "id": "int"
-            },
-            "class": "App\\Models\\Comment"
+            }
         },
         "post": {
             "fillable": [
@@ -77,7 +75,7 @@
                 },
                 "comments": {
                     "type": "HasMany",
-                    "model": "comment"
+                    "model": "post_comment"
                 },
                 "attachments": {
                     "type": "MorphMany",
@@ -90,8 +88,7 @@
                 "published_at": "datetime",
                 "published": "boolean",
                 "likes": "integer"
-            },
-            "class": "App\\Models\\Post"
+            }
         },
         "user": {
             "fillable": [
@@ -111,7 +108,7 @@
                 },
                 "comments": {
                     "type": "HasMany",
-                    "model": "comment"
+                    "model": "post_comment"
                 }
             },
             "casts": {
@@ -124,13 +121,13 @@
     },
     "routes": {
         "luminix": {
-            "comment": {
-                "index": ["api\/luminix\/comments", ["get"]],
-                "show": ["api\/luminix\/comments\/{id}", ["get"]],
-                "store": ["api\/luminix\/comments", ["post"]],
-                "update": ["api\/luminix\/comments\/{id}", ["put"]],
-                "destroy": ["api\/luminix\/comments\/{id}", ["delete"]],
-                "destroyMany": ["api\/luminix\/comments", ["delete"]]
+            "post_comment": {
+                "index": ["api\/luminix\/post_comments", ["get"]],
+                "show": ["api\/luminix\/post_comments\/{id}", ["get"]],
+                "store": ["api\/luminix\/post_comments", ["post"]],
+                "update": ["api\/luminix\/post_comments\/{id}\/update", ["put"]],
+                "destroy": ["api\/luminix\/post_comments\/{id}", ["delete"]],
+                "destroyMany": ["api\/luminix\/post_comments", ["delete"]]
             },
             "post": {
                 "index": ["api\/luminix\/posts", ["get"]],
