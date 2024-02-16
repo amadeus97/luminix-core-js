@@ -75,14 +75,17 @@ describe('testing authentication', () => {
 
         const auth = app.make('auth');
 
-        (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
-        await auth.attempt({
+        auth.attempt({
             email: 'test@foo.com',
             password: 'password'
-        }, true);
+        }, true, jest.fn((e) => e.preventDefault()));
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/login', { email: 'test@foo.com', password: 'password', remember: true }, {});
+        // a form should exist with the login route in the DOM
+        const form = document.querySelector('form');
+        expect(form).toBeInstanceOf(HTMLFormElement);
+        expect(form?.getAttribute('action')).toBe('/login');
 
+        form?.remove();
     });
 
     test('auth logout works', async () => {
@@ -101,6 +104,7 @@ describe('testing authentication', () => {
         expect(form).toBeInstanceOf(HTMLFormElement);
         expect(form?.getAttribute('action')).toBe('/logout');
 
+        form?.remove();
     });
 
 });

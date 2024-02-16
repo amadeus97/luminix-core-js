@@ -13,27 +13,50 @@ export default class Auth implements AuthFacade {
         private readonly app: AppFacade
     ) { }
 
-    async attempt(credentials: AuthCredentials, remember: boolean = false) {
-        const { data, status } = await this.app.make('route').call('login', {
-            method: 'post',
-            data: {
-                ...credentials,
-                remember
-            },
-        });
+    attempt(credentials: AuthCredentials, remember: boolean = false, onSubmit?: (e: Event) => void) {
+        const form = document.createElement('form');
 
-        if (![200, 201].includes(status)) {
-            throw new Error('Login failed');
+        form.method = 'post';
+        form.action = this.app.make('route').url('login');
+        form.style.display = 'none';
+
+        if (this.app.make('config').get('app.csrfToken')) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = this.app.make('config').get('app.csrfToken');
+
+            form.appendChild(csrfInput);
         }
 
-        // this method is not fully implemented
-        const config = this.app.make('config');
+        const emailInput = document.createElement('input');
+        emailInput.type = 'email';
+        emailInput.name = 'email';
+        emailInput.value = credentials.email;
+        form.appendChild(emailInput);
 
-        if (config.get('app.debug', false)) {
-            console.warn('Auth.attempt() is not fully implemented');
+        const passwordInput = document.createElement('input');
+        passwordInput.type = 'password';
+        passwordInput.name = 'password';
+        passwordInput.value = credentials.password;
+        form.appendChild(passwordInput);
+
+        if (remember) {
+            const rememberInput = document.createElement('input');
+            rememberInput.type = 'checkbox';
+            rememberInput.name = 'remember';
+            rememberInput.value = '1';
+            rememberInput.checked = true;
+            form.appendChild(rememberInput);
         }
 
-        return data;
+        if (onSubmit) {
+            form.addEventListener('submit', onSubmit);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        
     }
 
     check() {
@@ -50,12 +73,14 @@ export default class Auth implements AuthFacade {
         form.action = this.app.make('route').url('logout');
         form.style.display = 'none';
 
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_token';
-        input.value = '';
+        if (this.app.make('config').get('app.csrfToken')) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_token';
+            input.value = this.app.make('config').get('app.csrfToken');
 
-        form.appendChild(input);
+            form.appendChild(input);
+        }
         document.body.appendChild(form);
 
         if (onSubmit) {

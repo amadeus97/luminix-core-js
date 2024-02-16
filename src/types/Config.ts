@@ -8,6 +8,7 @@ export type AppConfiguration = {
         debug?: boolean;
         bootUrl?: string;
         enforceCamelCaseForModelAttributes?: boolean;
+        csrfToken?: string;
         [key: string]: any;
     },
     boot?: {
