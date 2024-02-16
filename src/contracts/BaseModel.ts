@@ -1,13 +1,13 @@
 
 /* eslint-disable i18next/no-literal-string */
-import PropertyBag from './PropertyBag';
-
-import { Model, ModelAttributes, ModelSaveOptions } from '../types/Model';
-import { AppFacades } from '../types/App';
-
 import _ from 'lodash';
 import { diff } from 'deep-object-diff';
+import PropertyBag from './PropertyBag';
+
+import { Model, ModelAttributes, ModelSaveOptions, ModelSchemaAttributes } from '../types/Model';
+import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
+import { AxiosResponse } from 'axios';
 
 const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
     .filter((key) => keys.includes(key))
@@ -22,16 +22,6 @@ const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(o
         acc[key] = obj[key];
         return acc;
     }, {});
-
-const objectDiff = (original: any, modified: any) => {
-    try {
-        return diff(original, modified);
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('objectDiff error: ', error);
-        return false;
-    }
-};
 
 export default abstract class BaseModel {
 
@@ -94,14 +84,14 @@ export default abstract class BaseModel {
 
     private makeAttributes(attributes: ModelAttributes)
     {
-        const { fillable, relations } = this.facades.repository.schema(this.className);
+        const { relations } = this.facades.repository.schema(this.className);
 
         // remove relations from attributes
         const excludedKeys = Object.keys(relations || {});
         const newAttributes = createObjectWithoutKeys(excludedKeys, attributes);
 
         // fill missing fillable attributes with null
-        fillable.filter((key) => !(key in newAttributes)).forEach((key) => {
+        this.fillable.filter((key) => !(key in newAttributes)).forEach((key) => {
             newAttributes[key] = null;
         });
 
@@ -174,8 +164,12 @@ export default abstract class BaseModel {
         return this.facades.repository.schema(this.className).softDeletes;
     }
 
-    get casts() {
-        return this.facades.repository.schema(this.className).casts;
+    get casts(): ModelSchemaAttributes['casts'] {
+        return {
+            ...this.facades.repository.schema(this.className).casts,
+            ...this.timestamps ? { created_at: 'datetime', updated_at: 'datetime' } : {},
+            ...this.softDeletes ? { deleted_at: 'datetime' } : {},
+        };
     }
 
     get exists()
@@ -185,9 +179,8 @@ export default abstract class BaseModel {
 
     getAttribute(key: string) {
         let value = this._attributes.get(key, null);
-        const { casts } = this.facades.repository.schema(this.className);
-        if (casts && casts[key]) {
-            value = this.cast(value, casts[key]);
+        if (key in this.casts) {
+            value = this.cast(value, this.casts[key]);
         }
         return this.facades.macro.applyFilters(
             `model_${this.className}_get_${key}_attribute`,
@@ -202,11 +195,9 @@ export default abstract class BaseModel {
             return;
         }
 
-        const { casts } = this.facades.repository.schema(this.className);
-
         this._attributes.set(key, this.facades.macro.applyFilters(
             `model_${this.className}_set_${key}_attribute`,
-            this.mutate(value, casts[key]),
+            this.mutate(value, this.casts[key]),
             this
         ));
     }
@@ -239,10 +230,10 @@ export default abstract class BaseModel {
     }
 
     diff() {
-        return objectDiff(this.original, this.attributes);
+        return diff(this.original, this.attributes);
     }
 
-    async save(options: ModelSaveOptions = {}): Promise<void> {
+    async save(options: ModelSaveOptions = {}): Promise<AxiosResponse> {
         try {
             const {
                 additionalPayload = {},
@@ -276,7 +267,7 @@ export default abstract class BaseModel {
                 this._relations = relations;
 
                 this.facades.macro.doAction(`model_${this.className}_save_success`, this);
-                return;
+                return response;
             }
 
             throw response;
@@ -287,7 +278,7 @@ export default abstract class BaseModel {
         }
     }
 
-    async delete(): Promise<void> {
+    async delete(): Promise<AxiosResponse> {
         try {
             const response = await this.facades.route.call([
                 `luminix.${this.className}.destroy`,
@@ -296,7 +287,7 @@ export default abstract class BaseModel {
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
-                return;
+                return response;
             }
 
             throw response;
@@ -307,7 +298,7 @@ export default abstract class BaseModel {
         }
     }
 
-    async forceDelete(): Promise<void> {
+    async forceDelete(): Promise<AxiosResponse> {
         try {
             const response = await this.facades.route.call(
                 [
@@ -319,7 +310,7 @@ export default abstract class BaseModel {
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
-                return;
+                return response;
             }
 
             throw response;
@@ -330,7 +321,7 @@ export default abstract class BaseModel {
         }
     }
 
-    async restore(): Promise<void> {
+    async restore(): Promise<AxiosResponse> {
         try {
             const response = await this.facades.route.call(
                 [
@@ -342,7 +333,7 @@ export default abstract class BaseModel {
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_restore_success`, this);
-                return;
+                return response;
             }
 
             throw response;

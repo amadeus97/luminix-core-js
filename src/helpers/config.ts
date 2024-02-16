@@ -1,9 +1,8 @@
 import app from './app';
 
-import { AppConfiguration } from '../types/Config';
-import PropertyBag from '../contracts/PropertyBag';
+import { ConfigFacade } from '../types/Config';
 
-function config(): PropertyBag<AppConfiguration>;
+function config(): ConfigFacade;
 function config(path: string, defaultValue?: any): any;
 function config(path?: string, defaultValue?: any) {
     const configInstance = app('config');

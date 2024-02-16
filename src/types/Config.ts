@@ -1,3 +1,4 @@
+import { PropertyBag } from '..';
 import { ModelSchema } from './Model';
 import { RouteDefinition } from './Route';
 
@@ -25,4 +26,5 @@ export type AppConfiguration = {
     [key: string]: any;
 };
 
+export type ConfigFacade = PropertyBag<AppConfiguration>;
 

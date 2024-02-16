@@ -11,12 +11,15 @@ export declare class Model extends BaseModel {
     static find(id: number): Promise<Model>;
     static create(attributes: ModelAttributes): Promise<Model>;
     static update(id: number, attributes: ModelAttributes): Promise<Model>;
-    static delete(id: number): Promise<void>;
-    static restore(id: number): Promise<Model>;
-    static forceDelete(id: number): Promise<void>;
-    static massDelete(ids: Array<number>): Promise<AxiosResponse>;
-    static massRestore(ids: Array<number>): Promise<AxiosResponse>;
-    static massForceDelete(ids: Array<number>): Promise<AxiosResponse>;
+    static delete(id: number): Promise<AxiosResponse>;
+    static delete(ids: Array<number>): Promise<AxiosResponse>;
+    static restore(id: number): Promise<AxiosResponse>;
+    static restore(ids: Array<number>): Promise<AxiosResponse>;
+    static forceDelete(id: number): Promise<AxiosResponse>;
+    static forceDelete(ids: Array<number>): Promise<AxiosResponse>;
+    // static massDelete(ids: Array<number>): Promise<AxiosResponse>;
+    // static massRestore(ids: Array<number>): Promise<AxiosResponse>;
+    // static massForceDelete(ids: Array<number>): Promise<AxiosResponse>;
     [key: string]: any;
 }
 

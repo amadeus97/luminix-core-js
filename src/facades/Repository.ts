@@ -159,43 +159,40 @@ export default class Repository implements RepositoryFacade {
                 return model;
             }
 
-            static delete(id: number) {
+            static delete(id: number | number[]) {
+                if (Array.isArray(id)) {
+                    return app.make('route').call(`luminix.${className}.destroyMany`, { params: { ids: id } });
+                }
+
                 const Model = app.make('repository').make(className);
                 const model = new Model({ id });
 
                 return model.delete();
             }
 
-            static async restore(id: number) {
+            static async restore(id: number | number[]) {
+                if (Array.isArray(id)) {
+                    return app.make('route').call(`luminix.${className}.restoreMany`, { data: { ids: id } });
+                }
+
                 const Model = app.make('repository').make(className);
 
                 const model = new Model({ id });
 
-                await model.restore();
-
-                return model;
+                return model.restore();
             }
 
-            static forceDelete(id: number) {
+            static forceDelete(id: number | number[]) {
+                if (Array.isArray(id)) {
+                    return app.make('route').call(`luminix.${className}.destroyMany`, { params: { ids: id, force: true } });
+                }
+
                 const Model = app.make('repository').make(className);
 
                 const model = new Model({ id });
 
                 return model.forceDelete();
             }
-
-            static massDelete(ids: number[]) {
-                return app.make('route').call(`luminix.${className}.destroyMany`, { params: { ids } });
-            }
-
-            static massRestore(ids: number[]) {
-                return app.make('route').call(`luminix.${className}.restoreMany`, { data: { ids } });
-            }
-
-            static massForceDelete(ids: number[]) {
-                return app.make('route').call(`luminix.${className}.destroyMany`, { params: { ids, force: true } });
-            }
-
 
         };
     }

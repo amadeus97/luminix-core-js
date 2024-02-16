@@ -159,15 +159,15 @@ describe('testing models', () => {
         const User = app.make('repository').make('user');
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
-        await User.massDelete([1, 2, 3]);
+        await User.delete([1, 2, 3]);
         expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 
         (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
-        await User.massRestore([1, 2, 3]);
+        await User.restore([1, 2, 3]);
         expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users', { ids: [1, 2, 3] }, {});
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
-        await User.massForceDelete([1, 2, 3]);
+        await User.forceDelete([1, 2, 3]);
         expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 
     });
