@@ -285,7 +285,7 @@ export default abstract class BaseModel {
                 this.makePrimaryKeyReplacer(),
             ]);
 
-            if (response.status === 200) {
+            if (response.status === 204) {
                 this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
                 return response;
             }
@@ -308,7 +308,7 @@ export default abstract class BaseModel {
                 { params: { force: true } }
             );
 
-            if (response.status === 200) {
+            if (response.status === 204) {
                 this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
                 return response;
             }

@@ -85,23 +85,22 @@ export default class App implements AppFacade {
 
         // Boot Config
         this.bind('config', new PropertyBag(configObject));
-        
-        // Boot Route
-        this.bind('route', new Route(this));
 
         const { config, log: logger } = this.facades;
-
+        
         if (!skipBootRequest) {
             const { data } = await axios.get(config.get('app.bootUrl', '/api/luminix/init'));
-
+            
             logger.info('[Luminix] Backend responded with:', data);
-
+            
             if (data && typeof data === 'object') {
                 config.merge('boot', data);
             }
-        }
-
+        }        
         config.lock('boot');
+
+        // Boot Route
+        this.bind('route', new Route(this));
 
         this.bind('auth', new Auth(this));
         this.bind('repository', new Repository(this));
