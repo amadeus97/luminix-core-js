@@ -1,6 +1,5 @@
 
 
-import axios from 'axios';
 import { AuthCredentials, AuthFacade } from '../types/Auth';
 import { Model } from '../types/Model';
 
@@ -15,9 +14,12 @@ export default class Auth implements AuthFacade {
     ) { }
 
     async attempt(credentials: AuthCredentials, remember: boolean = false) {
-        const { data, status } = await axios.post(this.app.make('route').get('login'), {
-            ...credentials,
-            remember
+        const { data, status } = await this.app.make('route').call('login', {
+            method: 'post',
+            data: {
+                ...credentials,
+                remember
+            },
         });
 
         if (![200, 201].includes(status)) {
@@ -45,7 +47,7 @@ export default class Auth implements AuthFacade {
         const form = document.createElement('form');
 
         form.method = 'post';
-        form.action = this.app.make('route').get('logout');
+        form.action = this.app.make('route').url('logout');
         form.style.display = 'none';
 
         const input = document.createElement('input');

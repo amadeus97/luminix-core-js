@@ -81,7 +81,7 @@ describe('testing authentication', () => {
             password: 'password'
         }, true);
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/login', { email: 'test@foo.com', password: 'password', remember: true });
+        expect(mockAxios.post).toHaveBeenCalledWith('/login', { email: 'test@foo.com', password: 'password', remember: true }, {});
 
     });
 

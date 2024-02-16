@@ -4,7 +4,6 @@ import { Model, ModelAttributes, ModelPaginatedResponse, ModelSchema, Repository
 
 import BaseModel from '../contracts/BaseModel';
 
-import axios from 'axios';
 import _ from 'lodash';
 import { AppFacade } from '../types/App';
 
@@ -116,7 +115,7 @@ export default class Repository implements RepositoryFacade {
             }
 
             static async get(query?: object): Promise<ModelPaginatedResponse> {
-                const { data } = await axios.get(app.make('route').get(`luminix.${className}.index`), { params: query });
+                const { data } = await app.make('route').call(`luminix.${className}.index`, { params: query });
 
                 const Model = app.make('repository').make(className);
 
@@ -126,9 +125,13 @@ export default class Repository implements RepositoryFacade {
                 };
             }
 
-            static async find(id: number) {
-                const { data } = await axios.get(app.make('route').get(`luminix.${className}.show`, { id }));
-
+            static async find(id: number | string) {
+                const pk = app.make('repository').schema(className).primaryKey;
+                const { data } = await app.make('route').call([
+                    `luminix.${className}.show`,
+                    { [pk]: id }
+                ]);
+                
                 const Model = app.make('repository').make(className);
 
                 return new Model(data);
@@ -182,15 +185,15 @@ export default class Repository implements RepositoryFacade {
             }
 
             static massDelete(ids: number[]) {
-                return axios.delete(app.make('route').get(`luminix.${className}.destroyMany`), { params: { ids } });
+                return app.make('route').call(`luminix.${className}.destroyMany`, { params: { ids } });
             }
 
             static massRestore(ids: number[]) {
-                return axios.put(app.make('route').get(`luminix.${className}.restoreMany`), { ids });
+                return app.make('route').call(`luminix.${className}.restoreMany`, { data: { ids } });
             }
 
             static massForceDelete(ids: number[]) {
-                return axios.delete(app.make('route').get(`luminix.${className}.destroyMany`), { params: { ids, force: true } });
+                return app.make('route').call(`luminix.${className}.destroyMany`, { params: { ids, force: true } });
             }
 
 

@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import { AppFacades, AppFacade } from '../types/App';
 
 import Auth from './Auth';
@@ -10,6 +8,7 @@ import Route from './Route';
 
 import Plugin from '../contracts/Plugin';
 import PropertyBag from '../contracts/PropertyBag';
+import axios from 'axios';
 
 export default class App implements AppFacade {
 
@@ -93,9 +92,7 @@ export default class App implements AppFacade {
         const { config, log: logger } = this.facades;
 
         if (!skipBootRequest) {
-            const { data } = await axios.get(
-                config.get('app.bootUrl', '/api/luminix/init')
-            );
+            const { data } = await axios.get(config.get('app.bootUrl', '/api/luminix/init'));
 
             logger.info('[Luminix] Backend responded with:', data);
 

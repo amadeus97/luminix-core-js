@@ -5,9 +5,9 @@ import PropertyBag from './PropertyBag';
 import { Model, ModelAttributes, ModelSaveOptions } from '../types/Model';
 import { AppFacades } from '../types/App';
 
-import axios from 'axios';
 import _ from 'lodash';
 import { diff } from 'deep-object-diff';
+import { RouteGenerator, RouteReplacer } from '../types/Route';
 
 const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
     .filter((key) => keys.includes(key))
@@ -140,6 +140,12 @@ export default abstract class BaseModel {
         }
     }
 
+    private makePrimaryKeyReplacer(): RouteReplacer {
+        return {
+            [this.primaryKey]: this.getAttribute(this.primaryKey) as string
+        };
+    }
+
     get attributes() {
         return this._attributes.all();
     }
@@ -243,19 +249,24 @@ export default abstract class BaseModel {
                 sendsOnlyModifiedFields = true,
             } = options;
 
-            const url = this.facades.route.get(
-                `luminix.${this.className}.${this.exists ? 'update' : 'store'}`,
-                this.exists && ({ [this.primaryKey]: this.getAttribute(this.primaryKey) as string })
+            const route: RouteGenerator = this.exists ?
+                [
+                    `luminix.${this.className}.update`,
+                    this.makePrimaryKeyReplacer()
+                ]
+                : `luminix.${this.className}.store`;
+
+            const response = await this.facades.route.call(
+                route,
+                {
+                    data: {
+                        ...sendsOnlyModifiedFields
+                            ? this.diff()
+                            : createObjectWithKeys(this.fillable, this.attributes),
+                        ...additionalPayload,
+                    },
+                }
             );
-
-            const method = this.exists ? 'put' : 'post';
-
-            const response = await axios[method](url, {
-                ...sendsOnlyModifiedFields
-                    ? this.diff()
-                    : createObjectWithKeys(this.fillable, this.attributes),
-                ...additionalPayload,
-            });
 
             if ([200, 201].includes(response.status)) {
                 const { attributes, relations } = this.makeAttributes(response.data);
@@ -278,9 +289,10 @@ export default abstract class BaseModel {
 
     async delete(): Promise<void> {
         try {
-            const url = this.facades.route.get(`luminix.${this.className}.destroy`, { [this.primaryKey]: this.getAttribute(this.primaryKey) as string });
-
-            const response = await axios.delete(url);
+            const response = await this.facades.route.call([
+                `luminix.${this.className}.destroy`,
+                this.makePrimaryKeyReplacer(),
+            ]);
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_delete_success`, this);
@@ -297,9 +309,13 @@ export default abstract class BaseModel {
 
     async forceDelete(): Promise<void> {
         try {
-            const url = this.facades.route.get(`luminix.${this.className}.destroy`, { [this.primaryKey]: this.getAttribute(this.primaryKey) as string });
-
-            const response = await axios.delete(`${url}?force`);
+            const response = await this.facades.route.call(
+                [
+                    `luminix.${this.className}.destroy`,
+                    this.makePrimaryKeyReplacer(),
+                ],
+                { params: { force: true } }
+            );
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_force_delete_success`, this);
@@ -316,9 +332,13 @@ export default abstract class BaseModel {
 
     async restore(): Promise<void> {
         try {
-            const url = this.facades.route.get(`luminix.${this.className}.update`, { [this.primaryKey]: this.getAttribute(this.primaryKey) as string });
-
-            const response = await axios.put(`${url}?restore`);
+            const response = await this.facades.route.call(
+                [
+                    `luminix.${this.className}.update`,
+                    this.makePrimaryKeyReplacer()
+                ],
+                { params: { restore: true } }
+            );
 
             if (response.status === 200) {
                 this.facades.macro.doAction(`model_${this.className}_restore_success`, this);

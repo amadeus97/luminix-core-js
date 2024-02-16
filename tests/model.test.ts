@@ -19,7 +19,7 @@ describe('testing models', () => {
             email: 'johndoe@example.com'
         });
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users', { name: 'John Doe', email: 'johndoe@example.com' });
+        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users', { name: 'John Doe', email: 'johndoe@example.com' }, {});
         expect(user.id).toBe(1);
 
         const user2 = new User();
@@ -42,7 +42,7 @@ describe('testing models', () => {
             email: 'johndoe@example.com'
         });
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/user/1', { name: 'John Doe', email: 'johndoe@example.com' });
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', { name: 'John Doe', email: 'johndoe@example.com' }, {});
         expect(user.id).toBe(1);
 
     });
@@ -58,7 +58,7 @@ describe('testing models', () => {
 
         await User.delete(1);
 
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/user/1');
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/1', {});
 
     });
 
@@ -79,7 +79,7 @@ describe('testing models', () => {
 
         const user = await User.find(1);
 
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/user/1');
+        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users/1', {});
 
         user.name = 'Jane Doe';
 
@@ -94,7 +94,7 @@ describe('testing models', () => {
 
         await user.save();
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/user/1', { name: 'Jane Doe' });
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', { name: 'Jane Doe' }, {});
 
     });
 
@@ -109,13 +109,13 @@ describe('testing models', () => {
 
         await User.restore(1);
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/user/1?restore');
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', undefined, { params: { restore: true } });
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
 
         await User.forceDelete(1);
 
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/user/1?force');
+        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/1', { params: { force: true } });
 
     });
 
@@ -132,7 +132,7 @@ describe('testing models', () => {
 
         (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
         await User.massRestore([1, 2, 3]);
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users', { ids: [1, 2, 3] });
+        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users', { ids: [1, 2, 3] }, {});
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
         await User.massForceDelete([1, 2, 3]);

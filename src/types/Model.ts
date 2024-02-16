@@ -46,9 +46,6 @@ export interface ModelTableColumnDefinition {
 }
 
 export interface ModelSchemaAttributes {
-    // fields: {
-    //     [fieldSchema: string]: Array<any>
-    // },
     fillable: string[],
     relations: {
         [relationName: string]: {
@@ -59,12 +56,6 @@ export interface ModelSchemaAttributes {
     casts: {
         [field: string]: string,
     },
-    // tables: {
-    //     [tableName: string]: {
-    //         columns: Array<ModelTableColumnDefinition>,
-    //         filter?: Array<any>,
-    //     }
-    // },
     primaryKey: string,
     timestamps: boolean,
     softDeletes: boolean,

@@ -4,13 +4,15 @@ import { RouteFacade, RouteReplacer } from "../types/Route";
 
 function route(): RouteFacade;
 function route(name: string, parameters?: RouteReplacer): string;
-function route(name?: string, parameters?: RouteReplacer) {
+function route(name?: string, parameters: RouteReplacer | false = false) {
     const route = app('route');
     if (!name) {
         return route;
     }
-
-    return route.get(name, parameters);
+    if (!parameters) {
+        return route.url(name);
+    }
+    return route.url([name, parameters]);
 }
 
 export default route;
