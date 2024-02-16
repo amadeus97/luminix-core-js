@@ -12,7 +12,7 @@ export type RouteFacade = {
 export type RouteGenerator = string | [string, RouteReplacer];
 
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
-export type RouteTuple = [string, HttpMethod[]];
+export type RouteTuple = [string, ...HttpMethod[]];
 
 export type RouteDefinition = {
     [routeName: string]: RouteTuple | RouteDefinition;

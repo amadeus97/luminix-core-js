@@ -17,15 +17,11 @@ export default class Route implements RouteFacade {
 
     private isRouteTuple(route: any): route is RouteTuple {
         // Check if route is an array with exactly two elements
-        if (!Array.isArray(route) || route.length !== 2) {
+        if (!Array.isArray(route) || route.length < 2) {
             return false;
         }
 
-        const [path, methods] = route;
-
-        if (!Array.isArray(methods) || methods.length === 0) {
-            return false;
-        }
+        const [path, ...methods] = route;
 
         // Check if path is a string
         if (typeof path !== 'string') {
@@ -98,18 +94,18 @@ export default class Route implements RouteFacade {
     call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
         const [name, replace] = this.extractGenerator(generator);
 
-        const [_, methods] = this.get(name);
+        const [_, ...methods] = this.get(name);
         const url = this.url(replace ? [name, replace] : name);
 
         const { method = methods[0], ...rest } = config;
 
         if (['get', 'delete'].includes(method)) {
-            return axios[method.toLowerCase() as HttpMethod](url, config);
+            return axios[method as HttpMethod](url, config);
         }
 
         const { data, ...restOfRest } = rest;
 
-        return axios[method.toLowerCase() as HttpMethod](url, data, restOfRest);
+        return axios[method as HttpMethod](url, data, restOfRest);
     }
     
 

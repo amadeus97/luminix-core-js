@@ -122,41 +122,41 @@
     "routes": {
         "luminix": {
             "post_comment": {
-                "index": ["api\/luminix\/post_comments", ["get"]],
-                "show": ["api\/luminix\/post_comments\/{id}", ["get"]],
-                "store": ["api\/luminix\/post_comments", ["post"]],
-                "update": ["api\/luminix\/post_comments\/{id}\/update", ["put"]],
-                "destroy": ["api\/luminix\/post_comments\/{id}", ["delete"]],
-                "destroyMany": ["api\/luminix\/post_comments", ["delete"]]
+                "index": ["api\/luminix\/post_comments", "get"],
+                "show": ["api\/luminix\/post_comments\/{id}", "get"],
+                "store": ["api\/luminix\/post_comments", "post"],
+                "update": ["api\/luminix\/post_comments\/{id}\/update", "put"],
+                "destroy": ["api\/luminix\/post_comments\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/post_comments", "delete"]
             },
             "post": {
-                "index": ["api\/luminix\/posts", ["get"]],
-                "show": ["api\/luminix\/posts\/{id}", ["get"]],
-                "store": ["api\/luminix\/posts", ["post"]],
-                "update": ["api\/luminix\/posts\/{id}", ["put"]],
-                "destroy": ["api\/luminix\/posts\/{id}", ["delete"]],
-                "destroyMany": ["api\/luminix\/posts", ["delete"]]
+                "index": ["api\/luminix\/posts", "get"],
+                "show": ["api\/luminix\/posts\/{id}", "get"],
+                "store": ["api\/luminix\/posts", "post"],
+                "update": ["api\/luminix\/posts\/{id}", "put"],
+                "destroy": ["api\/luminix\/posts\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/posts", "delete"]
             },
             "user": {
-                "index": ["api\/luminix\/users", ["get"]],
-                "show": ["api\/luminix\/users\/{id}", ["get"]],
-                "store": ["api\/luminix\/users", ["post"]],
-                "update": ["api\/luminix\/users\/{id}", ["put"]],
-                "destroy": ["api\/luminix\/users\/{id}", ["delete"]],
-                "destroyMany": ["api\/luminix\/users", ["delete"]],
-                "restoreMany": ["api\/luminix\/users", ["put"]]
+                "index": ["api\/luminix\/users", "get"],
+                "show": ["api\/luminix\/users\/{id}", "get"],
+                "store": ["api\/luminix\/users", "post"],
+                "update": ["api\/luminix\/users\/{id}", "put"],
+                "destroy": ["api\/luminix\/users\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/users", "delete"],
+                "restoreMany": ["api\/luminix\/users", "put"]
             }
         },
-        "login": ["login", ["get", "post"]],
-        "logout": ["logout", ["post"]],
+        "login": ["login", "get", "post"],
+        "logout": ["logout", "post"],
         "password": {
-            "request": ["password\/reset", ["get"]],
-            "email": ["password\/email", ["get"]],
-            "reset": ["password\/reset\/{token}", ["get", "post"]],
-            "update": ["password\/reset", ["post"]],
-            "confirm": ["password\/confirm", ["get", "post"]]
+            "request": ["password\/reset", "get"],
+            "email": ["password\/email", "get"],
+            "reset": ["password\/reset\/{token}", "get", "post"],
+            "update": ["password\/reset", "post"],
+            "confirm": ["password\/confirm", "get", "post"]
         },
-        "home": ["\/", ["get"]],
-        "profile": ["profile", ["get"]]
+        "home": ["\/", "get"],
+        "profile": ["profile", "get"]
     }
 }
