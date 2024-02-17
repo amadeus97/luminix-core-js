@@ -106,7 +106,7 @@ export default class Auth implements AuthFacade {
         return this._user;
     }
 
-    id(): number {
-        return this.user()?.id || 0;
+    id(): number | string | null {
+        return this.user()?.getKey() || null;
     }
 }

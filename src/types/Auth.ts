@@ -11,6 +11,6 @@ export type AuthFacade = {
     check(): boolean;
     logout(onSubmit?: (e: Event) => void): void;
     user(): Model | null;
-    id(): number;
+    id(): number | string | null;
 };
 

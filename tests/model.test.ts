@@ -54,7 +54,7 @@ describe('testing models', () => {
 
         const User = app.make('repository').make('user');
 
-        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 204 }));
 
         await User.delete(1);
 
@@ -143,7 +143,7 @@ describe('testing models', () => {
 
         expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', undefined, { params: { restore: true } });
 
-        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 204 }));
 
         await User.forceDelete(1);
 
@@ -158,7 +158,7 @@ describe('testing models', () => {
 
         const User = app.make('repository').make('user');
 
-        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 204 }));
         await User.delete([1, 2, 3]);
         expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 
@@ -166,7 +166,7 @@ describe('testing models', () => {
         await User.restore([1, 2, 3]);
         expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users', { ids: [1, 2, 3] }, {});
 
-        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 204 }));
         await User.forceDelete([1, 2, 3]);
         expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 

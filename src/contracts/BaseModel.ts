@@ -202,6 +202,14 @@ export default abstract class BaseModel {
         ));
     }
 
+    getKey(): number | string {
+        return this.getAttribute(this.primaryKey) as number | string;
+    }
+
+    getKeyName(): string {
+        return this.primaryKey;
+    }
+
     fill(attributes: object) {
         const validAttributes = createObjectWithKeys(this.fillable, attributes);
         Object.keys(validAttributes).forEach((key) => {

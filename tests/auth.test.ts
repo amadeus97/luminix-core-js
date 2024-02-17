@@ -36,7 +36,7 @@ describe('testing authentication', () => {
         const auth = app.make('auth');
 
         expect(auth.check()).toBe(false);
-        expect(auth.id()).toBe(0);
+        expect(auth.id()).toBeNull();
 
     });
 
