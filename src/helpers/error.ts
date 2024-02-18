@@ -1,15 +1,11 @@
+import reader from "./reader";
+
 const error = (key: string) => {
-    const el = document.getElementById(`error-${key}`);
-
-    if (!el) {
-        return null;
-    }
-
-    return el.dataset.value;
+    return reader('error::' + key);
 };
 
 error.clear = () => {
-    const els = document.querySelectorAll('#luminix-injections [id^="error-"]');
+    const els = document.querySelectorAll('#luminix-embed [id^="luminix-data-error::"]');
 
     els.forEach((el) => {
         el.remove();

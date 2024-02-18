@@ -9,6 +9,7 @@ import Route from './Route';
 import Plugin from '../contracts/Plugin';
 import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
+import reader from '../helpers/reader';
 
 export default class App implements AppFacade {
 
@@ -59,93 +60,62 @@ export default class App implements AppFacade {
         } = options;
 
         if (configObject?.app?.debug) {
-            console.log('[Luminix] Booting app with options:', options);
+            console.log('[Luminix] Booting started...');
         }
 
         this._plugins = plugins;
 
+        this.bind('macro', new Macro());
+
         const registrablePlugins = plugins.filter(p => typeof p.register === 'function');
         for (const plugin of registrablePlugins) {
-            if (configObject?.app?.debug) {
-                console.log(`[Luminix] Registering plugin: "${plugin.name}"`);
-            }
             (plugin.register as Function)(this);
-            if (configObject?.app?.debug) {
-                console.log(`[Luminix] Plugin "${plugin.name}" registered`);
-            }
         }
 
-        this.bind('macro', new Macro());
-        const { macro } = this.facades;
-
-        macro.doAction('init', this);
-
-        // Boot Log
         this.bind('log', new Log(this));
-
-        // Boot Config
         this.bind('config', new PropertyBag(configObject));
 
-        const { config, log: logger } = this.facades;
+        const { config, log: logger, macro } = this.facades;
+
+        macro.doAction('init', this);
         
-        if (!skipBootRequest) {
+        if (!skipBootRequest && !document.querySelector('#luminix-embed #luminix-data-boot')) {
             const { data } = await axios.get(config.get('app.bootUrl', '/api/luminix/init'));
-            
-            logger.info('[Luminix] Backend responded with:', data);
-            
             if (data && typeof data === 'object') {
                 config.merge('boot', data);
             }
-        }        
+        }
+        if (document.querySelector('#luminix-embed #luminix-data-boot')) {
+            const data = reader('boot');
+            if (data && typeof data === 'object') {
+                config.merge('boot', data);
+            }
+        }
         config.lock('boot');
 
-        // Boot Route
         this.bind('route', new Route(this));
-
         this.bind('auth', new Auth(this));
         this.bind('repository', new Repository(this));
-
-        logger.info('[Luminix] All facades registered:', this.facades);
-
-        const { auth } = this.facades;
-
+        
         const bootablePlugins = plugins.filter(p => typeof p.boot === 'function');
         // Boot plugins
         for (const plugin of bootablePlugins) {
-
-            logger.info(`[Luminix] Booting plugin: "${plugin.name}"`);
-
             (plugin.boot as Function)(this.facades);
-
-            logger.info(`[Luminix] Plugin "${plugin.name}" booted`);
-            
         }
-
+        
         // Boot custom macros
         if (typeof macros === 'function') {
-            macros(this.facades);
-
-            logger.info('[Luminix] User-defined macros booted');
-            
+            macros(this.facades);            
         }
 
+        const { auth } = this.facades;
 
-        logger.info('[Luminix] App boot completed');
-        logger.info(' + config:', config.all());
-        logger.info(` + ${plugins.length} plugins registered`);
-        logger.info(` + ${Object.keys(config.get('boot.models', {})).length} models loaded`);
-        logger.info(` + ${Object.keys(config.get('boot.routes', {})).length} routes available`);
-        logger.info(` + ${macro.getActions().length} actions registered`);
-        logger.info(` + ${macro.getFilters().length} filters registered`);
-
-        if (config.get('app.debug', false)) {
-            if (!auth.check()) {
-                logger.info('[Luminix] User is not authenticated');
-            } else {
-                logger.info('[Luminix] User is authenticated');
-                logger.info(' + User:', auth.user());
-            }
-        }
+        logger.info('[Luminix] App boot completed', {
+            config: config.all(),
+            plugins: plugins,
+            authenticated: auth.check(),
+            user: auth.user(),
+        });
 
         macro.doAction('booted', this.facades);
 
