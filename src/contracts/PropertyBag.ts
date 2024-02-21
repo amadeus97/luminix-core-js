@@ -31,6 +31,21 @@ export default class PropertyBag<T extends object = any> {
     }
 
     merge(path: string, value: any) {
+        if (path === '.') {
+            if (typeof value !== 'object' || value === null) {
+                throw new Error(`Cannot merge a non-object path "${path}"`);
+            }
+            if (this.locked.some((item) => objectPath.has(value, item))) {
+                throw new Error(`Cannot merge a path "${path}" that would override a locked path`);
+            }
+            this.bag = produce(this.bag, (draft) => {
+                return {
+                    ...draft,
+                    ...value,
+                };
+            });
+            return;
+        }
         const currentValue = this.get(path);
 
         if (typeof currentValue === 'object' && currentValue !== null) {

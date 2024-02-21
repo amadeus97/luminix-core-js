@@ -23,7 +23,7 @@ const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(o
         return acc;
     }, {});
 
-export default abstract class BaseModel {
+export default abstract class BaseModel extends EventTarget {
 
     private _attributes: PropertyBag<ModelAttributes>;
     private _original: ModelAttributes;
@@ -34,6 +34,7 @@ export default abstract class BaseModel {
         public readonly className: string,
         attributes: ModelAttributes,
     ) {
+        super();
         const { attributes: newAttributes, relations } = this.makeAttributes(attributes);
 
         this._attributes = new PropertyBag(newAttributes);
@@ -200,6 +201,15 @@ export default abstract class BaseModel {
             this.mutate(value, this.casts[key]),
             this
         ));
+
+        this.dispatchEvent(new CustomEvent('change', {
+            detail: {
+                class: this.className,
+                [this.getKeyName()]: this.getKey(),
+                original: this.original,
+                current: this.attributes,
+            },
+        }));
     }
 
     getKey(): number | string {
@@ -212,9 +222,17 @@ export default abstract class BaseModel {
 
     fill(attributes: object) {
         const validAttributes = createObjectWithKeys(this.fillable, attributes);
-        Object.keys(validAttributes).forEach((key) => {
-            this.setAttribute(key, validAttributes[key]);
-        });
+
+        this._attributes.merge('.', validAttributes);
+
+        this.dispatchEvent(new CustomEvent('change', {
+            detail: {
+                class: this.className,
+                [this.getKeyName()]: this.getKey(),
+                original: this.original,
+                current: this.attributes,
+            },
+        }));
     }
 
     json() {
