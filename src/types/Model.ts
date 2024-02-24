@@ -1,25 +1,52 @@
 
 import { AxiosResponse } from "axios";
 
-import BaseModel from "../contracts/BaseModel";
+type RelationRepository = {
+    [relationName: string]: Model | Model[]
+}
 
-export declare class Model extends BaseModel {
-    constructor(attributes?: ModelAttributes);
+export declare class Model extends EventTarget {
+    constructor(attributes?: JsonObject);
+
+    get attributes(): JsonObject;
+    get original(): JsonObject;
+    get primaryKey(): string;
+    get timestamps(): boolean;
+    get softDeletes(): boolean;
+    get fillable(): string[];
+    get relations(): RelationRepository;
+    get exists(): boolean;
+    get isDirty(): boolean;
+    get casts(): ModelSchemaAttributes['casts'];
+
+    getAttribute(key: string): unknown;
+    setAttribute(key: string, value: any): void;
+    getKey(): string | number;
+    getKeyName(): string;
+    fill(attributes: object): void;
+    json(): unknown;
+    diff(): object;
+    save(options?: ModelSaveOptions): Promise<AxiosResponse<any, any>>;
+    delete(): Promise<AxiosResponse<any, any>>;
+    forceDelete(): Promise<AxiosResponse<any, any>>;
+    restore(): Promise<AxiosResponse<any, any>>;
+
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
     static get(query: object): Promise<ModelPaginatedResponse>;
     static find(id: number): Promise<Model>;
-    static create(attributes: ModelAttributes): Promise<Model>;
-    static update(id: number, attributes: ModelAttributes): Promise<Model>;
+    static create(attributes: JsonObject): Promise<Model>;
+    static update(id: number, attributes: JsonObject): Promise<Model>;
     static delete(id: number): Promise<AxiosResponse>;
     static delete(ids: Array<number>): Promise<AxiosResponse>;
     static restore(id: number): Promise<AxiosResponse>;
     static restore(ids: Array<number>): Promise<AxiosResponse>;
     static forceDelete(id: number): Promise<AxiosResponse>;
     static forceDelete(ids: Array<number>): Promise<AxiosResponse>;
-    // static massDelete(ids: Array<number>): Promise<AxiosResponse>;
-    // static massRestore(ids: Array<number>): Promise<AxiosResponse>;
-    // static massForceDelete(ids: Array<number>): Promise<AxiosResponse>;
+
+}
+
+export declare class ProxyModel extends Model {
     [key: string]: any;
 }
 
@@ -28,8 +55,8 @@ export interface ModelSaveOptions {
     sendsOnlyModifiedFields?: boolean,
 }
 
-export interface ModelAttributes {
-    [key: string]: string | number | boolean | object | null | undefined,
+export interface JsonObject {
+    [key: string]: string | number | boolean | null | JsonObject | Array<string | number | boolean | null | JsonObject>,
 }
 
 export type ModelSetAttributeCallback = (attributeName: string, value: any) => void;
@@ -90,25 +117,16 @@ export type ModelPaginatedResponse = {
     total: number,
 }
 
-type RepositorySchemaWithoutArguments = () => ModelSchema;
-type RepositorySchemaWithArguments = (className: string) => ModelSchemaAttributes;
-
-export type RepositorySchemaFunction = RepositorySchemaWithoutArguments & RepositorySchemaWithArguments;
-
-type RepositoryMakeWithoutArguments = () => {
-    [className: string]: typeof Model;
-};
-type RepositoryMakeWithArguments = (className: string) => typeof Model;
-
-export type RepositoryMakeFunction = RepositoryMakeWithoutArguments & RepositoryMakeWithArguments;
-
 export type RepositoryFacade = {
-    readonly schema: RepositorySchemaFunction;
-    readonly make: RepositoryMakeFunction;
+    schema(): ModelSchema;
+    schema(className: string): ModelSchemaAttributes;
+    make(): {
+        [className: string]: typeof Model;
+    };
+    make(className: string): typeof Model;
+    addEventListener(event: string, listener: (e: Event) => void): void;
+    removeEventListener(event: string, listener: (e: Event) => void): void;
+    dispatchEvent(event: Event): void;
+    
 }
 
-type ModelHelperWithoutArguments = () => RepositoryFacade;
-
-type ModelHelperWithArguments = (className: string) => typeof Model;
-
-export type ModelHelper = ModelHelperWithoutArguments & ModelHelperWithArguments;

@@ -11,7 +11,7 @@ import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
 import reader from '../helpers/reader';
 
-export default class App implements AppFacade {
+export default class App extends EventTarget implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
@@ -75,9 +75,9 @@ export default class App implements AppFacade {
         this.bind('log', new Log(this));
         this.bind('config', new PropertyBag(configObject));
 
-        const { config, log: logger, macro } = this.facades;
+        const { config, log: logger } = this.facades;
 
-        macro.doAction('init', this);
+        this.dispatchEvent(new CustomEvent('init'));
         
         if (!skipBootRequest && !document.querySelector('#luminix-embed #luminix-data-boot')) {
             const { data } = await axios.get(config.get('app.bootUrl', '/api/luminix/init'));
@@ -117,7 +117,8 @@ export default class App implements AppFacade {
             user: auth.user(),
         });
 
-        macro.doAction('booted', this.facades);
+        // macro.doAction('booted', this.facades);
+        this.dispatchEvent(new CustomEvent('booted'));
 
         return this.facades;
     }

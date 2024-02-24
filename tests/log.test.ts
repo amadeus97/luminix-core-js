@@ -27,7 +27,7 @@ describe('testing log', () => {
         expect(console.log).toHaveBeenCalledTimes(1);
         expect(console.warn).toHaveBeenCalledTimes(0);
         expect(console.error).toHaveBeenCalledTimes(0);
-        expect(console.info).toHaveBeenCalledTimes(10);
+        expect(console.info).toHaveBeenCalledTimes(1);
 
         const log = app.make('log');
 
@@ -52,7 +52,7 @@ describe('testing log', () => {
         expect(console.warn).toHaveBeenCalledWith('warning');
 
         log.notice('notice');
-        expect(console.info).toHaveBeenCalledTimes(11);
+        expect(console.info).toHaveBeenCalledTimes(2);
         expect(console.info).toHaveBeenCalledWith('notice');
 
         log.debug('debug');
