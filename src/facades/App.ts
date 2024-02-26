@@ -54,8 +54,7 @@ export default class App extends EventTarget implements AppFacade {
 
         const { 
             config: configObject = {}, 
-            plugins = [], 
-            macros,
+            plugins = [],
             skipBootRequest = false
         } = options;
 
@@ -101,11 +100,6 @@ export default class App extends EventTarget implements AppFacade {
         // Boot plugins
         for (const plugin of bootablePlugins) {
             (plugin.boot as Function)(this.facades);
-        }
-        
-        // Boot custom macros
-        if (typeof macros === 'function') {
-            macros(this.facades);            
         }
 
         const { auth } = this.facades;

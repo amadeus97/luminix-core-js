@@ -32,7 +32,6 @@ export type AppFacades = {
 export type BootOptions = {
     config?: AppConfiguration;
     plugins?: Plugin[];
-    macros?: (facades: AppFacades) => void;
     skipBootRequest?: boolean;
 };
 
