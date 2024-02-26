@@ -1,9 +1,9 @@
-import { Model, RepositoryFacade } from "../types/Model";
+import { ProxyModel, RepositoryFacade } from "../types/Model";
 
 import app from './app';
 
 function model(): RepositoryFacade;
-function model(className: string): typeof Model;
+function model(className: string): typeof ProxyModel;
 
 function model(className?: string) {
     const repository = app('repository');

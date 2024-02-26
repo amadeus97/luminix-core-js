@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { diff } from 'deep-object-diff';
 import PropertyBag from './PropertyBag';
 
-import { Model, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, ProxyModel } from '../types/Model';
+import { Model, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, ProxyModel, RelationRepository } from '../types/Model';
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
@@ -29,7 +29,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
 
         private _attributes: PropertyBag<JsonObject>;
         private _original: JsonObject;
-        private _relations: { [relationName: string]: Model | Model[] } = {};
+        private _relations: RelationRepository = {};
 
         constructor(attributes: JsonObject = {}) {
             super();
@@ -547,7 +547,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             const Model = facades.repository.make(className);
     
-            const models: Model[] = data.data.map((item: any) => {
+            const models: ProxyModel[] = data.data.map((item: any) => {
                 const value = new Model(item);
                 facades.repository.dispatchEvent(new CustomEvent('fetch', {
                     detail: {

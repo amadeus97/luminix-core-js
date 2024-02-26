@@ -79,7 +79,7 @@ export default class App extends EventTarget implements AppFacade {
         this.dispatchEvent(new CustomEvent('init'));
         
         if (!skipBootRequest && !document.querySelector('#luminix-embed #luminix-data-boot')) {
-            const { data } = await axios.get(config.get('app.bootUrl', '/api/luminix/init'));
+            const { data } = await axios.get(config.get('app.bootUrl', '/luminix-api/init'));
             if (data && typeof data === 'object') {
                 config.merge('boot', data);
             }

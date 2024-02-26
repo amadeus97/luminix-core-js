@@ -1,6 +1,6 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { Model, ModelSchema, ModelSchemaAttributes, RepositoryFacade } from '../types/Model';
+import { Model, ModelSchema, ModelSchemaAttributes, ProxyModel, RepositoryFacade } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
 
@@ -12,7 +12,7 @@ export default class Repository extends EventTarget implements RepositoryFacade 
 
     private _schema: ModelSchema | undefined;
     
-    private _models: { [className: string]: typeof Model } = {};
+    private _models: { [className: string]: typeof ProxyModel } = {};
 
     constructor(
         private readonly app: AppFacade,
@@ -59,8 +59,8 @@ export default class Repository extends EventTarget implements RepositoryFacade 
     };
 
 
-    make(): { [className: string]: typeof Model}
-    make(className: string): typeof Model
+    make(): { [className: string]: typeof ProxyModel}
+    make(className: string): typeof ProxyModel
     make(className?: string) {
         if (className && !this._models[className]) {
             throw new Error(`Model class '${className}' not found.`);

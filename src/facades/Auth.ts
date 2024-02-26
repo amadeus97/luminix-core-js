@@ -1,13 +1,13 @@
 
 
 import { AuthCredentials, AuthFacade } from '../types/Auth';
-import { Model } from '../types/Model';
+import { ProxyModel } from '../types/Model';
 
 import { AppFacade } from '../types/App';
 
 export default class Auth implements AuthFacade {
 
-    private _user: Model | undefined;
+    private _user: ProxyModel | undefined;
 
     constructor(
         private readonly app: AppFacade
@@ -90,7 +90,7 @@ export default class Auth implements AuthFacade {
         form.submit();
     }
 
-    user(): Model | null {
+    user(): ProxyModel | null {
         if (!this._user) {
             const { repository, config } = this.app.make();
 

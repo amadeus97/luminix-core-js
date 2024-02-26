@@ -1,8 +1,8 @@
 
 import { AxiosResponse } from "axios";
 
-type RelationRepository = {
-    [relationName: string]: Model | Model[]
+export type RelationRepository = {
+    [relationName: string]: ProxyModel | ProxyModel[]
 }
 
 export declare class Model extends EventTarget {
@@ -34,9 +34,9 @@ export declare class Model extends EventTarget {
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
     static get(query: object): Promise<ModelPaginatedResponse>;
-    static find(id: number): Promise<Model>;
-    static create(attributes: JsonObject): Promise<Model>;
-    static update(id: number, attributes: JsonObject): Promise<Model>;
+    static find(id: number): Promise<ProxyModel>;
+    static create(attributes: JsonObject): Promise<ProxyModel>;
+    static update(id: number, attributes: JsonObject): Promise<ProxyModel>;
     static delete(id: number): Promise<AxiosResponse>;
     static delete(ids: Array<number>): Promise<AxiosResponse>;
     static restore(id: number): Promise<AxiosResponse>;
@@ -98,32 +98,36 @@ export interface ModelSchema {
 }
 
 export type ModelPaginatedResponse = {
-    current_page: number,
-    data: Model[],
-    first_page_url: string,
-    from: number,
-    last_page: number,
-    last_page_url: string,
-    links: Array<{
-        url: string,
-        label: string,
-        active: boolean,
-    }>,
-    next_page_url: string | null,
-    path: string,
-    per_page: number,
-    prev_page_url: string | null,
-    to: number,
-    total: number,
+    data: ProxyModel[],
+    links: {
+        first: string,
+        last: string,
+        prev: string | null,
+        next: string | null,
+    },
+    meta: {
+        current_page: number,
+        from: number,
+        last_page: number,
+        path: string,
+        per_page: number,
+        to: number,
+        total: number,
+        links: Array<{
+            url: string | null,
+            label: string,
+            active: boolean,
+        }>,
+    }
 }
 
 export type RepositoryFacade = {
     schema(): ModelSchema;
     schema(className: string): ModelSchemaAttributes;
     make(): {
-        [className: string]: typeof Model;
+        [className: string]: typeof ProxyModel;
     };
-    make(className: string): typeof Model;
+    make(className: string): typeof ProxyModel;
     addEventListener(event: string, listener: (e: Event) => void): void;
     removeEventListener(event: string, listener: (e: Event) => void): void;
     dispatchEvent(event: Event): void;

@@ -29,4 +29,4 @@ export type { LogFacade } from './types/Log';
 export type { MacroFacade } from './types/Macro';
 export type { RepositoryFacade } from './types/Model';
 export type { RouteFacade } from './types/Route';
-export type { Model } from './types/Model';
+export type { ProxyModel, Model } from './types/Model';
