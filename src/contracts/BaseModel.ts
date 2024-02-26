@@ -312,7 +312,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            return facades.macro.applyFilters(
+            return facades.macro.reduce(
                 `model_${className}_get_${key}_attribute`,
                 value,
                 this
@@ -330,7 +330,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return;
             }
     
-            const mutated: string | number | boolean | null = facades.macro.applyFilters(
+            const mutated: string | number | boolean | null = facades.macro.reduce(
                 `model_${className}_set_${key}_attribute`,
                 this.mutate(value, this.casts[key]),
                 this
@@ -365,7 +365,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             const validAttributes = createObjectWithKeys(this.fillable, attributes);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: any, [key, value]) => {
-                acc[key] = facades.macro.applyFilters(
+                acc[key] = facades.macro.reduce(
                     `model_${className}_set_${key}_attribute`,
                     this.mutate(value, this.casts[key]),
                     this
@@ -404,7 +404,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return acc;
             }, {});
     
-            return facades.macro.applyFilters(`model_${className}_json`, {
+            return facades.macro.reduce(`model_${className}_json`, {
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -463,7 +463,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw response;
             } catch (error) {
                 facades.log.error(error);
-                // facades.macro.doAction(`model_${className}_save_error`, error, this);
                 this.dispatchErrorEvent(error, 'save');
                 throw error;
             }
@@ -477,7 +476,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 ]);
     
                 if (response.status === 204) {
-                    // facades.macro.doAction(`model_${className}_delete_success`, this);
                     this.dispatchDeleteEvent();
                     return response;
                 }
@@ -485,7 +483,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw response;
             } catch (error) {
                 facades.log.error(error);
-                // facades.macro.doAction(`model_${className}_delete_error`, error, this);
                 this.dispatchErrorEvent(error, 'delete');
                 throw error;
             }
@@ -502,7 +499,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 );
     
                 if (response.status === 204) {
-                    // facades.macro.doAction(`model_${className}_force_delete_success`, this);
                     this.dispatchDeleteEvent(true);
                     return response;
                 }
@@ -510,7 +506,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw response;
             } catch (error) {
                 facades.log.error(error);
-                // facades.macro.doAction(`model_${className}_force_delete_error`, error, this);
                 this.dispatchErrorEvent(error, 'forceDelete');
                 throw error;
             }
@@ -527,7 +522,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 );
     
                 if (response.status === 200) {
-                    // facades.macro.doAction(`model_${className}_restore_success`, this);
                     this.dispatchRestoreEvent();
                     return response;
                 }
@@ -535,7 +529,6 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw response;
             } catch (error) {
                 facades.log.error(error);
-                // facades.macro.doAction(`model_${className}_restore_error`, error, this);
                 this.dispatchErrorEvent(error, 'restore');
                 throw error;
             }
@@ -692,8 +685,8 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                     }
 
                     // If there is a macro to handle a method, return it.                        
-                    if (macro.hasFilter(`model_${className}_call_${_.snakeCase(prop)}_method`)) {
-                        return macro.applyFilters(`model_${className}_call_${_.snakeCase(prop)}_method`, () => null, target);
+                    if (macro.has(`model_${className}_call_${_.snakeCase(prop)}_method`)) {
+                        return macro.reduce(`model_${className}_call_${_.snakeCase(prop)}_method`, () => null, target);
                     }
 
                     const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
@@ -706,8 +699,8 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                     }
 
                     // If there is a macro to handle a property, return it.
-                    if (macro.hasFilter(`model_${className}_get_${lookupKey}_attribute`)) {
-                        return macro.applyFilters(
+                    if (macro.has(`model_${className}_get_${lookupKey}_attribute`)) {
+                        return macro.reduce(
                             `model_${className}_get_${lookupKey}_attribute`,
                             undefined,
                             target

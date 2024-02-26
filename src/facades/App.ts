@@ -117,7 +117,6 @@ export default class App extends EventTarget implements AppFacade {
             user: auth.user(),
         });
 
-        // macro.doAction('booted', this.facades);
         this.dispatchEvent(new CustomEvent('booted'));
 
         return this.facades;

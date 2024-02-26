@@ -32,7 +32,7 @@ export default class Repository extends EventTarget implements RepositoryFacade 
             return;
         }
         Object.keys(this._schema).forEach((className) => {
-            const BaseModel: typeof Model = this.app.make('macro').applyFilters(
+            const BaseModel: typeof Model = this.app.make('macro').reduce(
                 `repository_base_model_${className}`,
                 BaseModelFactory(this.app.make(), className),
                 this.app,

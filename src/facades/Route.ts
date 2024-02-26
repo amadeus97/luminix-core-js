@@ -64,7 +64,7 @@ export default class Route implements RouteFacade {
 
         if (replace === false) {
             const macro = this.app.make('macro');
-            return macro.applyFilters('route_without_replace', `/${url}`) as string;
+            return macro.reduce('route_without_replace', `/${url}`) as string;
         }
 
         const matches = url.match(regex);
