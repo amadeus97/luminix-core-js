@@ -4,10 +4,11 @@ import _ from 'lodash';
 import { diff } from 'deep-object-diff';
 import PropertyBag from './PropertyBag';
 
-import { Model, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, ProxyModel, RelationRepository } from '../types/Model';
+import { Model, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, ProxyModel, RelationRepository, ModelEvents } from '../types/Model';
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
+import EventSource from './EventSource';
 
 const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
     .filter((key) => keys.includes(key))
@@ -25,7 +26,7 @@ const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(o
 
 export function BaseModelFactory(facades: AppFacades, className: string): typeof Model {
 
-    return class BaseModel extends EventTarget {
+    return class BaseModel extends EventSource<ModelEvents> {
 
         private _attributes: PropertyBag<JsonObject>;
         private _original: JsonObject;
@@ -49,6 +50,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             this._attributes = new PropertyBag(newAttributes);
             this._original = newAttributes;
             this._relations = relations;
+
         }
     
         private cast(value: any, cast: string) {
@@ -147,106 +149,80 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
     
         private dispatchChangeEvent(change: JsonObject) {
-            this.dispatchEvent(new CustomEvent('change', {
-                detail: {
-                    value: change,
-                },
-            }));
+            this.emit('change', {
+                value: change,
+            });
         }
     
         private dispatchCreateEvent(attributes: JsonObject) {
-            this.dispatchEvent(new CustomEvent('create', {
-                detail: {
-                    value: attributes,
-                },
-            }));
+            this.emit('create', {
+                value: attributes,
+            });
     
-            facades.repository.dispatchEvent(new CustomEvent('create', {
-                detail: {
-                    class: className,
-                    model: this,
-                }
-            }));
+            facades.repository.emit('create', {
+                class: className,
+                model: this,
+            });
         }
     
         private dispatchUpdateEvent(attributes: JsonObject) {
-            this.dispatchEvent(new CustomEvent('update', {
-                detail: {
-                    value: attributes,
-                },
-            }));
+            this.emit('update', {
+                value: attributes,
+            });
     
-            facades.repository.dispatchEvent(new CustomEvent('update', {
-                detail: {
-                    class: className,
-                    model: this,
-                }
-            }));
+            facades.repository.emit('update', {
+                class: className,
+                model: this,
+            });
         }
     
         private dispatchSaveEvent() {
-            this.dispatchEvent(new CustomEvent('save', {
-                detail: {
-                    value: this.diff(),
-                },
-            }));
+            this.emit('save', {
+                value: this.diff(),
+            });
     
-            facades.repository.dispatchEvent(new CustomEvent('save', {
-                detail: {
-                    class: className,
-                    model: this,
-                }
-            }));
+            facades.repository.emit('save', {
+                class: className,
+                model: this,
+            });
         }
     
         private dispatchDeleteEvent(force = false) {
-            this.dispatchEvent(new CustomEvent('delete', {
-                detail: {
-                    force,
-                    [this.getKeyName()]: this.getKey(),
-                },
-            }));
+            this.emit('delete', {
+                force,
+                [this.getKeyName()]: this.getKey(),
+            });
     
-            facades.repository.dispatchEvent(new CustomEvent('delete', {
-                detail: {
-                    class: className,
-                    model: this,
-                    force,
-                }
-            }));
+            facades.repository.emit('delete', {
+                class: className,
+                model: this,
+                force,
+            });
         }
     
         private dispatchRestoreEvent() {
-            this.dispatchEvent(new CustomEvent('restore', {
-                detail: {
-                    value: this.attributes,
-                },
-            }));
+            this.emit('restore', {
+                value: this.attributes,
+            });
     
-            facades.repository.dispatchEvent(new CustomEvent('restore', {
-                detail: {
-                    class: className,
-                    model: this,
-                }
-            }));
+            facades.repository.emit('restore', {
+                class: className,
+                model: this,
+            });
         }
     
-        private dispatchErrorEvent(error: any, operation: string) {
-            this.dispatchEvent(new CustomEvent('error', {
-                detail: {
-                    error,
-                    operation,
-                },
-            }));
+        private dispatchErrorEvent(error: any, operation: 'save' | 'delete' | 'restore' | 'forceDelete') {
+            this.emit('error', {
+                error,
+                operation,
+            });
     
-            facades.repository.dispatchEvent(new CustomEvent('error', {
-                detail: {
-                    class: className,
-                    model: this,
-                    error,
-                    operation,
-                }
-            }));
+            facades.repository.emit('error', {
+                class: className,
+                model: this,
+                error,
+                operation,
+            });
         }
     
         private validateJsonObject(json: unknown): json is JsonObject {
@@ -410,8 +386,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             }, this);
         }
     
-        diff() {
-            return diff(this.original, this.attributes);
+        diff(): JsonObject {
+            return diff(this.original, this.attributes) as JsonObject;
         }
     
         async save(options: ModelSaveOptions = {}): Promise<AxiosResponse> {
@@ -549,14 +525,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             const models: ProxyModel[] = data.data.map((item: any) => {
                 const value = new Model(item);
-                facades.repository.dispatchEvent(new CustomEvent('fetch', {
-                    detail: {
-                        class: className,
-                        [value.getKeyName()]: value.getKey(),
-                        value,
-                        fromData: item,
-                    }
-                }));
+                facades.repository.emit('fetch', {
+                    class: className,
+                    model: value,
+                });
                 return value;
             });
     
@@ -580,14 +552,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             const model = new Model(data);
     
-            facades.repository.dispatchEvent(new CustomEvent('fetch', {
-                detail: {
-                    class: className,
-                    [model.getKeyName()]: model.getKey(),
-                    model,
-                    fromData: data,
-                }
-            }));
+            facades.repository.emit('fetch', {
+                class: className,
+                model,
+            });
     
             return model;
         }

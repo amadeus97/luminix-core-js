@@ -16,7 +16,7 @@ export default class Route implements RouteFacade {
     }
 
     private isRouteTuple(route: any): route is RouteTuple {
-        // Check if route is an array with exactly two elements
+        // Check if route is an array with two or more elements
         if (!Array.isArray(route) || route.length < 2) {
             return false;
         }

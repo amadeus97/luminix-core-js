@@ -1,4 +1,4 @@
-import { AppFacades, AppFacade } from '../types/App';
+import { AppFacades, AppFacade, AppEvents } from '../types/App';
 
 import Auth from './Auth';
 import Log from './Log';
@@ -10,8 +10,9 @@ import Plugin from '../contracts/Plugin';
 import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
 import reader from '../helpers/reader';
+import EventSource from '../contracts/EventSource';
 
-export default class App extends EventTarget implements AppFacade {
+export default class App extends EventSource<AppEvents> implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
@@ -76,7 +77,7 @@ export default class App extends EventTarget implements AppFacade {
 
         const { config, log: logger } = this.facades;
 
-        this.dispatchEvent(new CustomEvent('init'));
+        this.emit('init');
         
         if (!skipBootRequest && !document.querySelector('#luminix-embed #luminix-data-boot')) {
             const { data } = await axios.get(config.get('app.bootUrl', '/luminix-api/init'));
@@ -111,7 +112,7 @@ export default class App extends EventTarget implements AppFacade {
             user: auth.user(),
         });
 
-        this.dispatchEvent(new CustomEvent('booted'));
+        this.emit('booted');
 
         return this.facades;
     }

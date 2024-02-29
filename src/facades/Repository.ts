@@ -1,14 +1,15 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { Model, ModelSchema, ModelSchemaAttributes, ProxyModel, RepositoryFacade } from '../types/Model';
+import { GlobalModelEvents, Model, ModelSchema, ModelSchemaAttributes, ProxyModel, RepositoryFacade } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
 
 import _ from 'lodash';
 import { AppFacade } from '../types/App';
+import EventSource from '../contracts/EventSource';
 
 
-export default class Repository extends EventTarget implements RepositoryFacade {
+export default class Repository extends EventSource<GlobalModelEvents> implements RepositoryFacade {
 
     private _schema: ModelSchema | undefined;
     

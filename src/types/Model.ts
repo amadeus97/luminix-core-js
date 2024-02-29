@@ -1,11 +1,68 @@
 
 import { AxiosResponse } from "axios";
+import EventSource, { Event } from "../contracts/EventSource";
 
 export type RelationRepository = {
     [relationName: string]: ProxyModel | ProxyModel[]
 }
 
-export declare class Model extends EventTarget {
+export type ModelEvents = {
+    'change': (e: ModelChangeEvent) => void,
+    'save': (e: ModelSaveEvent) => void,
+    'delete': (e: ModelDeleteEvent) => void,
+    'restore': (e: ModelRestoreEvent) => void,
+    'create': (e: ModelSaveEvent) => void,
+    'update': (e: ModelSaveEvent) => void,
+    'error': (e: ModelErrorEvent) => void,
+}
+
+export type GlobalModelEvents = {
+    'change': (e: ModelGlobalEvent) => void,
+    'save': (e: ModelGlobalEvent) => void,
+    'delete': (e: ModelGlobalEvent) => void,
+    'restore': (e: ModelGlobalEvent) => void,
+    'create': (e: ModelGlobalEvent) => void,
+    'update': (e: ModelGlobalEvent) => void,
+    'fetch': (e: ModelGlobalEvent) => void,
+    'error': (e: ModelGlobalErrorEvent) => void,
+}
+
+export type ModelChangeEvent = Event<Model> & {
+    value: JsonObject,
+}
+
+export type ModelSaveEvent = Event<Model> & {
+    value: JsonObject,
+}
+
+export type ModelDeleteEvent = Event<Model> & {
+    // [pk: string]: string | number,
+    force: boolean,
+    [key: string]: any,
+}
+
+export type ModelRestoreEvent = Event<Model> & {
+    value: JsonObject,
+}
+
+export type ModelErrorEvent = Event<Model> & {
+    error: Error,
+    operation: 'save' | 'delete' | 'restore' | 'forceDelete',
+}
+
+export type ModelGlobalEvent = Event<RepositoryFacade> & {
+    class: string,
+    model: Model,
+    force?: boolean,
+};
+
+export type ModelGlobalErrorEvent = ModelGlobalEvent & {
+    error: Error,
+    operation: 'save' | 'delete' | 'restore' | 'forceDelete',
+};
+
+
+export declare class Model extends EventSource<ModelEvents> {
     constructor(attributes?: JsonObject);
 
     get attributes(): JsonObject;
@@ -24,7 +81,7 @@ export declare class Model extends EventTarget {
     getKey(): string | number;
     getKeyName(): string;
     fill(attributes: object): void;
-    json(): unknown;
+    json(): JsonObject;
     diff(): object;
     save(options?: ModelSaveOptions): Promise<AxiosResponse<any, any>>;
     delete(): Promise<AxiosResponse<any, any>>;
@@ -55,7 +112,7 @@ export interface ModelSaveOptions {
     sendsOnlyModifiedFields?: boolean,
 }
 
-export interface JsonObject {
+export type JsonObject = {
     [key: string]: string | number | boolean | null | JsonObject | Array<string | number | boolean | null | JsonObject>,
 }
 
@@ -121,16 +178,13 @@ export type ModelPaginatedResponse = {
     }
 }
 
-export type RepositoryFacade = {
+export type RepositoryFacade = EventSource<GlobalModelEvents> & {
     schema(): ModelSchema;
     schema(className: string): ModelSchemaAttributes;
     make(): {
         [className: string]: typeof ProxyModel;
     };
     make(className: string): typeof ProxyModel;
-    addEventListener(event: string, listener: (e: Event) => void): void;
-    removeEventListener(event: string, listener: (e: Event) => void): void;
-    dispatchEvent(event: Event): void;
     
 }
 

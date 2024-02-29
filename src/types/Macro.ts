@@ -13,8 +13,6 @@ export type MacroFacade = {
     get(name?: string): Reducer[];
     has(name: string): boolean;
     clear(name: string): void;
-
     reduce(name: string, value: any, ...params: any[]): any;
-
 };
 
