@@ -692,6 +692,11 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                         );
                         return true;
                     }
+
+                    if (prop in target && typeof target[prop] !== 'function') {
+                        target[prop] = value;
+                        return true;
+                    }
                     
                     throw new Error(`Cannot set attribute '${prop}' on model '${className}'`);
                 },

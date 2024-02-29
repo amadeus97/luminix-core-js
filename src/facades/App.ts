@@ -65,7 +65,7 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
 
         this._plugins = plugins;
 
-        this.bind('macro', new Macro());
+        this.bind('macro', new Macro(this));
 
         const registrablePlugins = plugins.filter(p => typeof p.register === 'function');
         for (const plugin of registrablePlugins) {

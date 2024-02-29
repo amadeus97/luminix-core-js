@@ -15,7 +15,7 @@ function app(facade = undefined) {
             boot: appInstance.boot.bind(appInstance),
             make: appInstance.make.bind(appInstance),
             plugins: appInstance.plugins.bind(appInstance),
-            on: appInstance.on.bind(appInstance),
+            on: appInstance.once.bind(appInstance),
         };
     }
 

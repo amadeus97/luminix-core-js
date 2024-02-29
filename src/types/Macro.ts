@@ -2,7 +2,7 @@
 export type MacroReducer = (value: any, ...params: any[]) => any;
 
 export interface Reducer {
-    name: string,
+    // name: string,
     callback: MacroReducer,
     priority: number,
 }

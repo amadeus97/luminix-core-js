@@ -80,9 +80,9 @@ export declare class Model extends EventSource<ModelEvents> {
     setAttribute(key: string, value: any): void;
     getKey(): string | number;
     getKeyName(): string;
-    fill(attributes: object): void;
+    fill(attributes: JsonObject): void;
     json(): JsonObject;
-    diff(): object;
+    diff(): JsonObject;
     save(options?: ModelSaveOptions): Promise<AxiosResponse<any, any>>;
     delete(): Promise<AxiosResponse<any, any>>;
     forceDelete(): Promise<AxiosResponse<any, any>>;
