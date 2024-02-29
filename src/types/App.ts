@@ -9,8 +9,12 @@ import { RouteFacade } from './Route';
 import EventSource, { Event } from '../contracts/EventSource';
 
 export type AppEvents = {
-    'init': (e: Event<AppFacade>) => void,
+    'init': (e: InitEvent) => void,
     'booted': (e: Event<AppFacade>) => void,
+}
+
+export type InitEvent = Event<AppFacade> & {
+    register(plugin: Plugin): void;
 }
 
 export type AppExternal = {
@@ -18,13 +22,15 @@ export type AppExternal = {
     make(): AppFacades;
     make<T extends keyof AppFacades>(key: T): AppFacades[T];
     plugins: () => Plugin[];
-    on: EventSource<AppEvents>['on'];
+    on: EventSource<AppEvents>['once'];
 };
 
 export type AppFacade = AppExternal & {
     has(key: string): boolean;
     bind<T extends keyof AppFacades>(key: T, facade: AppFacades[T]): void;
     emit: EventSource<AppEvents>['emit'];
+    once: EventSource<AppEvents>['once'];
+    on: EventSource<AppEvents>['on'];
 };
 
 export type AppFacades = {
@@ -39,7 +45,6 @@ export type AppFacades = {
 
 export type BootOptions = {
     config?: AppConfiguration;
-    plugins?: Plugin[];
     skipBootRequest?: boolean;
 };
 

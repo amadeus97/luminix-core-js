@@ -6,6 +6,6 @@ export default abstract class Plugin {
     readonly name?: string;
     readonly version?: string;
 
-    register?: (app: App) => void;
-    boot?: (facades: AppFacades) => void;
+    register(_app: App): void {}
+    boot(_facades: AppFacades):void {}
 }

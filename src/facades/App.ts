@@ -50,12 +50,8 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
         }
         this.booted = true;
 
-        // Boot macros
-        
-
-        const { 
-            config: configObject = {}, 
-            plugins = [],
+        const {
+            config: configObject = {},
             skipBootRequest = false
         } = options;
 
@@ -63,21 +59,19 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
             console.log('[Luminix] Booting started...');
         }
 
-        this._plugins = plugins;
-
         this.bind('macro', new Macro(this));
 
-        const registrablePlugins = plugins.filter(p => typeof p.register === 'function');
-        for (const plugin of registrablePlugins) {
-            (plugin.register as Function)(this);
+        const register = (plugin: Plugin) => {
+            this._plugins.push(plugin);
+            plugin.register(this);
         }
+
+        this.emit('init', { register });
 
         this.bind('log', new Log(this));
         this.bind('config', new PropertyBag(configObject));
 
         const { config, log: logger } = this.facades;
-
-        this.emit('init');
         
         if (!skipBootRequest && !document.querySelector('#luminix-embed #luminix-data-boot')) {
             const { data } = await axios.get(config.get('app.bootUrl', '/luminix-api/init'));
@@ -96,18 +90,17 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
         this.bind('route', new Route(this));
         this.bind('auth', new Auth(this));
         this.bind('repository', new Repository(this));
-        
-        const bootablePlugins = plugins.filter(p => typeof p.boot === 'function');
+
         // Boot plugins
-        for (const plugin of bootablePlugins) {
-            (plugin.boot as Function)(this.facades);
+        for (const plugin of this._plugins) {
+            plugin.boot(this.facades);
         }
 
         const { auth } = this.facades;
 
         logger.info('[Luminix] App boot completed', {
             config: config.all(),
-            plugins: plugins,
+            plugins: this._plugins,
             authenticated: auth.check(),
             user: auth.user(),
         });

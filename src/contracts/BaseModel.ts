@@ -389,6 +389,22 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         diff(): JsonObject {
             return diff(this.original, this.attributes) as JsonObject;
         }
+
+        async refresh() {
+            if (!this.exists) {
+                throw new Error(`[Luminix] Cannot refresh a model that does not exist`);
+            }
+            const { data } = await facades.route.call([
+                `luminix.${className}.show`,
+                this.makePrimaryKeyReplacer()
+            ]);
+            const { relations, attributes } = this.makeAttributes(data);
+
+            this._attributes = new PropertyBag(attributes);
+            this._original = attributes;
+            this._relations = relations;
+            
+        }
     
         async save(options: ModelSaveOptions = {}): Promise<AxiosResponse> {
             try {
