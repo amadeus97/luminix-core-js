@@ -5,7 +5,7 @@ import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
 import { RepositoryFacade } from './Model';
 import { RouteFacade } from './Route';
-import EventSource, { Event } from '../contracts/EventSource';
+import { EventSource, Event } from './Event';
 
 export type AppEvents = {
     'init': (e: InitEvent) => void,
@@ -18,7 +18,7 @@ export type InitEvent = Event<AppFacade> & {
 }
 
 export type AppExternal = {
-    boot: (options?: BootOptions) => Promise<AppFacades>;
+    boot: (config?: AppConfiguration) => Promise<AppFacades>;
     make(): AppFacades;
     make<T extends keyof AppFacades>(key: T): AppFacades[T];
     plugins: () => Plugin[];

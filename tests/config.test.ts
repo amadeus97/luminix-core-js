@@ -6,9 +6,13 @@ describe('testing configuration', () => {
     test('configuration get', () => {
         const app = new App();
 
+        const jsConfig = makeConfig();
         app.boot({
-            config: makeConfig(),
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             expect(config.get('app.name')).toBe('Test App');
             expect(config.has('app.name')).toBe(true);
@@ -18,9 +22,13 @@ describe('testing configuration', () => {
     test('configuration is settable', () => {
         const app = new App();
 
+        const jsConfig = makeConfig();
         app.boot({
-            config: makeConfig(),
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             config.set('app.name', 'New Name');
             config.set('foo.bar.baz', 'New Value');
@@ -32,9 +40,13 @@ describe('testing configuration', () => {
     test('configuration merge', () => {
         const app = new App();
 
+        const jsConfig = makeConfig();
         app.boot({
-            config: makeConfig(),
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             config.merge('app', { name: 'New Name' });
             expect(config.get('app.name')).toBe('New Name');
@@ -44,9 +56,13 @@ describe('testing configuration', () => {
     test('configuration lock', () => {
         const app = new App();
 
+        const jsConfig = makeConfig();
         app.boot({
-            config: makeConfig(),
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             config.lock('app');
             
@@ -64,9 +80,13 @@ describe('testing configuration', () => {
     test('configuration get with default', () => {
         const app = new App();
 
+        const jsConfig = makeConfig();
         app.boot({
-            config: makeConfig(),
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             expect(config.get('app.name', 'Default Name')).toBe('Test App');
             expect(config.get('app.unknown', 'Default Name')).toBe('Default Name');
@@ -76,9 +96,13 @@ describe('testing configuration', () => {
     test('configuration delete', () => {
         const app = new App();
 
+        const jsConfig = makeConfig();
         app.boot({
-            config: makeConfig(),
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             config.delete('app.name');
             expect(config.get('app.name')).toBeUndefined();
@@ -91,14 +115,11 @@ describe('testing configuration', () => {
 
         const jsConfig = makeConfig();
         app.boot({
-            config: {
-                ...jsConfig,
-                app: {
-                    ...jsConfig.app,
-                    // debug: true,
-                }
-            },
-            skipBootRequest: true,
+            ...jsConfig,
+            app: {
+                ...jsConfig.app,
+                bootUrl: null,
+            }
         }).then(({ config }) => {
             config.set('qux', 'quux');
 

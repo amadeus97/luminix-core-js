@@ -1,8 +1,9 @@
 
 import { AxiosResponse } from "axios";
-import EventSource, { Event } from "../contracts/EventSource";
+import { EventSource, Event, EventSourceEvents } from "./Event";
 import { MacroableInterface } from "./Macro";
 import { AppFacade } from "./App";
+import { Emitter } from "nanoevents";
 
 export type RelationRepository = {
     [relationName: string]: Model | Model[]
@@ -64,7 +65,10 @@ export type ModelGlobalErrorEvent = ModelGlobalEvent & {
 };
 
 
-export declare class BaseModel extends EventSource<ModelEvents> {
+export declare class BaseModel implements EventSource<ModelEvents> {
+
+    emitter: Emitter<EventSourceEvents>;
+
     constructor(attributes?: JsonObject);
 
     get attributes(): JsonObject;
@@ -103,6 +107,9 @@ export declare class BaseModel extends EventSource<ModelEvents> {
     static forceDelete(id: number): Promise<AxiosResponse>;
     static forceDelete(ids: Array<number>): Promise<AxiosResponse>;
 
+    on: EventSource<ModelEvents>['on'];
+    once: EventSource<ModelEvents>['once'];
+    emit: EventSource<ModelEvents>['emit'];
 }
 
 export declare class Model extends BaseModel {

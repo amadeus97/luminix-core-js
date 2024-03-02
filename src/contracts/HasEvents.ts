@@ -1,36 +1,32 @@
 import { Emitter } from "nanoevents";
+import { EventSourceEvents } from "../types/Event";
 
-export type Event<S = any> = {
-    source: S;
-}
-
-export type EventSourceEvents = {
-    [event: string]: (e: any) => void;
-}
+type Constructor = new (...args: any[]) => {};
 
 function createNanoEvents(): Emitter<EventSourceEvents> { 
-    return ({
+    return {
         emit(event, e) {
             for (let i = 0, callbacks = this.events[event] || [], length = callbacks.length; i < length;i++) {
-            callbacks[i](e)
-        }
+                callbacks[i](e)
+            }
         },
         events: {},
         on(event, cb) {
-        (this.events[event] ||= [] as any[]).push(cb);
-        return () => {
-            this.events[event] = this.events[event]?.filter(i => cb !== i)
+            (this.events[event] ||= [] as any[]).push(cb);
+            return () => {
+                this.events[event] = this.events[event]?.filter(i => cb !== i)
+            }
         }
-        }
-    });
+    };
 }
-  
 
-export default class EventSource<T extends EventSourceEvents>
-{
-    private emitter;
+export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Base: U) {
+  return class extends Base {
+    
+    emitter;
 
-    constructor() {
+    constructor(...args: any[]) {
+        super(...args);
         this.emitter = createNanoEvents();
     }
 
@@ -69,5 +65,6 @@ export default class EventSource<T extends EventSourceEvents>
             source: this,
         });
     }
+  };
 }
 

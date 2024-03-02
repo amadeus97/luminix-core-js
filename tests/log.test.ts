@@ -15,12 +15,10 @@ describe('testing log', () => {
         console.debug = jest.fn();
 
         await app.boot({
-            config: {
-                ...config,
-                app: {
-                    ...config.app,
-                    debug: true
-                }
+            ...config,
+            app: {
+                ...config.app,
+                debug: true
             }
         });
 

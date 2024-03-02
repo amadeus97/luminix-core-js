@@ -72,11 +72,11 @@ class Route {
         const extraParams = replaceKeys.filter((key) => !params.includes(key));
 
         if (missingParams.length > 0) {
-            throw new Error(`Missing values for parameter(s): ${missingParams.join(', ')}`);
+            throw new TypeError(`Missing values for parameter(s): ${missingParams.join(', ')}`);
         }
 
         if (extraParams.length > 0) {
-            throw new Error(`Unexpected parameters: ${extraParams.join(', ')}`);
+            throw new TypeError(`Unexpected parameters: ${extraParams.join(', ')}`);
         }
 
         const newPath = params.reduce((acc: string, param: string) => acc.replace(`{${param}}`, `${replace[param]}`), url);

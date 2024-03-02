@@ -7,12 +7,14 @@ export interface Reducer {
     priority: number,
 }
 
+export type Unsubscribe = () => void;
+
 export type MacroableInterface = {
-    macro(name: string, callback: MacroReducer, priority?: number): () => void;
-    applyMacro(name: string, value: any, ...params: any[]): any;
+    macro(name: string, callback: MacroReducer, priority?: number): Unsubscribe;
     removeMacro(name: string, callback: MacroReducer): void;
-    getMacro(name?: string): Reducer[];
+    getMacro(name: string): Reducer[];
     hasMacro(name: string): boolean;
     clearMacro(name: string): void;
+    flushMacros(): void;
     [macro: string]: (value: any, ...params: any[]) => any;
 };

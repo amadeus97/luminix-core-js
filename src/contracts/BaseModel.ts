@@ -8,7 +8,7 @@ import { BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPa
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
-import EventSource from './EventSource';
+import { HasEvents } from './HasEvents';
 
 const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
     .filter((key) => keys.includes(key))
@@ -26,14 +26,13 @@ const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(o
 
 export function BaseModelFactory(facades: AppFacades, className: string): typeof BaseModel {
 
-    return class extends EventSource<ModelEvents> {
+    class ModelRaw {
 
         private _attributes: PropertyBag<JsonObject>;
         private _original: JsonObject;
         private _relations: RelationRepository = {};
 
         constructor(attributes: JsonObject = {}) {
-            super();
             const { attributes: newAttributes, relations } = this.makeAttributes(attributes);
 
             if (!this.validateJsonObject(newAttributes)) {
@@ -161,7 +160,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('create', {
                 class: className,
-                model: this,
+                model: this as unknown as BaseModel,
             });
         }
     
@@ -172,7 +171,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('update', {
                 class: className,
-                model: this,
+                model: this as unknown as BaseModel,
             });
         }
     
@@ -183,7 +182,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('save', {
                 class: className,
-                model: this,
+                model: this as unknown as BaseModel,
             });
         }
     
@@ -195,7 +194,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('delete', {
                 class: className,
-                model: this,
+                model: this as unknown as BaseModel,
                 force,
             });
         }
@@ -207,7 +206,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('restore', {
                 class: className,
-                model: this,
+                model: this as unknown as BaseModel,
             });
         }
     
@@ -219,7 +218,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('error', {
                 class: className,
-                model: this,
+                model: this as unknown as BaseModel,
                 error,
                 operation,
             });
@@ -631,7 +630,13 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return model.forceDelete();
         }
 
+        
+        on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {}
+        once<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {}
+        emit<E extends keyof ModelEvents>(_: E, __?: Omit<Parameters<ModelEvents[E]>[0], "source">): void {}
     };
+
+    return HasEvents<ModelEvents, typeof ModelRaw>(ModelRaw);
 }
 
 export function ModelFactory(facades: AppFacades, className: string, CustomModel: typeof BaseModel): typeof Model {
@@ -709,4 +714,5 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
         }
 
     }
+
 }

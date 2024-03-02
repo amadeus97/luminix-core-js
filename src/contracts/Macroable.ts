@@ -1,3 +1,4 @@
+import { isDraftable, produce } from "immer";
 import { MacroReducer, Reducer } from "../types/Macro";
 
 type Constructor = new (...args: any[]) => {};
@@ -16,10 +17,16 @@ export function Macroable<T extends Constructor>(Base: T) {
             return Reflect.get(target, prop, receiver);
           }
           return (value: any, ...args: any[]) => {
-            return target.applyMacro(prop, value, ...args);
+            const { [prop]: macros = [] } = target.macros;
+
+            if (isDraftable(value)) {
+              return produce(value, (draft: any) => {
+                  return macros.reduce((prevValue, item) => item.callback(prevValue, ...args), draft);
+              });
+            }
+    
+            return macros.reduce((prevValue, item) => item.callback(prevValue, ...args), value);
           };
-          // return target.macros[prop];
-          // 
         },
 
       });
@@ -37,11 +44,6 @@ export function Macroable<T extends Constructor>(Base: T) {
         return () => this.removeMacro(name, callback);
     }
 
-    applyMacro(name: string, value: any, ...args: any[]): any {
-        const { [name]: macros = [] } = this.macros;
-        return macros.reduce((prevValue, item) => item.callback(prevValue, ...args), value);
-    }
-
     removeMacro(name: string, callback: MacroReducer) {
         const index = this.macros[name].findIndex((item) => item.callback === callback)
         if (index === -1) {
@@ -50,16 +52,8 @@ export function Macroable<T extends Constructor>(Base: T) {
         this.macros[name].splice(index, 1);
     }
 
-    getMacro(name?: string): Reducer[] {
-        if (name) {
-            return this.macros[name];
-        }
-        return Object.values(this.macros).reduce((acc, reducers) => {
-            return [
-                ...acc,
-                ...reducers,
-            ];
-        }, []);
+    getMacro(name: string): Reducer[] {
+        return this.macros[name];
     }
 
     hasMacro(name: string): boolean {
@@ -70,6 +64,9 @@ export function Macroable<T extends Constructor>(Base: T) {
         this.macros[name] = [];
     }
 
+    flushMacros() {
+        this.macros = {};
+    }
   };
 }
 

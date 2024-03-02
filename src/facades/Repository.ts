@@ -6,19 +6,18 @@ import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
 
 import _ from 'lodash';
 
-import EventSource from '../contracts/EventSource';
 import { Macroable } from '../contracts/Macroable';
 import { AppFacade } from '../types/App';
+import { HasEvents } from '../contracts/HasEvents';
 
 
-class Repository extends EventSource<GlobalModelEvents> {
+class Repository {
 
     private _models: { [className: string]: typeof Model } = {};
 
     constructor(
         private readonly _schema: ModelSchema,
     ) {
-        super();
     };
 
     boot(app: AppFacade) {
@@ -71,5 +70,5 @@ class Repository extends EventSource<GlobalModelEvents> {
 }
 
 
-export default Macroable(Repository);
+export default Macroable(HasEvents<GlobalModelEvents, typeof Repository>(Repository));
 

@@ -20,9 +20,7 @@ describe('testing macros', () => {
 
         });
 
-        app.boot({
-            config: makeConfig(),
-        }).then(({ repository }) => {
+        app.boot(makeConfig()).then(({ repository }) => {
 
             expect(repository.getMacro('modelUserGetNameAttribute')).toHaveLength(2);
 

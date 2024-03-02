@@ -12,7 +12,7 @@ describe('testing authentication', () => {
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { data: { user: { id: 1 } } } }));
 
-        await app.boot({ config });
+        await app.boot(config);
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -29,7 +29,7 @@ describe('testing authentication', () => {
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { data: { user: null } } }));
 
-        await app.boot({ config });
+        await app.boot(config);
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -46,7 +46,7 @@ describe('testing authentication', () => {
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { data: { user: { id: 1, name: 'John Doe' } } } }));
 
-        await app.boot({ config });
+        await app.boot(config);
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -67,9 +67,7 @@ describe('testing authentication', () => {
         const app = new App();
         const config = makeConfig();
 
-        
-
-        await app.boot({ config });
+        await app.boot(config);
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -92,7 +90,7 @@ describe('testing authentication', () => {
         const app: AppFacade = new App();
         const config = makeConfig();
 
-        await app.boot({ config });
+        await app.boot(config);
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 

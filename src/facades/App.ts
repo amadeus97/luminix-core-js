@@ -9,9 +9,8 @@ import Plugin from '../contracts/Plugin';
 import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
 import reader from '../helpers/reader';
-import EventSource from '../contracts/EventSource';
-
-class App extends EventSource<AppEvents> implements AppFacade {
+import { HasEvents } from '../contracts/HasEvents';
+class App implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
@@ -42,17 +41,12 @@ class App extends EventSource<AppEvents> implements AppFacade {
         return this._plugins;
     }
 
-    readonly boot: AppFacade['boot'] = async (options = {}) => {
+    readonly boot: AppFacade['boot'] = async (configObject = {}) => {
 
         if (this.booted) {
             throw new Error('[Luminix] App already booted');
         }
         this.booted = true;
-
-        const {
-            config: configObject = {},
-            skipBootRequest = false
-        } = options;
 
         if (configObject?.app?.debug) {
             console.log('[Luminix] Booting started...');
@@ -72,7 +66,7 @@ class App extends EventSource<AppEvents> implements AppFacade {
 
         const { config, log: logger } = this.facades;
         
-        if (!skipBootRequest && !document.querySelector('#luminix-embed #luminix-data-boot')) {
+        if (config.get('app.bootUrl', '/luminix-api/init') && !document.querySelector('#luminix-embed #luminix-data-boot')) {
             const { data } = await axios.get(config.get('app.bootUrl', '/luminix-api/init'));
             if (data && typeof data === 'object') {
                 config.merge('boot', data);
@@ -115,7 +109,10 @@ class App extends EventSource<AppEvents> implements AppFacade {
 
         return this.facades;
     }
-    
+
+    on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {}
+    once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {}
+    emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], "source">): void {}
 }
 
-export default App;
+export default HasEvents<AppEvents, typeof App>(App);

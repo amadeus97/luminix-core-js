@@ -7,10 +7,12 @@ function app(): AppExternal;
 function app<T extends keyof AppFacades>(facade:T): AppFacades[T];
 function app(facade = undefined) {
     if (!appInstance) {
+        
         appInstance = new App();
     }
 
     if (typeof facade !== 'string') {
+        console.log('appInstance', appInstance);
         return {
             boot: appInstance.boot.bind(appInstance),
             make: appInstance.make.bind(appInstance),

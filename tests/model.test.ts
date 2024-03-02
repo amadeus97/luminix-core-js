@@ -8,7 +8,7 @@ describe('testing models', () => {
     test('model create', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -31,7 +31,7 @@ describe('testing models', () => {
     test('model update', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -50,7 +50,7 @@ describe('testing models', () => {
     test('model delete', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -65,7 +65,7 @@ describe('testing models', () => {
     test('model fetch and save', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -133,7 +133,7 @@ describe('testing models', () => {
     test('model restore and force delete', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -154,7 +154,7 @@ describe('testing models', () => {
     test('model mass delete, restore and force delete', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -175,7 +175,7 @@ describe('testing models', () => {
     test('model fillable', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const User = app.make('repository').make('user');
 
@@ -226,7 +226,7 @@ describe('testing models', () => {
     test('model relationships', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const {
             attachment: Attachment, user: User, post: Post, post_comment: Comment
@@ -318,7 +318,7 @@ describe('testing models', () => {
     test('model casts and mutates', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({ config: makeConfig() });
+        await app.boot(makeConfig());
 
         const Post = app.make('repository').make('post');
 
@@ -379,9 +379,7 @@ describe('testing models', () => {
     test('model errors', async () => {
         const app: AppFacade = new App();
 
-        await app.boot({
-            config: makeConfig(),
-        });
+        await app.boot(makeConfig());
 
         const Attachment = app.make('repository').make('attachment');
 
