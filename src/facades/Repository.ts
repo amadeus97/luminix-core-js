@@ -1,6 +1,6 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { GlobalModelEvents, Model, ModelSchema, ModelSchemaAttributes, ProxyModel } from '../types/Model';
+import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
 
@@ -13,7 +13,7 @@ import { AppFacade } from '..';
 
 class Repository extends EventSource<GlobalModelEvents> {
 
-    private _models: { [className: string]: typeof ProxyModel } = {};
+    private _models: { [className: string]: typeof Model } = {};
 
     constructor(
         private readonly _schema: ModelSchema,
@@ -27,13 +27,13 @@ class Repository extends EventSource<GlobalModelEvents> {
         }
         
         Object.keys(this._schema).forEach((className) => {
-            // !Macro `transformBaseModel`
-            const BaseModel: typeof Model = this.transformBaseModel(
+            // !Macro `model`
+            const Model: typeof BaseModel = this.model(
                 BaseModelFactory(app.make(), className),
                 className
             );
 
-            this._models[className] = ModelFactory(app.make(), className, BaseModel);
+            this._models[className] = ModelFactory(app.make(), className, Model);
         });
     }
 
@@ -53,8 +53,8 @@ class Repository extends EventSource<GlobalModelEvents> {
     };
 
 
-    make(): { [className: string]: typeof ProxyModel}
-    make(className: string): typeof ProxyModel
+    make(): { [className: string]: typeof Model}
+    make(className: string): typeof Model
     make(className?: string) {
         if (className && !this._models[className]) {
             throw new Error(`Model class '${className}' not found.`);

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { diff } from 'deep-object-diff';
 import PropertyBag from './PropertyBag';
 
-import { Model, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, ProxyModel, RelationRepository, ModelEvents } from '../types/Model';
+import { BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, Model, RelationRepository, ModelEvents } from '../types/Model';
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
@@ -24,9 +24,9 @@ const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(o
         return acc;
     }, {});
 
-export function BaseModelFactory(facades: AppFacades, className: string): typeof Model {
+export function BaseModelFactory(facades: AppFacades, className: string): typeof BaseModel {
 
-    return class BaseModel extends EventSource<ModelEvents> {
+    return class extends EventSource<ModelEvents> {
 
         private _attributes: PropertyBag<JsonObject>;
         private _original: JsonObject;
@@ -537,7 +537,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             const Model = facades.repository.make(className);
     
-            const models: ProxyModel[] = data.data.map((item: any) => {
+            const models: Model[] = data.data.map((item: any) => {
                 const value = new Model(item);
                 facades.repository.emit('fetch', {
                     class: className,
@@ -634,9 +634,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     };
 }
 
-export function ModelFactory(facades: AppFacades, className: string, BaseModel: typeof Model): typeof ProxyModel {
-    // const BaseModel = BaseModelFactory(facades, className);
-    return class extends BaseModel {
+export function ModelFactory(facades: AppFacades, className: string, CustomModel: typeof BaseModel): typeof Model {
+    return class extends CustomModel {
 
         static name = _.upperFirst(_.camelCase(className));
 
@@ -649,7 +648,7 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
             super(attributes);
 
             return new Proxy(this, {
-                get: (target: ProxyModel, prop: string) => {
+                get: (target: Model, prop: string) => {
 
                     const { config } = facades;
 
@@ -684,6 +683,10 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                     return target[prop];
                 },
                 set: (target, prop: string, value) => {
+                    if (prop in target && typeof target[prop] !== 'function') {
+                        target[prop] = value;
+                        return true;
+                    }
 
                     const { config } = facades;
 
@@ -699,10 +702,6 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                         return true;
                     }
 
-                    if (prop in target && typeof target[prop] !== 'function') {
-                        target[prop] = value;
-                        return true;
-                    }
                     
                     throw new Error(`Cannot set attribute '${prop}' on model '${className}'`);
                 },

@@ -4,11 +4,10 @@ import mockAxios from 'axios';
 import App from '../src/facades/App';
 import Auth from '../src/facades/Auth';
 import Log from '../src/facades/Log';
-import Macro from '../src/facades/Macro';
 import Repository from '../src/facades/Repository';
 import { AppFacade } from '../src/types/App';
 import { AuthFacade } from '../src/types/Auth';
-import { MacroFacade } from '../src/types/Macro';
+
 import PropertyBag from '../src/contracts/PropertyBag';
 import Plugin from '../src/contracts/Plugin';
 
@@ -22,10 +21,9 @@ describe('testing application', () => {
         expect(app.make('auth')).toBeInstanceOf(Auth);
         expect(app.make('config')).toBeInstanceOf(PropertyBag);
         expect(app.make('log')).toBeInstanceOf(Log);
-        expect(app.make('macro')).toBeInstanceOf(Macro);
         expect(app.make('repository')).toBeInstanceOf(Repository);
 
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/init');
+        expect(mockAxios.get).toHaveBeenCalledWith('/luminix-api/init');
 
     });
 
@@ -72,19 +70,32 @@ describe('testing application', () => {
     test('boot method actions are running', async () => {
         const app = new App();
 
-        const macro = {
-            doAction: jest.fn(),
-            getActions: jest.fn(() => []),
-            getFilters: jest.fn(() => [])
-        };
+        const init = jest.fn();
+        const booting = jest.fn();
+        const booted = jest.fn();
 
-        app.bind('macro', macro as unknown as MacroFacade);
+
+        app.on('init', init);
+        app.on('booting', booting);
+        app.on('booted', booted);
 
         await app.boot();
 
-        expect(macro.doAction).toHaveBeenCalledTimes(2);
-        expect(macro.doAction).toHaveBeenCalledWith('init', app);
-        expect(macro.doAction).toHaveBeenCalledWith('booted', app.make());
+        expect(init).toHaveBeenCalledTimes(1);
+        expect(init).toHaveBeenCalledWith({ 
+            source: app,
+            register: expect.any(Function) 
+        });
+
+        expect(booting).toHaveBeenCalledTimes(1);
+        expect(booting).toHaveBeenCalledWith({ 
+            source: app,
+        });
+
+        expect(booted).toHaveBeenCalledTimes(1);
+        expect(booted).toHaveBeenCalledWith({ 
+            source: app,
+        });
     });
 
 });

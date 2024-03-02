@@ -1,4 +1,4 @@
-import { createNanoEvents } from "nanoevents";
+import { Emitter } from "nanoevents";
 
 export type Event<S = any> = {
     source: S;
@@ -8,7 +8,25 @@ export type EventSourceEvents = {
     [event: string]: (e: any) => void;
 }
 
-export default class EventSource<T extends EventSourceEvents = EventSourceEvents>
+function createNanoEvents(): Emitter<EventSourceEvents> { 
+    return ({
+        emit(event, e) {
+            for (let i = 0, callbacks = this.events[event] || [], length = callbacks.length; i < length;i++) {
+            callbacks[i](e)
+        }
+        },
+        events: {},
+        on(event, cb) {
+        (this.events[event] ||= [] as any[]).push(cb);
+        return () => {
+            this.events[event] = this.events[event]?.filter(i => cb !== i)
+        }
+        }
+    });
+}
+  
+
+export default class EventSource<T extends EventSourceEvents>
 {
     private emitter;
 

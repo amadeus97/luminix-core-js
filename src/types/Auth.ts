@@ -1,4 +1,4 @@
-import { ProxyModel } from "./Model";
+import { Model } from "./Model";
 
 
 export type AuthCredentials = {
@@ -10,7 +10,7 @@ export type AuthFacade = {
     attempt(credentials: AuthCredentials, remember: boolean, onSubmit?: (e: Event) => void): void;
     check(): boolean;
     logout(onSubmit?: (e: Event) => void): void;
-    user(): ProxyModel | null;
+    user(): Model | null;
     id(): number | string | null;
 };
 

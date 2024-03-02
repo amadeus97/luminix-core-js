@@ -30,4 +30,4 @@ export type { AuthFacade } from './types/Auth';
 export type { LogFacade } from './types/Log';
 export type { RepositoryFacade } from './types/Model';
 export type { RouteFacade } from './types/Route';
-export type { ProxyModel, Model } from './types/Model';
+export type { Model as ProxyModel, BaseModel as Model } from './types/Model';

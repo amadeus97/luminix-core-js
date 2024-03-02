@@ -101,13 +101,9 @@ class App extends EventSource<AppEvents> implements AppFacade {
             plugin.boot(this.facades);
         }
 
-        const { auth } = this.facades;
-
         logger.info('[Luminix] App boot completed', {
             config: config.all(),
             plugins: this._plugins,
-            authenticated: auth.check(),
-            user: auth.user(),
         });
 
         this.emit('booted');

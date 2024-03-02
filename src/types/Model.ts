@@ -5,7 +5,7 @@ import { MacroableInterface } from "./Macro";
 import { AppFacade } from "./App";
 
 export type RelationRepository = {
-    [relationName: string]: ProxyModel | ProxyModel[]
+    [relationName: string]: Model | Model[]
 }
 
 export type ModelEvents = {
@@ -29,32 +29,32 @@ export type GlobalModelEvents = {
     'error': (e: ModelGlobalErrorEvent) => void,
 }
 
-export type ModelChangeEvent = Event<Model> & {
+export type ModelChangeEvent = Event<BaseModel> & {
     value: JsonObject,
 }
 
-export type ModelSaveEvent = Event<Model> & {
+export type ModelSaveEvent = Event<BaseModel> & {
     value: JsonObject,
 }
 
-export type ModelDeleteEvent = Event<Model> & {
+export type ModelDeleteEvent = Event<BaseModel> & {
     // [pk: string]: string | number,
     force: boolean,
     [key: string]: any,
 }
 
-export type ModelRestoreEvent = Event<Model> & {
+export type ModelRestoreEvent = Event<BaseModel> & {
     value: JsonObject,
 }
 
-export type ModelErrorEvent = Event<Model> & {
+export type ModelErrorEvent = Event<BaseModel> & {
     error: Error,
     operation: 'save' | 'delete' | 'restore' | 'forceDelete',
 }
 
 export type ModelGlobalEvent = Event<RepositoryFacade> & {
     class: string,
-    model: Model,
+    model: BaseModel,
     force?: boolean,
 };
 
@@ -64,7 +64,7 @@ export type ModelGlobalErrorEvent = ModelGlobalEvent & {
 };
 
 
-export declare class Model extends EventSource<ModelEvents> {
+export declare class BaseModel extends EventSource<ModelEvents> {
     constructor(attributes?: JsonObject);
 
     get attributes(): JsonObject;
@@ -93,9 +93,9 @@ export declare class Model extends EventSource<ModelEvents> {
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
     static get(query: object): Promise<ModelPaginatedResponse>;
-    static find(id: number): Promise<ProxyModel>;
-    static create(attributes: JsonObject): Promise<ProxyModel>;
-    static update(id: number, attributes: JsonObject): Promise<ProxyModel>;
+    static find(id: number): Promise<Model>;
+    static create(attributes: JsonObject): Promise<Model>;
+    static update(id: number, attributes: JsonObject): Promise<Model>;
     static delete(id: number): Promise<AxiosResponse>;
     static delete(ids: Array<number>): Promise<AxiosResponse>;
     static restore(id: number): Promise<AxiosResponse>;
@@ -105,7 +105,7 @@ export declare class Model extends EventSource<ModelEvents> {
 
 }
 
-export declare class ProxyModel extends Model {
+export declare class Model extends BaseModel {
     [key: string]: any;
 }
 
@@ -157,7 +157,7 @@ export interface ModelSchema {
 }
 
 export type ModelPaginatedResponse = {
-    data: ProxyModel[],
+    data: Model[],
     links: {
         first: string,
         last: string,
@@ -184,9 +184,9 @@ export type RepositoryFacade = EventSource<GlobalModelEvents> & MacroableInterfa
     schema(): ModelSchema;
     schema(className: string): ModelSchemaAttributes;
     make(): {
-        [className: string]: typeof ProxyModel;
+        [className: string]: typeof Model;
     };
-    make(className: string): typeof ProxyModel;
+    make(className: string): typeof Model;
     boot(app: AppFacade): void;
     
 }
