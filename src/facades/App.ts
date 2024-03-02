@@ -58,14 +58,16 @@ class App extends EventSource<AppEvents> implements AppFacade {
             console.log('[Luminix] Booting started...');
         }
 
-        const register = (plugin: Plugin) => {
-            this._plugins.push(plugin);
-            plugin.register(this);
-        }
+        this.emit('init', { 
+            register: (plugin: Plugin) => {
+                this._plugins.push(plugin);
+                if (typeof plugin.register === 'function') {
+                    plugin.register(this);
+                }
+            }
+        });
 
-        this.emit('init', { register });
-
-        this.bind('log', new Log(this));
+        this.bind('log', new Log(!!configObject?.app?.debug));
         this.bind('config', new PropertyBag(configObject));
 
         const { config, log: logger } = this.facades;
@@ -84,21 +86,24 @@ class App extends EventSource<AppEvents> implements AppFacade {
         }
         config.lock('boot');
 
-        this.bind('route', new Route(this));
-        this.bind('auth', new Auth(this));
+        this.bind('route', new Route(configObject?.boot?.routes || {}));
         this.bind('repository', new Repository(configObject?.boot?.models || {}));
+        this.bind('auth', new Auth(this));
 
         this.emit('booting');
 
-        Object.values(this.facades).forEach((facade) => {
+        // Boot facades
+        for (const facade of Object.values(this.facades)) {
             if (typeof facade.boot === 'function') {
                 facade.boot(this);
             }
-        });
+        }
 
         // Boot plugins
         for (const plugin of this._plugins) {
-            plugin.boot(this.facades);
+            if (typeof plugin.boot === 'function') {
+                plugin.boot(this.facades);
+            }
         }
 
         logger.info('[Luminix] App boot completed', {

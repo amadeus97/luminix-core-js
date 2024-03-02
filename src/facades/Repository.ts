@@ -8,7 +8,7 @@ import _ from 'lodash';
 
 import EventSource from '../contracts/EventSource';
 import { Macroable } from '../contracts/Macroable';
-import { AppFacade } from '..';
+import { AppFacade } from '../types/App';
 
 
 class Repository extends EventSource<GlobalModelEvents> {

@@ -21,7 +21,7 @@ export {
 
     Plugin,
     PropertyBag,
-    Macroable as Macroable,
+    Macroable,
 };
 
 // types

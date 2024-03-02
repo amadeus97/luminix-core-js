@@ -1,5 +1,4 @@
 import objectPath from "object-path";
-import { AppFacade } from "../types/App";
 import {
     RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
 } from "../types/Route";
@@ -8,12 +7,10 @@ import { Macroable } from '../contracts/Macroable';
 
 class Route {
 
-    private routes: RouteDefinition;
 
     constructor(
-        private readonly app: AppFacade,
+        private routes: RouteDefinition
     ) {
-        this.routes = this.app.make('config').get('boot.routes');
     }
 
     private isRouteTuple(route: any): route is RouteTuple {
