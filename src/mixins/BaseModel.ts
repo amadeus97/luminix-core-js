@@ -1,7 +1,7 @@
 
 import _ from 'lodash';
 import { diff } from 'deep-object-diff';
-import PropertyBag from './PropertyBag';
+import PropertyBag from '../contracts/PropertyBag';
 
 import { BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, Model, RelationRepository, ModelEvents } from '../types/Model';
 import { AppFacades } from '../types/App';

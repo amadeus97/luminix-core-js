@@ -10,7 +10,7 @@ import Plugin from '../contracts/Plugin';
 import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
 import reader from '../helpers/reader';
-import { HasEvents } from '../contracts/HasEvents';
+import { HasEvents } from '../mixins/HasEvents';
 import { AppConfiguration } from '../types/Config';
 class App implements AppFacade {
 

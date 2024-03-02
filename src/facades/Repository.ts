@@ -1,10 +1,10 @@
 import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model } from '../types/Model';
 
-import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
+import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
-import { Macroable } from '../contracts/Macroable';
+import { Macroable } from '../mixins/Macroable';
 import { AppFacade } from '../types/App';
-import { HasEvents } from '../contracts/HasEvents';
+import { HasEvents } from '../mixins/HasEvents';
 
 
 class Repository {

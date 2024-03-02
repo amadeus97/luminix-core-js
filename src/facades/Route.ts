@@ -3,7 +3,7 @@ import {
     RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
 } from '../types/Route';
 import axios, { AxiosRequestConfig } from 'axios';
-import { Macroable } from '../contracts/Macroable';
+import { Macroable } from '../mixins/Macroable';
 
 class Route {
 

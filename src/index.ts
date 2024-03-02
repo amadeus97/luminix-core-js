@@ -8,8 +8,8 @@ import route from './helpers/route';
 
 import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
-import { Macroable } from './contracts/Macroable';
-import { HasEvents } from './contracts/HasEvents';
+import { Macroable } from './mixins/Macroable';
+import { HasEvents } from './mixins/HasEvents';
 
 export {
     app,
