@@ -1,11 +1,15 @@
 
 export default {
     transform: {
-        '^.+\\.(j|t)s?$': 'ts-jest',
+        // '^.+\\.ts?$': 'ts-jest',
+        // use babel for js
+        '^.+\\.js?$': 'babel-jest',
+        '^.+\\.ts?$': 'ts-jest',
     },
     testEnvironment: 'jsdom',
     testRegex: '/tests/.*\\.(test|spec)?\\.(ts|tsx)$',
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    moduleFileExtensions: ['ts', 'js'],
+    
 }
 
 

@@ -8,7 +8,7 @@ export type EventSourceEvents = {
     [event: string]: (e: any) => void;
 }
 
-export default class EventSource<T extends EventSourceEvents>
+export default class EventSource<T extends EventSourceEvents = EventSourceEvents>
 {
     private emitter;
 

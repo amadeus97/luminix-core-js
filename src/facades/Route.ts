@@ -1,11 +1,12 @@
 import objectPath from "object-path";
 import { AppFacade } from "../types/App";
 import {
-    RouteFacade, RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
+    RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
 } from "../types/Route";
 import axios, { AxiosRequestConfig } from "axios";
+import { Macroable } from '../contracts/Macroable';
 
-export default class Route implements RouteFacade {
+class Route {
 
     private routes: RouteDefinition;
 
@@ -63,8 +64,8 @@ export default class Route implements RouteFacade {
         const regex = /{([^}]+)}/g;
 
         if (replace === false) {
-            const macro = this.app.make('macro');
-            return macro.reduce('route_without_replace', `/${url}`) as string;
+            // !Macro `replaceRouteParams`
+            return this.replaceRouteParams(`/${url}`);
         }
 
         const matches = url.match(regex);
@@ -108,6 +109,9 @@ export default class Route implements RouteFacade {
         return axios[method as HttpMethod](url, data, restOfRest);
     }
     
+    [macro: string]: any;
 
 };
+
+export default Macroable(Route);
 

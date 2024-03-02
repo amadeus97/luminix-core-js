@@ -1,8 +1,9 @@
 import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { MacroableInterface } from "./Macro";
 
 export type RouteReplacer = { [key: string]: string | number };
 
-export type RouteFacade = {
+export type RouteFacade = MacroableInterface & {
     get(name: string): RouteTuple;
     url(generator: RouteGenerator): string;
     exists(name: string): boolean;

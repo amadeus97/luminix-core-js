@@ -8,6 +8,7 @@ import route from './helpers/route';
 
 import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
+import { Macroable } from './contracts/Macroable';
 
 export {
     app,
@@ -20,13 +21,13 @@ export {
 
     Plugin,
     PropertyBag,
+    Macroable as Macroable,
 };
 
 // types
 export type { AppFacade } from './types/App';
 export type { AuthFacade } from './types/Auth';
 export type { LogFacade } from './types/Log';
-export type { MacroFacade } from './types/Macro';
 export type { RepositoryFacade } from './types/Model';
 export type { RouteFacade } from './types/Route';
 export type { ProxyModel, Model } from './types/Model';

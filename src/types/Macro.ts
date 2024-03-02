@@ -7,12 +7,12 @@ export interface Reducer {
     priority: number,
 }
 
-export type MacroFacade = {
-    add(name: string, callback: MacroReducer, priority?: number): void;
-    remove(name: string, callback: MacroReducer): void;
-    get(name?: string): Reducer[];
-    has(name: string): boolean;
-    clear(name: string): void;
-    reduce(name: string, value: any, ...params: any[]): any;
+export type MacroableInterface = {
+    macro(name: string, callback: MacroReducer, priority?: number): () => void;
+    applyMacro(name: string, value: any, ...params: any[]): any;
+    removeMacro(name: string, callback: MacroReducer): void;
+    getMacro(name?: string): Reducer[];
+    hasMacro(name: string): boolean;
+    clearMacro(name: string): void;
+    [macro: string]: (value: any, ...params: any[]) => any;
 };
-

@@ -288,11 +288,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            return facades.macro.reduce(
-                `model_${className}_get_${key}_attribute`,
-                value,
-                this
-            );
+            // !Macro `model${ClassName}Get${Key}Attribute`
+            return facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`](value, this);
         }
     
         setAttribute(key: string, value: any) {
@@ -305,9 +302,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 }
                 return;
             }
-    
-            const mutated: string | number | boolean | null = facades.macro.reduce(
-                `model_${className}_set_${key}_attribute`,
+
+            // !Macro `model${ClassName}Set${Key}Attribute`
+            const mutated = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`](
                 this.mutate(value, this.casts[key]),
                 this
             );
@@ -341,8 +338,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             const validAttributes = createObjectWithKeys(this.fillable, attributes);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: any, [key, value]) => {
-                acc[key] = facades.macro.reduce(
-                    `model_${className}_set_${key}_attribute`,
+                // !Macro `model${ClassName}Set${Key}Attribute`
+                acc[key] = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`](
                     this.mutate(value, this.casts[key]),
                     this
                 );
@@ -379,8 +376,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 }
                 return acc;
             }, {});
-    
-            return facades.macro.reduce(`model_${className}_json`, {
+
+            // !Macro `model${ClassName}Json`
+            return facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`]({
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -653,7 +651,7 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
             return new Proxy(this, {
                 get: (target: ProxyModel, prop: string) => {
 
-                    const { macro, config } = facades;
+                    const { config } = facades;
 
                     // If the property exists in the target, return it.
                     if (prop in target) {
@@ -668,11 +666,6 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                         return target.relations[prop];
                     }
 
-                    // If there is a macro to handle a method, return it.                        
-                    if (macro.has(`model_${className}_call_${_.snakeCase(prop)}_method`)) {
-                        return macro.reduce(`model_${className}_call_${_.snakeCase(prop)}_method`, () => null, target);
-                    }
-
                     const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
                         ? _.snakeCase(prop)
                         : prop;
@@ -683,12 +676,9 @@ export function ModelFactory(facades: AppFacades, className: string, BaseModel: 
                     }
 
                     // If there is a macro to handle a property, return it.
-                    if (macro.has(`model_${className}_get_${lookupKey}_attribute`)) {
-                        return macro.reduce(
-                            `model_${className}_get_${lookupKey}_attribute`,
-                            undefined,
-                            target
-                        );
+                    if (facades.repository.hasMacro(`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
+                        // !Macro `model${ClassName}Get${Key}Attribute`
+                        return facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`](undefined, target);
                     }
 
                     return target[prop];

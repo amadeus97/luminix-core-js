@@ -1,6 +1,8 @@
 
 import { AxiosResponse } from "axios";
 import EventSource, { Event } from "../contracts/EventSource";
+import { MacroableInterface } from "./Macro";
+import { AppFacade } from "./App";
 
 export type RelationRepository = {
     [relationName: string]: ProxyModel | ProxyModel[]
@@ -178,13 +180,14 @@ export type ModelPaginatedResponse = {
     }
 }
 
-export type RepositoryFacade = EventSource<GlobalModelEvents> & {
+export type RepositoryFacade = EventSource<GlobalModelEvents> & MacroableInterface & {
     schema(): ModelSchema;
     schema(className: string): ModelSchemaAttributes;
     make(): {
         [className: string]: typeof ProxyModel;
     };
     make(className: string): typeof ProxyModel;
+    boot(app: AppFacade): void;
     
 }
 

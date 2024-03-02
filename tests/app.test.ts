@@ -6,9 +6,11 @@ import Auth from '../src/facades/Auth';
 import Log from '../src/facades/Log';
 import Macro from '../src/facades/Macro';
 import Repository from '../src/facades/Repository';
+import { AppFacade } from '../src/types/App';
 import { AuthFacade } from '../src/types/Auth';
 import { MacroFacade } from '../src/types/Macro';
 import PropertyBag from '../src/contracts/PropertyBag';
+import Plugin from '../src/contracts/Plugin';
 
 describe('testing application', () => {
 
@@ -38,16 +40,21 @@ describe('testing application', () => {
         const app = new App();
         const auth = {} as AuthFacade;
 
-        const plugin = {
+        const plugin: Plugin = {
             name: 'test',
-            register: (application: App) => {
+            register(application: AppFacade) {
                 application.bind('auth', auth);
+            },
+            boot() {
             }
+            
         };
 
-        await app.boot({
-            plugins: [plugin]
+        app.on('init', ({ register }) => {
+            register(plugin);
         });
+
+        await app.boot();
 
         expect(app.make('auth')).toBe(auth);
     });

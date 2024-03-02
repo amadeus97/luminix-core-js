@@ -1,7 +1,7 @@
 import App from "../facades/App";
-import { AppExternal, AppFacades } from "../types/App";
+import { AppExternal, AppFacade, AppFacades } from "../types/App";
 
-let appInstance: App;
+let appInstance: AppFacade;
 
 function app(): AppExternal;
 function app<T extends keyof AppFacades>(facade:T): AppFacades[T];

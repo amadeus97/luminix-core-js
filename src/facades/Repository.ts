@@ -1,46 +1,39 @@
 /* eslint-disable i18next/no-literal-string */
 
-import { GlobalModelEvents, Model, ModelSchema, ModelSchemaAttributes, ProxyModel, RepositoryFacade } from '../types/Model';
+import { GlobalModelEvents, Model, ModelSchema, ModelSchemaAttributes, ProxyModel } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
 
 import _ from 'lodash';
-import { AppFacade } from '../types/App';
+
 import EventSource from '../contracts/EventSource';
+import { Macroable } from '../contracts/Macroable';
+import { AppFacade } from '..';
 
 
-export default class Repository extends EventSource<GlobalModelEvents> implements RepositoryFacade {
+class Repository extends EventSource<GlobalModelEvents> {
 
-    private _schema: ModelSchema | undefined;
-    
     private _models: { [className: string]: typeof ProxyModel } = {};
 
     constructor(
-        private readonly app: AppFacade,
+        private readonly _schema: ModelSchema,
     ) {
         super();
-        const config = this.app.make('config');
-        this._schema = config.get('boot.models');
-
-        
-        this.makeClasses();
-        
-    
     };
 
-    private makeClasses() {
+    boot(app: AppFacade) {
         if (!this._schema) {
             return;
         }
+        
         Object.keys(this._schema).forEach((className) => {
-            const BaseModel: typeof Model = this.app.make('macro').reduce(
-                `repository_base_model_${className}`,
-                BaseModelFactory(this.app.make(), className),
-                this.app,
+            // !Macro `transformBaseModel`
+            const BaseModel: typeof Model = this.transformBaseModel(
+                BaseModelFactory(app.make(), className),
                 className
             );
-            // this._baseModels[className] = BaseModel;
-            this._models[className] = ModelFactory(this.app.make(), className, BaseModel);
+
+            this._models[className] = ModelFactory(app.make(), className, BaseModel);
         });
     }
 
@@ -56,7 +49,7 @@ export default class Repository extends EventSource<GlobalModelEvents> implement
         }
 
         return this._schema;
-        
+
     };
 
 
@@ -74,9 +67,9 @@ export default class Repository extends EventSource<GlobalModelEvents> implement
         return this._models[className];
     };
 
-
+    [macro: string]: any;
 }
 
 
-
+export default Macroable(Repository);
 

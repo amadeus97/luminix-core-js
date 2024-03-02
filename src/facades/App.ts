@@ -2,7 +2,6 @@ import { AppFacades, AppFacade, AppEvents } from '../types/App';
 
 import Auth from './Auth';
 import Log from './Log';
-import Macro from './Macro';
 import Repository from './Repository';
 import Route from './Route';
 
@@ -12,7 +11,7 @@ import axios from 'axios';
 import reader from '../helpers/reader';
 import EventSource from '../contracts/EventSource';
 
-export default class App extends EventSource<AppEvents> implements AppFacade {
+class App extends EventSource<AppEvents> implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
@@ -59,8 +58,6 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
             console.log('[Luminix] Booting started...');
         }
 
-        this.bind('macro', new Macro(this));
-
         const register = (plugin: Plugin) => {
             this._plugins.push(plugin);
             plugin.register(this);
@@ -89,7 +86,15 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
 
         this.bind('route', new Route(this));
         this.bind('auth', new Auth(this));
-        this.bind('repository', new Repository(this));
+        this.bind('repository', new Repository(configObject?.boot?.models || {}));
+
+        this.emit('booting');
+
+        Object.values(this.facades).forEach((facade) => {
+            if (typeof facade.boot === 'function') {
+                facade.boot(this);
+            }
+        });
 
         // Boot plugins
         for (const plugin of this._plugins) {
@@ -109,4 +114,7 @@ export default class App extends EventSource<AppEvents> implements AppFacade {
 
         return this.facades;
     }
+    
 }
+
+export default App;

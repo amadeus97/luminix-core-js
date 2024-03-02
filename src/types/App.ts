@@ -3,7 +3,6 @@ import { AppConfiguration, ConfigFacade } from './Config';
 import Plugin from '../contracts/Plugin';
 import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
-import { MacroFacade } from './Macro';
 import { RepositoryFacade } from './Model';
 import { RouteFacade } from './Route';
 import EventSource, { Event } from '../contracts/EventSource';
@@ -11,6 +10,7 @@ import EventSource, { Event } from '../contracts/EventSource';
 export type AppEvents = {
     'init': (e: InitEvent) => void,
     'booted': (e: Event<AppFacade>) => void,
+    'booting': (e: Event<AppFacade>) => void,
 }
 
 export type InitEvent = Event<AppFacade> & {
@@ -37,7 +37,6 @@ export type AppFacades = {
     auth: AuthFacade;
     config: ConfigFacade;
     log: LogFacade;
-    macro: MacroFacade;
     repository: RepositoryFacade;
     route: RouteFacade;
     [key: string]: any;
