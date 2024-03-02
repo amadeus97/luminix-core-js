@@ -1,8 +1,8 @@
-import objectPath from "object-path";
+import objectPath from 'object-path';
 import {
     RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
-} from "../types/Route";
-import axios, { AxiosRequestConfig } from "axios";
+} from '../types/Route';
+import axios, { AxiosRequestConfig } from 'axios';
 import { Macroable } from '../contracts/Macroable';
 
 class Route {
@@ -13,7 +13,7 @@ class Route {
     ) {
     }
 
-    private isRouteTuple(route: any): route is RouteTuple {
+    private isRouteTuple(route: unknown): route is RouteTuple {
         // Check if route is an array with two or more elements
         if (!Array.isArray(route) || route.length < 2) {
             return false;
@@ -61,6 +61,9 @@ class Route {
         const regex = /{([^}]+)}/g;
 
         if (replace === false) {
+            if (typeof this.replaceRouteParams !== 'function') {
+                throw new Error('Expect `Route` to be Macroable');
+            }
             // !Macro `replaceRouteParams`
             return this.replaceRouteParams(`/${url}`);
         }
@@ -92,7 +95,7 @@ class Route {
     call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
         const [name, replace] = this.extractGenerator(generator);
 
-        const [_, ...methods] = this.get(name);
+        const [, ...methods] = this.get(name);
         const url = this.url(replace ? [name, replace] : name);
 
         const { method = methods[0], ...rest } = config;
@@ -106,9 +109,9 @@ class Route {
         return axios[method as HttpMethod](url, data, restOfRest);
     }
     
-    [macro: string]: any;
+    [macro: string]: unknown;
 
-};
+}
 
 export default Macroable(Route);
 

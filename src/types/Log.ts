@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * A facade for logging messages. Provides eight logging levels, defined in the RFC 5424 standard.

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AppFacades, AppFacade, AppEvents } from '../types/App';
 
 import Auth from './Auth';
@@ -10,13 +11,16 @@ import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
 import reader from '../helpers/reader';
 import { HasEvents } from '../contracts/HasEvents';
+import { AppConfiguration } from '../types/Config';
 class App implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
     private _plugins: Plugin[] = [];
 
-    readonly make: AppFacade['make'] = (key = undefined) => {
+    make(): AppFacades;
+    make<K extends keyof AppFacades>(key: K): AppFacades[K];
+    make(key = undefined) {
         if (!key) {
             return this.facades;
         }
@@ -26,22 +30,22 @@ class App implements AppFacade {
         return undefined;
     }
 
-    readonly has: AppFacade['has'] = (key) => {
+    has(key: string) {
         return !!this.facades[key];
     }
 
-    readonly bind: AppFacade['bind'] = (key, facade) => {
+    bind<K extends keyof AppFacades>(key: K, facade: AppFacades[K]) {
         if (this.facades[key]) {
             return;
         }
         this.facades[key] = facade;
     }
 
-    readonly plugins = () => {
+    plugins() {
         return this._plugins;
     }
 
-    readonly boot: AppFacade['boot'] = async (configObject = {}) => {
+    async boot(configObject: AppConfiguration = {}) {
 
         if (this.booted) {
             throw new Error('[Luminix] App already booted');
@@ -65,9 +69,11 @@ class App implements AppFacade {
         this.bind('config', new PropertyBag(configObject));
 
         const { config, log: logger } = this.facades;
+
+        const bootUrl = config.get('app.bootUrl', '/luminix-api/init');
         
-        if (config.get('app.bootUrl', '/luminix-api/init') && !document.querySelector('#luminix-embed #luminix-data-boot')) {
-            const { data } = await axios.get(config.get('app.bootUrl', '/luminix-api/init'));
+        if (typeof bootUrl === 'string' && !!bootUrl && !document.querySelector('#luminix-embed #luminix-data-boot')) {
+            const { data } = await axios.get(bootUrl);
             if (data && typeof data === 'object') {
                 config.merge('boot', data);
             }
@@ -88,7 +94,10 @@ class App implements AppFacade {
 
         // Boot facades
         for (const facade of Object.values(this.facades)) {
-            if (typeof facade.boot === 'function') {
+            if (typeof facade === 'object' 
+                && facade !== null 
+                && 'boot' in facade
+                && typeof facade.boot === 'function') {
                 facade.boot(this);
             }
         }
@@ -112,7 +121,7 @@ class App implements AppFacade {
 
     on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {}
     once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {}
-    emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], "source">): void {}
+    emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], 'source'>): void {}
 }
 
 export default HasEvents<AppEvents, typeof App>(App);

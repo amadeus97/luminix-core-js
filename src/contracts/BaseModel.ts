@@ -1,5 +1,4 @@
 
-/* eslint-disable i18next/no-literal-string */
 import _ from 'lodash';
 import { diff } from 'deep-object-diff';
 import PropertyBag from './PropertyBag';
@@ -10,19 +9,31 @@ import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 
-const createObjectWithKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
-    .filter((key) => keys.includes(key))
-    .reduce((acc: any, key) => {
-        acc[key] = obj[key];
-        return acc;
-    }, {});
+const createObjectWithKeys = (keys: Array<string>, obj: unknown) => {
+    if (typeof obj !== 'object' || obj === null) {
+        throw new TypeError('Invalid object');
+    }
 
-const createObjectWithoutKeys = (keys: Array<string>, obj: any) => Object.keys(obj)
-    .filter((key) => !keys.includes(key))
-    .reduce((acc: any, key) => {
-        acc[key] = obj[key];
-        return acc;
-    }, {});
+    return Object.entries(obj)
+        .filter(([key]) => keys.includes(key))
+        .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+        }, {} as JsonObject);
+};
+
+const createObjectWithoutKeys = (keys: Array<string>, obj: unknown) => {
+    if (typeof obj !== 'object' || obj === null) {
+        throw new TypeError('Invalid object');
+    }
+
+    return Object.entries(obj)
+        .filter(([key]) => !keys.includes(key))
+        .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+        }, {} as JsonObject);
+};
 
 export function BaseModelFactory(facades: AppFacades, className: string): typeof BaseModel {
 
@@ -41,8 +52,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 } else {
                     facades.log.warning(`Invalid attributes for model "${className}".
                         This will throw an error in production.`, {
-                            attributes, className
-                        });
+                        attributes, className
+                    });
                 }
             }
 
@@ -52,7 +63,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
 
         }
     
-        private cast(value: any, cast: string) {
+        private cast(value: unknown, cast: string) {
             if (value === null || value === undefined || !cast) {
                 return value;
             }
@@ -60,7 +71,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (['boolean', 'bool'].includes(cast)) {
                 return !!value;
             }
-            if (['date', 'datetime', 'immutable_date', 'immutable_datetime'].includes(cast)) {
+            if (['date', 'datetime', 'immutable_date', 'immutable_datetime'].includes(cast) && typeof value === 'string') {
                 return new Date(value);
             }
             if (
@@ -73,7 +84,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return value;
         }
     
-        private mutate(value: any, mutator: string) {
+        private mutate(value: unknown, mutator: string) {
             if (value === null || value === undefined || !mutator) {
                 return value;
             }
@@ -106,7 +117,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 newAttributes[key] = null;
             });
     
-            const newRelations: any = {};
+            const newRelations: RelationRepository = {};
     
             if (relations) {
                 Object.entries(relations).forEach(([key, relation]) => {
@@ -138,7 +149,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return {
                 attributes: newAttributes,
                 relations: newRelations,
-            }
+            };
         }
     
         private makePrimaryKeyReplacer(): RouteReplacer {
@@ -210,7 +221,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
         }
     
-        private dispatchErrorEvent(error: any, operation: 'save' | 'delete' | 'restore' | 'forceDelete') {
+        private dispatchErrorEvent(error: unknown, operation: 'save' | 'delete' | 'restore' | 'forceDelete') {
             this.emit('error', {
                 error,
                 operation,
@@ -228,7 +239,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (typeof json !== 'object' || json === null) {
                 return false;
             }
-            return Object.entries(json).every(([_, value]) => {
+            return Object.entries(json).every(([, value]) => {
                 return ['boolean', 'number', 'string'].includes(typeof value) 
                     || value === null 
                     || this.validateJsonObject(value)
@@ -287,11 +298,15 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
+            const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
+            if (typeof macro !== 'function') {
+                throw new Error('Expect `Repository` to be Macroable');
+            }
             // !Macro `model${ClassName}Get${Key}Attribute`
-            return facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`](value, this);
+            return macro.bind(facades.repository)(value, this);
         }
     
-        setAttribute(key: string, value: any) {
+        setAttribute(key: string, value: unknown) {
             if (!this.fillable.includes(key)) {
                 if (facades.config.get('app.env', 'production') === 'production') {
                     throw new Error(`[Luminix] Attribute "${key}" in model "${className}" is not fillable`);
@@ -302,8 +317,13 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return;
             }
 
+            const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+            if (typeof macro !== 'function') {
+                throw new Error('Expect `Repository` to be Macroable');
+            }
+
             // !Macro `model${ClassName}Set${Key}Attribute`
-            const mutated = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`](
+            const mutated = macro.bind(facades.repository)(
                 this.mutate(value, this.casts[key]),
                 this
             );
@@ -314,8 +334,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 } else {
                     facades.log.warning(`Invalid type for attribute "${key}" in model "${className}" after mutation.
                         This will throw an error in production.`, {
-                            key, value, mutated, cast: this.casts[key], item: this.json(),
-                        });
+                        key, value, mutated, cast: this.casts[key], item: this.json(),
+                    });
                 }
                 return;
             }
@@ -336,9 +356,13 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         fill(attributes: object) {
             const validAttributes = createObjectWithKeys(this.fillable, attributes);
     
-            const mutatedAttributes = Object.entries(validAttributes).reduce((acc: any, [key, value]) => {
+            const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
+                const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+                if (typeof macro !== 'function') {
+                    throw new Error('Expect `Repository` to be Macroable');
+                }
                 // !Macro `model${ClassName}Set${Key}Attribute`
-                acc[key] = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`](
+                acc[key] = macro.bind(facades.repository)(
                     this.mutate(value, this.casts[key]),
                     this
                 );
@@ -351,8 +375,8 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 } else {
                     facades.log.warning(`Invalid attributes for model "${className}" after mutation.
                         This will throw an error in production.`, {
-                            attributes, mutatedAttributes, item: this.json(), casts: this.casts,
-                        });
+                        attributes, mutatedAttributes, item: this.json(), casts: this.casts,
+                    });
                 }
                 return;
             }
@@ -365,7 +389,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         json() {
             const modelRelations = facades.repository.schema(className).relations;
     
-            const relations: any = Object.entries(this.relations).reduce((acc: any, [key, value]) => {
+            const relations = Object.entries(this.relations).reduce((acc, [key, value]) => {
                 const { type } = modelRelations[key];
                 if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && !Array.isArray(value)) {
                     acc[key] = value.json();
@@ -374,10 +398,16 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                     acc[key] = value.map((item) => item.json());
                 }
                 return acc;
-            }, {});
+            }, {} as JsonObject);
+
+            const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`];
+
+            if (typeof macro !== 'function') {
+                throw new Error('Expect `Repository` to be Macroable');
+            }
 
             // !Macro `model${ClassName}Json`
-            return facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`]({
+            return macro.bind(facades.repository)({
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -389,7 +419,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
 
         async refresh() {
             if (!this.exists) {
-                throw new Error(`[Luminix] Cannot refresh a model that does not exist`);
+                throw new Error('[Luminix] Cannot refresh a model that does not exist');
             }
             const { data } = await facades.route.call([
                 `luminix.${className}.show`,
@@ -536,7 +566,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             const Model = facades.repository.make(className);
     
-            const models: Model[] = data.data.map((item: any) => {
+            const models: Model[] = data.data.map((item: JsonObject) => {
                 const value = new Model(item);
                 facades.repository.emit('fetch', {
                     class: className,
@@ -631,10 +661,21 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
 
         
-        on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {}
-        once<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {}
-        emit<E extends keyof ModelEvents>(_: E, __?: Omit<Parameters<ModelEvents[E]>[0], "source">): void {}
-    };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {
+            throw new Error('Method not implemented.');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        once<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {
+            throw new Error('Method not implemented.');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        emit<E extends keyof ModelEvents>(_: E, __?: Omit<Parameters<ModelEvents[E]>[0], 'source'>): void {
+            throw new Error('Method not implemented.');
+        }
+    }
 
     return HasEvents<ModelEvents, typeof ModelRaw>(ModelRaw);
 }
@@ -659,10 +700,11 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
 
                     // If the property exists in the target, return it.
                     if (prop in target) {
-                        if (typeof target[prop] === 'function') {
-                            return target[prop].bind(target);
+                        const subject = target[prop];
+                        if (typeof subject === 'function') {
+                            return subject.bind(target);
                         }
-                        return target[prop];
+                        return subject;
                     }
 
                     // If the property is a relation, return it.
@@ -681,8 +723,12 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
 
                     // If there is a macro to handle a property, return it.
                     if (facades.repository.hasMacro(`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
+                        const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
+                        if (typeof macro !== 'function') {
+                            throw new Error('Expect `Repository` to be Macroable');
+                        }
                         // !Macro `model${ClassName}Get${Key}Attribute`
-                        return facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`](undefined, target);
+                        return macro.bind(facades.repository)(undefined, target);
                     }
 
                     return target[prop];
@@ -713,6 +759,8 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
             });
         }
 
-    }
+        [key: string]: unknown;
+
+    };
 
 }

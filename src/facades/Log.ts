@@ -1,4 +1,5 @@
-import { LogFacade } from "../types/Log";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { LogFacade } from '../types/Log';
 
 export default class Log implements LogFacade {
 

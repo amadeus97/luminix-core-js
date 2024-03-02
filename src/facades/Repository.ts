@@ -1,10 +1,6 @@
-/* eslint-disable i18next/no-literal-string */
-
 import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../contracts/BaseModel';
-
-import _ from 'lodash';
 
 import { Macroable } from '../contracts/Macroable';
 import { AppFacade } from '../types/App';
@@ -18,14 +14,18 @@ class Repository {
     constructor(
         private readonly _schema: ModelSchema,
     ) {
-    };
+    }
 
     boot(app: AppFacade) {
         if (!this._schema) {
             return;
         }
+       
         
         Object.keys(this._schema).forEach((className) => {
+            if (typeof this.model !== 'function') {
+                throw new Error('Expect `Repository` to be Macroable');
+            }
             // !Macro `model`
             const Model: typeof BaseModel = this.model(
                 BaseModelFactory(app.make(), className),
@@ -49,7 +49,7 @@ class Repository {
 
         return this._schema;
 
-    };
+    }
 
 
     make(): { [className: string]: typeof Model}
@@ -64,9 +64,9 @@ class Repository {
         }
 
         return this._models[className];
-    };
+    }
 
-    [macro: string]: any;
+    [macro: string]: unknown;
 }
 
 

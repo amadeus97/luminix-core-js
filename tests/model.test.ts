@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import App from '../src/facades/App';
 import { AppFacade } from '../src/types/App';
+import { Model } from '../src/types/Model';
 import makeConfig from './config';
 import mockAxios from 'axios';
 
@@ -219,7 +221,7 @@ describe('testing models', () => {
         user2.setAttribute('email_verified_at', '2024-01-01T00:00:00.000Z');
 
         expect(user2.email_verified_at).toBeInstanceOf(Date);
-        expect(user2.email_verified_at.toISOString()).toBe('2021-01-01T00:00:00.000Z');
+        expect((user2.email_verified_at as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
 
     });
 
@@ -264,8 +266,8 @@ describe('testing models', () => {
             
         });
 
-        expect(user.posts[0]).toBeInstanceOf(Post);
-        expect(user.posts[0].comments[0]).toBeInstanceOf(Comment);
+        expect((user.posts as Model[])[0]).toBeInstanceOf(Post);
+        expect(((user.posts as Model[])[0].comments as Model[])[0]).toBeInstanceOf(Comment);
 
         const userJson: any = user.json();
 
@@ -337,7 +339,7 @@ describe('testing models', () => {
         expect(post.id).toBe(1);
         expect(post.title).toBe('First Post');
         expect(post.published_at).toBeInstanceOf(Date);
-        expect(post.published_at.toISOString()).toBe('2021-01-01T00:00:00.000Z');
+        expect((post.published_at as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
         expect(post.content).toBe(null);
         expect(post.published).toBe(true);
         expect(post.likes).toBe(100);
@@ -351,12 +353,12 @@ describe('testing models', () => {
         post.published_at = '2024-01-01T00:00:00.000Z';
 
         expect(post.published_at).toBeInstanceOf(Date);
-        expect(post.published_at.toISOString()).toBe('2024-01-01T00:00:00.000Z');
+        expect((post.published_at as Date).toISOString()).toBe('2024-01-01T00:00:00.000Z');
 
         post.published_at = new Date('2024-02-01T00:00:00.000Z');
 
         expect(post.published_at).toBeInstanceOf(Date);
-        expect(post.published_at.toISOString()).toBe('2024-02-01T00:00:00.000Z');
+        expect((post.published_at as Date).toISOString()).toBe('2024-02-01T00:00:00.000Z');
 
         post.published = '';
 
@@ -383,12 +385,12 @@ describe('testing models', () => {
 
         const Attachment = app.make('repository').make('attachment');
 
-        expect(() => Attachment.create({})).rejects.toThrow("Route data for 'luminix.attachment.store' was not found.");
-        expect(() => Attachment.update(1, {})).rejects.toThrow("Route data for 'luminix.attachment.update' was not found.");
-        expect(() => Attachment.delete(1)).rejects.toThrow("Route data for 'luminix.attachment.destroy' was not found.");
-        expect(() => Attachment.find(1)).rejects.toThrow("Route data for 'luminix.attachment.show' was not found.");
-        expect(() => Attachment.restore(1)).rejects.toThrow("Route data for 'luminix.attachment.update' was not found.");
-        expect(() => Attachment.forceDelete(1)).rejects.toThrow("Route data for 'luminix.attachment.destroy' was not found.");
+        expect(() => Attachment.create({})).rejects.toThrow('Route data for \'luminix.attachment.store\' was not found.');
+        expect(() => Attachment.update(1, {})).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');
+        expect(() => Attachment.delete(1)).rejects.toThrow('Route data for \'luminix.attachment.destroy\' was not found.');
+        expect(() => Attachment.find(1)).rejects.toThrow('Route data for \'luminix.attachment.show\' was not found.');
+        expect(() => Attachment.restore(1)).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');
+        expect(() => Attachment.forceDelete(1)).rejects.toThrow('Route data for \'luminix.attachment.destroy\' was not found.');
 
     });
 

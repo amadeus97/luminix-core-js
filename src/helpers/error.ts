@@ -1,4 +1,4 @@
-import reader from "./reader";
+import reader from './reader';
 
 const error = (key: string) => {
     return reader('error::' + key);

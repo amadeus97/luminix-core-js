@@ -1,4 +1,4 @@
-import { Model, RepositoryFacade } from "../types/Model";
+import { Model, RepositoryFacade } from '../types/Model';
 
 import app from './app';
 

@@ -2,7 +2,7 @@
 import { produce } from 'immer';
 import objectPath from 'object-path';
 
-export default class PropertyBag<T extends object = any> {
+export default class PropertyBag<T extends object> {
 
     private locked: string[] = [];
 
@@ -10,19 +10,19 @@ export default class PropertyBag<T extends object = any> {
         Object.freeze(this.bag);
     }
 
-    get(path: string, defaultValue?: any) {
+    get(path: string, defaultValue?: unknown) {
         return objectPath.get(this.bag, path, defaultValue);
     }
 
-    set(path: string, value: any) {
+    set(path: string, value: unknown) {
         if (this.locked.some((item) => path.startsWith(item))) {
             throw new Error(`Cannot set a locked path "${path}"`);
         }
 
-        if (this.locked.some((item) => item.startsWith(path) 
-            && objectPath.has(value, item.slice(path.length + 1))
-        )) {
-            throw new Error(`Cannot set a path "${path}" that would override a locked path`);
+        if (typeof value === 'object' && value !== null) {
+            if (this.locked.some((item) => objectPath.has(value, item.slice(path.length + 1)))) {
+                throw new Error(`Cannot set a path "${path}" that would override a locked path`);
+            }
         }
 
         this.bag = produce(this.bag, (draft) => {
@@ -30,11 +30,11 @@ export default class PropertyBag<T extends object = any> {
         });
     }
 
-    merge(path: string, value: any) {
+    merge(path: string, value: unknown) {
+        if (typeof value !== 'object' || value === null) {
+            throw new TypeError('Value must be an object');
+        }
         if (path === '.') {
-            if (typeof value !== 'object' || value === null) {
-                throw new Error(`Cannot merge a non-object path "${path}"`);
-            }
             if (this.locked.some((item) => objectPath.has(value, item))) {
                 throw new Error(`Cannot merge a path "${path}" that would override a locked path`);
             }

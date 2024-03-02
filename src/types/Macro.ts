@@ -1,4 +1,5 @@
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MacroReducer = (value: any, ...params: any[]) => any;
 
 export interface Reducer {
@@ -16,5 +17,5 @@ export type MacroableInterface = {
     hasMacro(name: string): boolean;
     clearMacro(name: string): void;
     flushMacros(): void;
-    [macro: string]: (value: any, ...params: any[]) => any;
+    [macro: string]: unknown;
 };

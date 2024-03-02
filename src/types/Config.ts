@@ -9,7 +9,7 @@ export type AppConfiguration = {
         bootUrl?: string | null | false;
         enforceCamelCaseForModelAttributes?: boolean;
         csrfToken?: string;
-        [key: string]: any;
+        [key: string]: unknown;
     },
     boot?: {
         data?: {
@@ -17,14 +17,14 @@ export type AppConfiguration = {
                 id: number;
                 name: string;
                 email: string;
-                [key: string]: any;
+                [key: string]: unknown;
             } | null;
-            [key: string]: any;
+            [key: string]: unknown;
         };
         models?: ModelSchema;
         routes?: RouteDefinition;
     }
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 export type ConfigFacade = PropertyBag<AppConfiguration>;

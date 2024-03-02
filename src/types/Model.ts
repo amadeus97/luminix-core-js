@@ -1,9 +1,9 @@
 
-import { AxiosResponse } from "axios";
-import { EventSource, Event, EventSourceEvents } from "./Event";
-import { MacroableInterface } from "./Macro";
-import { AppFacade } from "./App";
-import { Emitter } from "nanoevents";
+import { AxiosResponse } from 'axios';
+import { EventSource, Event, EventSourceEvents } from './Event';
+import { MacroableInterface } from './Macro';
+import { AppFacade } from './App';
+import { Emitter } from 'nanoevents';
 
 export type RelationRepository = {
     [relationName: string]: Model | Model[]
@@ -20,7 +20,6 @@ export type ModelEvents = {
 }
 
 export type GlobalModelEvents = {
-    'change': (e: ModelGlobalEvent) => void,
     'save': (e: ModelGlobalEvent) => void,
     'delete': (e: ModelGlobalEvent) => void,
     'restore': (e: ModelGlobalEvent) => void,
@@ -39,9 +38,7 @@ export type ModelSaveEvent = Event<BaseModel> & {
 }
 
 export type ModelDeleteEvent = Event<BaseModel> & {
-    // [pk: string]: string | number,
     force: boolean,
-    [key: string]: any,
 }
 
 export type ModelRestoreEvent = Event<BaseModel> & {
@@ -49,7 +46,7 @@ export type ModelRestoreEvent = Event<BaseModel> & {
 }
 
 export type ModelErrorEvent = Event<BaseModel> & {
-    error: Error,
+    error: unknown,
     operation: 'save' | 'delete' | 'restore' | 'forceDelete',
 }
 
@@ -60,7 +57,7 @@ export type ModelGlobalEvent = Event<RepositoryFacade> & {
 };
 
 export type ModelGlobalErrorEvent = ModelGlobalEvent & {
-    error: Error,
+    error: unknown,
     operation: 'save' | 'delete' | 'restore' | 'forceDelete',
 };
 
@@ -83,16 +80,16 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     get casts(): ModelSchemaAttributes['casts'];
 
     getAttribute(key: string): unknown;
-    setAttribute(key: string, value: any): void;
+    setAttribute(key: string, value: unknown): void;
     getKey(): string | number;
     getKeyName(): string;
     fill(attributes: JsonObject): void;
     json(): JsonObject;
     diff(): JsonObject;
-    save(options?: ModelSaveOptions): Promise<AxiosResponse<any, any>>;
-    delete(): Promise<AxiosResponse<any, any>>;
-    forceDelete(): Promise<AxiosResponse<any, any>>;
-    restore(): Promise<AxiosResponse<any, any>>;
+    save(options?: ModelSaveOptions): Promise<AxiosResponse<unknown, unknown>>;
+    delete(): Promise<AxiosResponse<unknown, unknown>>;
+    forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
+    restore(): Promise<AxiosResponse<unknown, unknown>>;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
@@ -113,7 +110,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 }
 
 export declare class Model extends BaseModel {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface ModelSaveOptions {
@@ -122,10 +119,10 @@ export interface ModelSaveOptions {
 }
 
 export type JsonObject = {
-    [key: string]: string | number | boolean | null | JsonObject | Array<string | number | boolean | null | JsonObject>,
+    [key: string]: JsonValue,
 }
 
-export type ModelSetAttributeCallback = (attributeName: string, value: any) => void;
+export type JsonValue = string | number | boolean | null | JsonObject | Array<string | number | boolean | null | JsonObject>;
 
 export type ModelFillCallback = (data: object) => void;
 

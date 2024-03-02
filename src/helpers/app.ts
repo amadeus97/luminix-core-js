@@ -1,5 +1,5 @@
-import App from "../facades/App";
-import { AppExternal, AppFacade, AppFacades } from "../types/App";
+import App from '../facades/App';
+import { AppExternal, AppFacade, AppFacades } from '../types/App';
 
 let appInstance: AppFacade;
 
@@ -7,12 +7,10 @@ function app(): AppExternal;
 function app<T extends keyof AppFacades>(facade:T): AppFacades[T];
 function app(facade = undefined) {
     if (!appInstance) {
-        
         appInstance = new App();
     }
 
     if (typeof facade !== 'string') {
-        console.log('appInstance', appInstance);
         return {
             boot: appInstance.boot.bind(appInstance),
             make: appInstance.make.bind(appInstance),

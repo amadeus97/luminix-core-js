@@ -1,5 +1,5 @@
-import { AxiosRequestConfig, AxiosResponse } from "axios";
-import { MacroableInterface } from "./Macro";
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { MacroableInterface } from './Macro';
 
 export type RouteReplacer = { [key: string]: string | number };
 

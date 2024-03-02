@@ -1,7 +1,7 @@
 
 
 import { AuthCredentials, AuthFacade } from '../types/Auth';
-import { Model } from '../types/Model';
+import { JsonObject, Model } from '../types/Model';
 
 import { AppFacade } from '../types/App';
 
@@ -20,11 +20,13 @@ export default class Auth implements AuthFacade {
         form.action = this.app.make('route').url('login');
         form.style.display = 'none';
 
-        if (this.app.make('config').get('app.csrfToken')) {
+        const csrfToken = this.app.make('config').get('app.csrfToken');
+
+        if (typeof csrfToken === 'string') {
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
             csrfInput.name = '_token';
-            csrfInput.value = this.app.make('config').get('app.csrfToken');
+            csrfInput.value = csrfToken;
 
             form.appendChild(csrfInput);
         }
@@ -73,11 +75,13 @@ export default class Auth implements AuthFacade {
         form.action = this.app.make('route').url('logout');
         form.style.display = 'none';
 
-        if (this.app.make('config').get('app.csrfToken')) {
+        const csrfToken = this.app.make('config').get('app.csrfToken');
+
+        if (typeof csrfToken === 'string') {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = '_token';
-            input.value = this.app.make('config').get('app.csrfToken');
+            input.value = csrfToken;
 
             form.appendChild(input);
         }
@@ -101,7 +105,7 @@ export default class Auth implements AuthFacade {
                 return null;
             }
 
-            this._user = new User(userData); 
+            this._user = new User(userData as JsonObject); 
         }
         return this._user;
     }

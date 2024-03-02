@@ -39,7 +39,7 @@ export type AppFacades = {
     log: LogFacade;
     repository: RepositoryFacade;
     route: RouteFacade;
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 export type BootOptions = {
