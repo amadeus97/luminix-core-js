@@ -686,11 +686,6 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
 
         static name = _.upperFirst(_.camelCase(className));
 
-        /**
-         * Cria uma nova instância de Model, utilizando Proxy para acesso fluente aos atributos.
-         *
-         * @param {object} attributes - Atributos do modelo.
-         */
         constructor(attributes: JsonObject = {}) {
             super(attributes);
 

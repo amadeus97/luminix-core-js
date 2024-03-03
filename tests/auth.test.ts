@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import App from '../src/facades/App';
 import Auth from '../src/facades/Auth';
 import { AppFacade } from '../src/types/App';

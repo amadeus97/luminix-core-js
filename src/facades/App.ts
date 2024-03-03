@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AppFacades, AppFacade, AppEvents } from '../types/App';
 
 import Auth from './Auth';
@@ -120,15 +119,19 @@ class App implements AppFacade {
         return this.facades;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): Unsubscribe {
         throw new Error('Method not implemented.');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {
         throw new Error('Method not implemented.');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], 'source'>): void {
         throw new Error('Method not implemented.');
     }
+
 }
 
 export default HasEvents<AppEvents, typeof App>(App);

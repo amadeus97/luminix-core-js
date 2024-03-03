@@ -11,6 +11,8 @@ class Repository {
 
     private _models: { [className: string]: typeof Model } = {};
 
+    static name = 'Repository';
+
     constructor(
         private readonly _schema: ModelSchema,
     ) {
@@ -64,6 +66,11 @@ class Repository {
         }
 
         return this._models[className];
+    }
+
+    toString()
+    {
+        return 'repository';
     }
 
     [macro: string]: unknown;

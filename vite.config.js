@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
-import dts from "vite-plugin-dts";
+import dts from 'vite-plugin-dts';
 
 export default defineConfig({
     plugins: [dts({ insertTypesEntry: true })],
@@ -11,7 +11,7 @@ export default defineConfig({
             formats: ['es']
         },
         rollupOptions: {
-            external: ['axios', 'lodash']
+            external: ['axios', 'lodash', 'immer']
         }
     },
     

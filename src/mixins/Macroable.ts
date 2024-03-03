@@ -8,8 +8,8 @@ type Constructor = new (...args: any[]) => {};
 export function Macroable<T extends Constructor>(Base: T) {
     return class extends Base {
         macros: {
-      [name: string]: Reducer[]
-    } = {};
+            [name: string]: Reducer[]
+        } = {};
 
         constructor(...args: any[]) {
             super(...args);
@@ -35,6 +35,9 @@ export function Macroable<T extends Constructor>(Base: T) {
         }
   
         macro(name: string, callback: MacroReducer, priority: number = 10) {
+            if (name in this) {
+                throw new Error(`Cannot create macro '${name}' on '${this}' as it is a reserved property`);
+            }
             if (!this.macros[name]) {
                 this.macros[name] = [];
             }

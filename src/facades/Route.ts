@@ -108,6 +108,11 @@ class Route {
 
         return axios[method as HttpMethod](url, data, restOfRest);
     }
+
+    toString()
+    {
+        return 'route';
+    }
     
     [macro: string]: unknown;
 

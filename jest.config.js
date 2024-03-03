@@ -10,6 +10,6 @@ export default {
     testRegex: '/tests/.*\\.(test|spec)?\\.(ts|tsx)$',
     moduleFileExtensions: ['ts', 'js'],
     
-}
+};
 
 
