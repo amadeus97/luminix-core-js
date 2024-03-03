@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Unsubscribe } from 'nanoevents';
 
 export type Event<S = any> = {
     source: S;
@@ -10,7 +11,7 @@ export type EventSourceEvents = {
 
 
 export type EventSource<T extends EventSourceEvents> = {
-    on<E extends keyof T>(event: E, callback: T[E]): void;
+    on<E extends keyof T>(event: E, callback: T[E]): Unsubscribe;
     once<E extends keyof T>(event: E, callback: T[E]): void;
     emit<E extends keyof T>(event: E, data?: Omit<Parameters<T[E]>[0], 'source'>): void;
 };

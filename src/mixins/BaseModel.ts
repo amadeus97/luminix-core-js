@@ -8,6 +8,7 @@ import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
+import { Unsubscribe } from 'nanoevents';
 
 const createObjectWithKeys = (keys: Array<string>, obj: unknown) => {
     if (typeof obj !== 'object' || obj === null) {
@@ -662,7 +663,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
 
         
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {
+        on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): Unsubscribe {
             throw new Error('Method not implemented.');
         }
 

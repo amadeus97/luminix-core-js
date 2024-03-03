@@ -12,6 +12,7 @@ import axios from 'axios';
 import reader from '../helpers/reader';
 import { HasEvents } from '../mixins/HasEvents';
 import { AppConfiguration } from '../types/Config';
+import { Unsubscribe } from 'nanoevents';
 class App implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
@@ -119,9 +120,15 @@ class App implements AppFacade {
         return this.facades;
     }
 
-    on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {}
-    once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {}
-    emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], 'source'>): void {}
+    on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): Unsubscribe {
+        throw new Error('Method not implemented.');
+    }
+    once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {
+        throw new Error('Method not implemented.');
+    }
+    emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], 'source'>): void {
+        throw new Error('Method not implemented.');
+    }
 }
 
 export default HasEvents<AppEvents, typeof App>(App);
