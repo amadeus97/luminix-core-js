@@ -12,6 +12,8 @@ import reader from '../helpers/reader';
 import { HasEvents } from '../mixins/HasEvents';
 import { AppConfiguration } from '../types/Config';
 import { Unsubscribe } from 'nanoevents';
+import { RouteDefinition } from '../types/Route';
+import { ModelSchema } from '../types/Model';
 class App implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
@@ -72,22 +74,23 @@ class App implements AppFacade {
 
         const bootUrl = config.get('app.bootUrl', '/luminix-api/init');
         
-        if (typeof bootUrl === 'string' && !!bootUrl && !document.querySelector('#luminix-embed #luminix-data-boot')) {
+        if (typeof bootUrl === 'string' && !!bootUrl && !document.getElementById('luminix-data::config')) {
             const { data } = await axios.get(bootUrl);
             if (data && typeof data === 'object') {
-                config.merge('boot', data);
+                config.merge('.', data);
             }
         }
-        if (document.querySelector('#luminix-embed #luminix-data-boot')) {
-            const data = reader('boot');
+        if (document.getElementById('luminix-data::config')) {
+            const data = reader('config');
             if (data && typeof data === 'object') {
-                config.merge('boot', data);
+                config.merge('.', data);
             }
         }
-        config.lock('boot');
+        config.lock('manifest');
+        config.lock('auth.user');
 
-        this.bind('route', new Route(configObject?.boot?.routes || {}));
-        this.bind('repository', new Repository(configObject?.boot?.models || {}));
+        this.bind('route', new Route(config.get('manifest.routes', {}) as RouteDefinition));
+        this.bind('repository', new Repository(config.get('manifest.models', {}) as ModelSchema));
         this.bind('auth', new Auth(this));
 
         this.emit('booting');

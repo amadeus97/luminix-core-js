@@ -64,7 +64,7 @@ export default class Auth implements AuthFacade {
     check() {
         const config = this.app.make('config');
 
-        return !!config.get('boot.data.user');
+        return !!config.get('auth.user');
     }
 
     logout(onSubmit?: (e: Event) => void) {
@@ -99,7 +99,7 @@ export default class Auth implements AuthFacade {
             const { repository, config } = this.app.make();
 
             const User = repository.make('user');
-            const userData = config.get('boot.data.user');
+            const userData = config.get('auth.user');
 
             if (!userData) {
                 return null;

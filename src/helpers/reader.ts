@@ -4,7 +4,7 @@ const reader = (name: string) => {
         throw new Error('[Luminix] Embed element not found. Make sure to include the `@luminixEmbed()` directive in your Blade template.');
     }
 
-    const element: HTMLDivElement | null = document.querySelector('div#luminix-data-' + name);
+    const element: HTMLElement | null = document.getElementById('luminix-data::' + name);
 
     if (!element) {
         return null;
