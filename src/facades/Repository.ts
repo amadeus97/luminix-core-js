@@ -2,7 +2,7 @@ import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
-import { Macroable } from '../mixins/Macroable';
+import { Reduceable } from '../mixins/Reduceable';
 import { AppFacade } from '../types/App';
 import { HasEvents } from '../mixins/HasEvents';
 
@@ -26,7 +26,7 @@ class Repository {
         
         Object.keys(this._schema).forEach((className) => {
             if (typeof this.model !== 'function') {
-                throw new Error('Expect `Repository` to be Macroable');
+                throw new Error('Expect `Repository` to be Reduceable');
             }
             // !Macro `model`
             const Model: typeof BaseModel = this.model(
@@ -77,5 +77,5 @@ class Repository {
 }
 
 
-export default Macroable(HasEvents<GlobalModelEvents, typeof Repository>(Repository));
+export default Reduceable(HasEvents<GlobalModelEvents, typeof Repository>(Repository));
 

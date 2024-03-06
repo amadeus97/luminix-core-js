@@ -1,7 +1,7 @@
 
 import { AxiosResponse } from 'axios';
 import { EventSource, Event, EventSourceEvents } from './Event';
-import { MacroableInterface } from './Macro';
+import { ReduceableInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Emitter } from 'nanoevents';
 
@@ -184,7 +184,7 @@ export type ModelPaginatedResponse = {
     }
 }
 
-export type RepositoryFacade = EventSource<GlobalModelEvents> & MacroableInterface & {
+export type RepositoryFacade = EventSource<GlobalModelEvents> & ReduceableInterface & {
     schema(): ModelSchema;
     schema(className: string): ModelSchemaAttributes;
     make(): {

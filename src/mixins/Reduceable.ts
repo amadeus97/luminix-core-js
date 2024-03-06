@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isDraftable, produce } from 'immer';
-import { MacroReducer, Reducer } from '../types/Macro';
+import { ReducerCallback, Reducer } from '../types/Reducer';
 
 type Constructor = new (...args: any[]) => {};
 
-export function Macroable<T extends Constructor>(Base: T) {
+export function Reduceable<T extends Constructor>(Base: T) {
     return class extends Base {
-        macros: {
+        reducers: {
             [name: string]: Reducer[]
         } = {};
 
@@ -19,7 +19,7 @@ export function Macroable<T extends Constructor>(Base: T) {
                         return Reflect.get(target, prop, receiver);
                     }
                     return (value: unknown, ...args: unknown[]) => {
-                        const { [prop]: macros = [] } = target.macros;
+                        const { [prop]: macros = [] } = target.reducers;
 
                         if (isDraftable(value)) {
                             return produce(value, (draft: unknown) => {
@@ -34,43 +34,43 @@ export function Macroable<T extends Constructor>(Base: T) {
             });
         }
   
-        macro(name: string, callback: MacroReducer, priority: number = 10) {
+        reducer(name: string, callback: ReducerCallback, priority: number = 10) {
             if (name in this) {
                 throw new Error(`Cannot create macro '${name}' on '${this}' as it is a reserved property`);
             }
-            if (!this.macros[name]) {
-                this.macros[name] = [];
+            if (!this.reducers[name]) {
+                this.reducers[name] = [];
             }
-            this.macros[name] = [
-                ...this.macros[name],
+            this.reducers[name] = [
+                ...this.reducers[name],
                 { callback, priority }
             ].sort((a, b) => a.priority - b.priority);
 
-            return () => this.removeMacro(name, callback);
+            return () => this.removeReducer(name, callback);
         }
 
-        removeMacro(name: string, callback: MacroReducer) {
-            const index = this.macros[name].findIndex((item) => item.callback === callback);
+        removeReducer(name: string, callback: ReducerCallback) {
+            const index = this.reducers[name].findIndex((item) => item.callback === callback);
             if (index === -1) {
                 return;
             }
-            this.macros[name].splice(index, 1);
+            this.reducers[name].splice(index, 1);
         }
 
-        getMacro(name: string): Reducer[] {
-            return this.macros[name];
+        getReducer(name: string): Reducer[] {
+            return this.reducers[name];
         }
 
-        hasMacro(name: string): boolean {
-            return !!this.macros[name] && this.macros[name].length > 0;
+        hasReducer(name: string): boolean {
+            return !!this.reducers[name] && this.reducers[name].length > 0;
         }
 
-        clearMacro(name: string) {
-            this.macros[name] = [];
+        clearReducer(name: string) {
+            this.reducers[name] = [];
         }
 
-        flushMacros() {
-            this.macros = {};
+        flushReducers() {
+            this.reducers = {};
         }
     };
 }

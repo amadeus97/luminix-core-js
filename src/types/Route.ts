@@ -1,9 +1,9 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { MacroableInterface } from './Macro';
+import { ReduceableInterface } from './Reducer';
 
 export type RouteReplacer = { [key: string]: string | number };
 
-export type RouteFacade = MacroableInterface & {
+export type RouteFacade = ReduceableInterface & {
     get(name: string): RouteTuple;
     url(generator: RouteGenerator): string;
     exists(name: string): boolean;

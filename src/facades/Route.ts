@@ -3,7 +3,7 @@ import {
     RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
 } from '../types/Route';
 import axios, { AxiosRequestConfig } from 'axios';
-import { Macroable } from '../mixins/Macroable';
+import { Reduceable } from '../mixins/Reduceable';
 
 class Route {
 
@@ -62,7 +62,7 @@ class Route {
 
         if (replace === false) {
             if (typeof this.replaceRouteParams !== 'function') {
-                throw new Error('Expect `Route` to be Macroable');
+                throw new Error('Expect `Route` to be Reduceable');
             }
             // !Macro `replaceRouteParams`
             return this.replaceRouteParams(`/${url}`);
@@ -118,5 +118,5 @@ class Route {
 
 }
 
-export default Macroable(Route);
+export default Reduceable(Route);
 

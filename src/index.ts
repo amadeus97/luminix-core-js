@@ -8,7 +8,7 @@ import route from './helpers/route';
 
 import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
-import { Macroable } from './mixins/Macroable';
+import { Reduceable } from './mixins/Reduceable';
 import { HasEvents } from './mixins/HasEvents';
 
 export {
@@ -22,7 +22,7 @@ export {
 
     Plugin,
     PropertyBag,
-    Macroable,
+    Reduceable,
     HasEvents,
 };
 
