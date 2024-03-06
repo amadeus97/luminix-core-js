@@ -17,5 +17,5 @@ export type ReduceableInterface = {
     hasReducer(name: string): boolean;
     clearReducer(name: string): void;
     flushReducers(): void;
-    [macro: string]: unknown;
+    [reducer: string]: unknown;
 };

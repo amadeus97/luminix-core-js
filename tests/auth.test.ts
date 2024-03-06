@@ -11,7 +11,7 @@ describe('testing authentication', () => {
         const app = new App();
         const config = makeConfig();
 
-        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { data: { user: { id: 1 } } } }));
+        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { auth: { user: { id: 1 } } } }));
 
         await app.boot(config);
 
@@ -28,7 +28,7 @@ describe('testing authentication', () => {
         const app = new App();
         const config = makeConfig();
 
-        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { data: { user: null } } }));
+        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { auth: { user: null } } }));
 
         await app.boot(config);
 
@@ -45,7 +45,7 @@ describe('testing authentication', () => {
         const app = new App();
         const config = makeConfig();
 
-        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { data: { user: { id: 1, name: 'John Doe' } } } }));
+        (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { auth: { user: { id: 1, name: 'John Doe' } } } }));
 
         await app.boot(config);
 

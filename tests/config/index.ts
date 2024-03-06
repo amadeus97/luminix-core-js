@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { AppConfiguration } from '../../src/types/Config';
 import app from './app';
-import boot from './boot.json';
+import manifest from './manifest.json';
 
-export default () => _.cloneDeep({ app, boot }) as unknown as AppConfiguration;
+export default () => _.cloneDeep({ app, manifest }) as unknown as AppConfiguration;

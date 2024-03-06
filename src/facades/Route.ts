@@ -114,7 +114,7 @@ class Route {
         return 'route';
     }
     
-    [macro: string]: unknown;
+    [reducer: string]: unknown;
 
 }
 

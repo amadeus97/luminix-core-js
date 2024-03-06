@@ -70,7 +70,9 @@ export default class PropertyBag<T extends object> {
         if (this.locked.some((item) => path.startsWith(item))) {
             throw new Error(`Cannot delete a locked path "${path}"`);
         }
-        return objectPath.del(this.bag, path);
+        this.bag = produce(this.bag, (draft) => {
+            objectPath.del(draft, path);
+        });
     }
 
     lock(path: string) {

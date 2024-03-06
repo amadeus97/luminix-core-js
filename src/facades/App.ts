@@ -86,6 +86,12 @@ class App implements AppFacade {
                 config.merge('.', data);
             }
         }
+        if (!config.has('auth.user')) {
+            config.set('auth.user', null);
+        }
+        if (!config.has('manifest')) {
+            config.set('manifest', {});
+        }
         config.lock('manifest');
         config.lock('auth.user');
 

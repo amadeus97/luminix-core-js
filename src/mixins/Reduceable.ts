@@ -36,7 +36,7 @@ export function Reduceable<T extends Constructor>(Base: T) {
   
         reducer(name: string, callback: ReducerCallback, priority: number = 10) {
             if (name in this) {
-                throw new Error(`Cannot create macro '${name}' on '${this}' as it is a reserved property`);
+                throw new Error(`Cannot create reducer '${name}' on '${this}' as it is a reserved property`);
             }
             if (!this.reducers[name]) {
                 this.reducers[name] = [];

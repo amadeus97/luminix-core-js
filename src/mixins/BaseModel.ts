@@ -299,12 +299,12 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
-            if (typeof macro !== 'function') {
+            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
+            if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reduceable');
             }
             // !Macro `model${ClassName}Get${Key}Attribute`
-            return macro.bind(facades.repository)(value, this);
+            return reducer.bind(facades.repository)(value, this);
         }
     
         setAttribute(key: string, value: unknown) {
@@ -318,13 +318,13 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return;
             }
 
-            const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
-            if (typeof macro !== 'function') {
+            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+            if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reduceable');
             }
 
             // !Macro `model${ClassName}Set${Key}Attribute`
-            const mutated = macro.bind(facades.repository)(
+            const mutated = reducer.bind(facades.repository)(
                 this.mutate(value, this.casts[key]),
                 this
             );
@@ -358,12 +358,12 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             const validAttributes = createObjectWithKeys(this.fillable, attributes);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
-                const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
-                if (typeof macro !== 'function') {
+                const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+                if (typeof reducer !== 'function') {
                     throw new Error('Expect `Repository` to be Reduceable');
                 }
                 // !Macro `model${ClassName}Set${Key}Attribute`
-                acc[key] = macro.bind(facades.repository)(
+                acc[key] = reducer.bind(facades.repository)(
                     this.mutate(value, this.casts[key]),
                     this
                 );
@@ -401,14 +401,14 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return acc;
             }, {} as JsonObject);
 
-            const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`];
+            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`];
 
-            if (typeof macro !== 'function') {
+            if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reduceable');
             }
 
             // !Macro `model${ClassName}Json`
-            return macro.bind(facades.repository)({
+            return reducer.bind(facades.repository)({
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -717,14 +717,14 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
                         return target.getAttribute(lookupKey);
                     }
 
-                    // If there is a macro to handle a property, return it.
+                    // If there is a reducer to handle a property, return it.
                     if (facades.repository.hasReducer(`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
-                        const macro = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
-                        if (typeof macro !== 'function') {
+                        const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
+                        if (typeof reducer !== 'function') {
                             throw new Error('Expect `Repository` to be Reduceable');
                         }
                         // !Macro `model${ClassName}Get${Key}Attribute`
-                        return macro.bind(facades.repository)(undefined, target);
+                        return reducer.bind(facades.repository)(undefined, target);
                     }
 
                     return target[prop];

@@ -73,7 +73,7 @@ class Repository {
         return 'repository';
     }
 
-    [macro: string]: unknown;
+    [reducer: string]: unknown;
 }
 
 
