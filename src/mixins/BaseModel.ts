@@ -303,7 +303,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reduceable');
             }
-            // !Macro `model${ClassName}Get${Key}Attribute`
+            // !Reducer `model${ClassName}Get${Key}Attribute`
             return reducer.bind(facades.repository)(value, this);
         }
     
@@ -323,7 +323,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw new Error('Expect `Repository` to be Reduceable');
             }
 
-            // !Macro `model${ClassName}Set${Key}Attribute`
+            // !Reducer `model${ClassName}Set${Key}Attribute`
             const mutated = reducer.bind(facades.repository)(
                 this.mutate(value, this.casts[key]),
                 this
@@ -362,7 +362,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 if (typeof reducer !== 'function') {
                     throw new Error('Expect `Repository` to be Reduceable');
                 }
-                // !Macro `model${ClassName}Set${Key}Attribute`
+                // !Reducer `model${ClassName}Set${Key}Attribute`
                 acc[key] = reducer.bind(facades.repository)(
                     this.mutate(value, this.casts[key]),
                     this
@@ -407,7 +407,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw new Error('Expect `Repository` to be Reduceable');
             }
 
-            // !Macro `model${ClassName}Json`
+            // !Reducer `model${ClassName}Json`
             return reducer.bind(facades.repository)({
                 ...this.attributes,
                 ...relations,
@@ -723,7 +723,7 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
                         if (typeof reducer !== 'function') {
                             throw new Error('Expect `Repository` to be Reduceable');
                         }
-                        // !Macro `model${ClassName}Get${Key}Attribute`
+                        // !Reducer `model${ClassName}Get${Key}Attribute`
                         return reducer.bind(facades.repository)(undefined, target);
                     }
 

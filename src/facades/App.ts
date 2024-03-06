@@ -90,7 +90,10 @@ class App implements AppFacade {
             config.set('auth.user', null);
         }
         if (!config.has('manifest')) {
-            config.set('manifest', {});
+            config.set('manifest', {
+                routes: {},
+                models: {},
+            });
         }
         config.lock('manifest');
         config.lock('auth.user');

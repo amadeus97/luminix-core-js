@@ -64,7 +64,7 @@ class Route {
             if (typeof this.replaceRouteParams !== 'function') {
                 throw new Error('Expect `Route` to be Reduceable');
             }
-            // !Macro `replaceRouteParams`
+            // !Reducer `replaceRouteParams`
             return this.replaceRouteParams(`/${url}`);
         }
 

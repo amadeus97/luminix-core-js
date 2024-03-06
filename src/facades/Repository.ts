@@ -5,6 +5,7 @@ import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 import { Reduceable } from '../mixins/Reduceable';
 import { AppFacade } from '../types/App';
 import { HasEvents } from '../mixins/HasEvents';
+import _ from 'lodash';
 
 
 class Repository {
@@ -25,16 +26,20 @@ class Repository {
        
         
         Object.keys(this._schema).forEach((className) => {
-            if (typeof this.model !== 'function') {
+            const modelReducer = this[`model${_.upperFirst(_.camelCase(className))}`];
+            if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reduceable');
             }
-            // !Macro `model`
+            // !Reducer `model`
             const Model: typeof BaseModel = this.model(
                 BaseModelFactory(app.make(), className),
                 className
             );
 
-            this._models[className] = ModelFactory(app.make(), className, Model);
+            // !Reducer `model${ClassName}`
+            const SpecificModel: typeof BaseModel = modelReducer(Model);
+
+            this._models[className] = ModelFactory(app.make(), className, SpecificModel);
         });
     }
 
