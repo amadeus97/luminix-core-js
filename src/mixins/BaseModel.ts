@@ -172,7 +172,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('create', {
                 class: className,
-                model: this as unknown as BaseModel,
+                model: this,
             });
         }
     
@@ -183,7 +183,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('update', {
                 class: className,
-                model: this as unknown as BaseModel,
+                model: this,
             });
         }
     
@@ -194,7 +194,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('save', {
                 class: className,
-                model: this as unknown as BaseModel,
+                model: this,
             });
         }
     
@@ -206,7 +206,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('delete', {
                 class: className,
-                model: this as unknown as BaseModel,
+                model: this,
                 force,
             });
         }
@@ -218,7 +218,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('restore', {
                 class: className,
-                model: this as unknown as BaseModel,
+                model: this,
             });
         }
     
@@ -230,7 +230,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             facades.repository.emit('error', {
                 class: className,
-                model: this as unknown as BaseModel,
+                model: this,
                 error,
                 operation,
             });
@@ -301,7 +301,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             }
             const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reduceable');
+                throw new Error('Expect `Repository` to be Reducible');
             }
             // !Reducer `model${ClassName}Get${Key}Attribute`
             return reducer.bind(facades.repository)(value, this);
@@ -320,7 +320,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
 
             const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reduceable');
+                throw new Error('Expect `Repository` to be Reducible');
             }
 
             // !Reducer `model${ClassName}Set${Key}Attribute`
@@ -360,7 +360,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
                 const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
                 if (typeof reducer !== 'function') {
-                    throw new Error('Expect `Repository` to be Reduceable');
+                    throw new Error('Expect `Repository` to be Reducible');
                 }
                 // !Reducer `model${ClassName}Set${Key}Attribute`
                 acc[key] = reducer.bind(facades.repository)(
@@ -404,7 +404,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`];
 
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reduceable');
+                throw new Error('Expect `Repository` to be Reducible');
             }
 
             // !Reducer `model${ClassName}Json`
@@ -721,7 +721,7 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
                     if (facades.repository.hasReducer(`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
                         const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
                         if (typeof reducer !== 'function') {
-                            throw new Error('Expect `Repository` to be Reduceable');
+                            throw new Error('Expect `Repository` to be Reducible');
                         }
                         // !Reducer `model${ClassName}Get${Key}Attribute`
                         return reducer.bind(facades.repository)(undefined, target);

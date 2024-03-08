@@ -8,7 +8,7 @@ import route from './helpers/route';
 
 import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
-import { Reduceable } from './mixins/Reduceable';
+import { Reducible } from './mixins/Reducible';
 import { HasEvents } from './mixins/HasEvents';
 
 export {
@@ -22,7 +22,7 @@ export {
 
     Plugin,
     PropertyBag,
-    Reduceable,
+    Reducible,
     HasEvents,
 };
 

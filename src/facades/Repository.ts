@@ -2,7 +2,7 @@ import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
-import { Reduceable } from '../mixins/Reduceable';
+import { Reducible } from '../mixins/Reducible';
 import { AppFacade } from '../types/App';
 import { HasEvents } from '../mixins/HasEvents';
 import _ from 'lodash';
@@ -28,7 +28,7 @@ class Repository {
         Object.keys(this._schema).forEach((className) => {
             const modelReducer = this[`model${_.upperFirst(_.camelCase(className))}`];
             if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reduceable');
+                throw new Error('Expect `Repository` to be Reducible');
             }
             // !Reducer `model`
             const Model: typeof BaseModel = this.model(
@@ -82,5 +82,5 @@ class Repository {
 }
 
 
-export default Reduceable(HasEvents<GlobalModelEvents, typeof Repository>(Repository));
+export default Reducible(HasEvents<GlobalModelEvents, typeof Repository>(Repository));
 

@@ -5,7 +5,7 @@ import { ReducerCallback, Reducer } from '../types/Reducer';
 
 type Constructor = new (...args: any[]) => {};
 
-export function Reduceable<T extends Constructor>(Base: T) {
+export function Reducible<T extends Constructor>(Base: T) {
     return class extends Base {
         reducers: {
             [name: string]: Reducer[]

@@ -73,7 +73,7 @@ class App implements AppFacade {
         const { config, log: logger } = this.facades;
 
         const bootUrl = config.get('app.bootUrl', '/luminix-api/init');
-        
+
         if (typeof bootUrl === 'string' && !!bootUrl && !document.getElementById('luminix-data::config')) {
             const { data } = await axios.get(bootUrl);
             if (data && typeof data === 'object') {

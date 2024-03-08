@@ -1,9 +1,8 @@
 
 import { AxiosResponse } from 'axios';
-import { EventSource, Event, EventSourceEvents } from './Event';
+import { EventSource, Event } from './Event';
 import { ReduceableInterface } from './Reducer';
 import { AppFacade } from './App';
-import { Emitter } from 'nanoevents';
 
 export type RelationRepository = {
     [relationName: string]: Model | Model[]
@@ -64,7 +63,7 @@ export type ModelGlobalErrorEvent = ModelGlobalEvent & {
 
 export declare class BaseModel implements EventSource<ModelEvents> {
 
-    emitter: Emitter<EventSourceEvents>;
+    // emitter: Emitter<EventSourceEvents>;
 
     constructor(attributes?: JsonObject);
 
