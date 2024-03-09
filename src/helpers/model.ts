@@ -3,15 +3,15 @@ import { Model, RepositoryFacade } from '../types/Model';
 import app from './app';
 
 function model(): RepositoryFacade;
-function model(className: string): typeof Model;
+function model(abstract: string): typeof Model;
 
-function model(className?: string) {
+function model(abstract?: string) {
     const repository = app('repository');
-    if (!className) {
+    if (!abstract) {
         return repository;
     }
 
-    return repository.make(className);
+    return repository.make(abstract);
 }
 
 export default model;

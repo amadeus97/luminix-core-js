@@ -156,7 +156,7 @@ export interface ModelSchemaAttributes {
 }
 
 export interface ModelSchema {
-    [className: string]: ModelSchemaAttributes;
+    [abstract: string]: ModelSchemaAttributes;
 }
 
 export type ModelPaginatedResponse = {
@@ -185,11 +185,11 @@ export type ModelPaginatedResponse = {
 
 export type RepositoryFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
     schema(): ModelSchema;
-    schema(className: string): ModelSchemaAttributes;
+    schema(abstract: string): ModelSchemaAttributes;
     make(): {
-        [className: string]: typeof Model;
+        [abstract: string]: typeof Model;
     };
-    make(className: string): typeof Model;
+    make(abstract: string): typeof Model;
     boot(app: AppFacade): void;
     
 }

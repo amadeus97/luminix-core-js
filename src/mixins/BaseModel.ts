@@ -36,7 +36,7 @@ const createObjectWithoutKeys = (keys: Array<string>, obj: unknown) => {
         }, {} as JsonObject);
 };
 
-export function BaseModelFactory(facades: AppFacades, className: string): typeof BaseModel {
+export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
 
     class ModelRaw {
 
@@ -49,11 +49,11 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
 
             if (!this.validateJsonObject(newAttributes)) {
                 if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new TypeError(`[Luminix] Invalid attributes for model "${className}"`);
+                    throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
                 } else {
-                    facades.log.warning(`Invalid attributes for model "${className}".
+                    facades.log.warning(`Invalid attributes for model "${abstract}".
                         This will throw an error in production.`, {
-                        attributes, className
+                        attributes, abstract
                     });
                 }
             }
@@ -107,7 +107,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
         private makeAttributes(attributes: JsonObject)
         {
-            const { relations } = facades.repository.schema(className);
+            const { relations } = facades.repository.schema(abstract);
     
             // remove relations from attributes
             const excludedKeys = Object.keys(relations || {});
@@ -171,7 +171,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
     
             facades.repository.emit('create', {
-                class: className,
+                class: abstract,
                 model: this,
             });
         }
@@ -182,7 +182,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
     
             facades.repository.emit('update', {
-                class: className,
+                class: abstract,
                 model: this,
             });
         }
@@ -193,7 +193,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
     
             facades.repository.emit('save', {
-                class: className,
+                class: abstract,
                 model: this,
             });
         }
@@ -205,7 +205,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
     
             facades.repository.emit('delete', {
-                class: className,
+                class: abstract,
                 model: this,
                 force,
             });
@@ -217,7 +217,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
     
             facades.repository.emit('restore', {
-                class: className,
+                class: abstract,
                 model: this,
             });
         }
@@ -229,7 +229,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             });
     
             facades.repository.emit('error', {
-                class: className,
+                class: abstract,
                 model: this,
                 error,
                 operation,
@@ -261,24 +261,24 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
     
         get fillable() {
-            return facades.repository.schema(className).fillable;
+            return facades.repository.schema(abstract).fillable;
         }
     
         get primaryKey() {
-            return facades.repository.schema(className).primaryKey;
+            return facades.repository.schema(abstract).primaryKey;
         }
     
         get timestamps() {
-            return facades.repository.schema(className).timestamps;
+            return facades.repository.schema(abstract).timestamps;
         }
     
         get softDeletes() {
-            return facades.repository.schema(className).softDeletes;
+            return facades.repository.schema(abstract).softDeletes;
         }
     
         get casts(): ModelSchemaAttributes['casts'] {
             return {
-                ...facades.repository.schema(className).casts,
+                ...facades.repository.schema(abstract).casts,
                 ...this.timestamps ? { created_at: 'datetime', updated_at: 'datetime' } : {},
                 ...this.softDeletes ? { deleted_at: 'datetime' } : {},
             };
@@ -299,7 +299,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reducible');
             }
@@ -310,15 +310,15 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         setAttribute(key: string, value: unknown) {
             if (!this.fillable.includes(key)) {
                 if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new Error(`[Luminix] Attribute "${key}" in model "${className}" is not fillable`);
+                    throw new Error(`[Luminix] Attribute "${key}" in model "${abstract}" is not fillable`);
                 } else {
-                    facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${className}".
+                    facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${abstract}".
                     This will throw an error in production.`);
                 }
                 return;
             }
 
-            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reducible');
             }
@@ -331,9 +331,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             if (!this.validateJsonObject({ [key]: mutated })) {
                 if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new TypeError(`[Luminix] Attribute "${key}" in model "${className}" must be a boolean, number, string or null`);
+                    throw new TypeError(`[Luminix] Attribute "${key}" in model "${abstract}" must be a boolean, number, string or null`);
                 } else {
-                    facades.log.warning(`Invalid type for attribute "${key}" in model "${className}" after mutation.
+                    facades.log.warning(`Invalid type for attribute "${key}" in model "${abstract}" after mutation.
                         This will throw an error in production.`, {
                         key, value, mutated, cast: this.casts[key], item: this.json(),
                     });
@@ -358,7 +358,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             const validAttributes = createObjectWithKeys(this.fillable, attributes);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
-                const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+                const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
                 if (typeof reducer !== 'function') {
                     throw new Error('Expect `Repository` to be Reducible');
                 }
@@ -372,9 +372,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
             if (!this.validateJsonObject(mutatedAttributes)) {
                 if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new TypeError(`[Luminix] Invalid attributes for model "${className}"`);
+                    throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
                 } else {
-                    facades.log.warning(`Invalid attributes for model "${className}" after mutation.
+                    facades.log.warning(`Invalid attributes for model "${abstract}" after mutation.
                         This will throw an error in production.`, {
                         attributes, mutatedAttributes, item: this.json(), casts: this.casts,
                     });
@@ -388,7 +388,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
     
         json() {
-            const modelRelations = facades.repository.schema(className).relations;
+            const modelRelations = facades.repository.schema(abstract).relations;
     
             const relations = Object.entries(this.relations).reduce((acc, [key, value]) => {
                 const { type } = modelRelations[key];
@@ -401,7 +401,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return acc;
             }, {} as JsonObject);
 
-            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Json`];
+            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Json`];
 
             if (typeof reducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reducible');
@@ -423,7 +423,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 throw new Error('[Luminix] Cannot refresh a model that does not exist');
             }
             const { data } = await facades.route.call([
-                `luminix.${className}.show`,
+                `luminix.${abstract}.show`,
                 this.makePrimaryKeyReplacer()
             ]);
             const { relations, attributes } = this.makeAttributes(data);
@@ -445,10 +445,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     
                 const route: RouteGenerator = exists ?
                     [
-                        `luminix.${className}.update`,
+                        `luminix.${abstract}.update`,
                         this.makePrimaryKeyReplacer()
                     ]
-                    : `luminix.${className}.store`;
+                    : `luminix.${abstract}.store`;
     
                 const response = await facades.route.call(
                     route,
@@ -491,7 +491,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         async delete(): Promise<AxiosResponse> {
             try {
                 const response = await facades.route.call([
-                    `luminix.${className}.destroy`,
+                    `luminix.${abstract}.destroy`,
                     this.makePrimaryKeyReplacer(),
                 ]);
     
@@ -512,7 +512,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             try {
                 const response = await facades.route.call(
                     [
-                        `luminix.${className}.destroy`,
+                        `luminix.${abstract}.destroy`,
                         this.makePrimaryKeyReplacer(),
                     ],
                     { params: { force: true } }
@@ -535,7 +535,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             try {
                 const response = await facades.route.call(
                     [
-                        `luminix.${className}.update`,
+                        `luminix.${abstract}.update`,
                         this.makePrimaryKeyReplacer()
                     ],
                     { params: { restore: true } }
@@ -555,11 +555,11 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
 
         static getSchemaName() {
-            return className;
+            return abstract;
         }
 
         static getSchema() {
-            return facades.repository.schema(className);
+            return facades.repository.schema(abstract);
         }
 
         static async get(query?: Record<string, unknown>): Promise<ModelPaginatedResponse> {
@@ -580,14 +580,14 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
                 return query;
             })();
 
-            const { data } = await facades.route.call(`luminix.${className}.index`, { params });
+            const { data } = await facades.route.call(`luminix.${abstract}.index`, { params });
     
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
     
             const models: Model[] = data.data.map((item: JsonObject) => {
                 const value = new Model(item);
                 facades.repository.emit('fetch', {
-                    class: className,
+                    class: abstract,
                     model: value,
                 });
                 return value;
@@ -600,21 +600,21 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
     
         static async find(id: number | string) {
-            const pk = facades.repository.schema(className).primaryKey;
+            const pk = facades.repository.schema(abstract).primaryKey;
             if (!pk) {
-                throw new Error(`Primary key not found for class '${className}'`);
+                throw new Error(`Primary key not found for class '${abstract}'`);
             }
             const { data } = await facades.route.call([
-                `luminix.${className}.show`,
+                `luminix.${abstract}.show`,
                 { [pk]: id }
             ]);
             
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
     
             const model = new Model(data);
     
             facades.repository.emit('fetch', {
-                class: className,
+                class: abstract,
                 model,
             });
     
@@ -622,7 +622,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
     
         static async create(attributes: JsonObject) {
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
             const model = new Model();
     
             model.fill(attributes);
@@ -633,7 +633,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         }
     
         static async update(id: number | string, attributes: JsonObject) {
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
             const model = new Model({ id });
     
             model.fill(attributes);
@@ -647,10 +647,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         static delete(id: Array<number | string>): Promise<AxiosResponse>;
         static delete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${className}.destroyMany`, { params: { ids: id } });
+                return facades.route.call(`luminix.${abstract}.destroyMany`, { params: { ids: id } });
             }
     
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
             const model = new Model({ id });
     
             return model.delete();
@@ -660,10 +660,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         static async restore(id: Array<number | string>): Promise<AxiosResponse>;
         static async restore(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${className}.restoreMany`, { data: { ids: id } });
+                return facades.route.call(`luminix.${abstract}.restoreMany`, { data: { ids: id } });
             }
     
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
     
             const model = new Model({ id });
     
@@ -674,10 +674,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
         static forceDelete(id: Array<number | string>): Promise<AxiosResponse>;
         static forceDelete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${className}.destroyMany`, { params: { ids: id, force: true } });
+                return facades.route.call(`luminix.${abstract}.destroyMany`, { params: { ids: id, force: true } });
             }
     
-            const Model = facades.repository.make(className);
+            const Model = facades.repository.make(abstract);
     
             const model = new Model({ id });
     
@@ -704,10 +704,10 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
     return HasEvents<ModelEvents, typeof ModelRaw>(ModelRaw);
 }
 
-export function ModelFactory(facades: AppFacades, className: string, CustomModel: typeof BaseModel): typeof Model {
+export function ModelFactory(facades: AppFacades, abstract: string, CustomModel: typeof BaseModel): typeof Model {
     return class extends CustomModel {
 
-        static name = _.upperFirst(_.camelCase(className));
+        static name = _.upperFirst(_.camelCase(abstract));
 
         constructor(attributes: JsonObject = {}) {
             super(attributes);
@@ -741,8 +741,8 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
                     }
 
                     // If there is a reducer to handle a property, return it.
-                    if (facades.repository.hasReducer(`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
-                        const reducer = facades.repository[`model${_.upperFirst(_.camelCase(className))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
+                    if (facades.repository.hasReducer(`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
+                        const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
                         if (typeof reducer !== 'function') {
                             throw new Error('Expect `Repository` to be Reducible');
                         }
@@ -773,7 +773,7 @@ export function ModelFactory(facades: AppFacades, className: string, CustomModel
                     }
 
                     
-                    throw new Error(`Cannot set attribute '${prop}' on model '${className}'`);
+                    throw new Error(`Cannot set attribute '${prop}' on model '${abstract}'`);
                 },
             });
         }

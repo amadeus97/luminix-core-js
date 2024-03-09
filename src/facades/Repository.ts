@@ -10,7 +10,7 @@ import _ from 'lodash';
 
 class Repository {
 
-    private _models: { [className: string]: typeof Model } = {};
+    private _models: { [abstract: string]: typeof Model } = {};
 
     static name = 'Repository';
 
@@ -25,33 +25,33 @@ class Repository {
         }
        
         
-        Object.keys(this._schema).forEach((className) => {
-            const modelReducer = this[`model${_.upperFirst(_.camelCase(className))}`];
+        Object.keys(this._schema).forEach((abstract) => {
+            const modelReducer = this[`model${_.upperFirst(_.camelCase(abstract))}`];
             if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reducible');
             }
             // !Reducer `model`
             const Model: typeof BaseModel = this.model(
-                BaseModelFactory(app.make(), className),
-                className
+                BaseModelFactory(app.make(), abstract),
+                abstract
             );
 
             // !Reducer `model${ClassName}`
             const SpecificModel: typeof BaseModel = modelReducer(Model);
 
-            this._models[className] = ModelFactory(app.make(), className, SpecificModel);
+            this._models[abstract] = ModelFactory(app.make(), abstract, SpecificModel);
         });
     }
 
     schema(): ModelSchema
-    schema(className: string): ModelSchemaAttributes
-    schema(className?: string) {
-        if (!this._schema || (className && !this._schema[className])) {
-            throw new Error(`Schema for class '${className}' not found.`);
+    schema(abstract: string): ModelSchemaAttributes
+    schema(abstract?: string) {
+        if (!this._schema || (abstract && !this._schema[abstract])) {
+            throw new Error(`Schema for class '${abstract}' not found.`);
         }
 
-        if (className) {
-            return this._schema[className];
+        if (abstract) {
+            return this._schema[abstract];
         }
 
         return this._schema;
@@ -59,18 +59,18 @@ class Repository {
     }
 
 
-    make(): { [className: string]: typeof Model}
-    make(className: string): typeof Model
-    make(className?: string) {
-        if (className && !this._models[className]) {
-            throw new Error(`Model class '${className}' not found.`);
+    make(): { [abstract: string]: typeof Model}
+    make(abstract: string): typeof Model
+    make(abstract?: string) {
+        if (abstract && !this._models[abstract]) {
+            throw new Error(`Model class '${abstract}' not found.`);
         }
 
-        if (!className) {
+        if (!abstract) {
             return this._models;
         }
 
-        return this._models[className];
+        return this._models[abstract];
     }
 
     toString()
