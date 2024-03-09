@@ -10,32 +10,6 @@ import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
 
-const createObjectWithKeys = (keys: Array<string>, obj: unknown) => {
-    if (typeof obj !== 'object' || obj === null) {
-        throw new TypeError('Invalid object');
-    }
-
-    return Object.entries(obj)
-        .filter(([key]) => keys.includes(key))
-        .reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-        }, {} as JsonObject);
-};
-
-const createObjectWithoutKeys = (keys: Array<string>, obj: unknown) => {
-    if (typeof obj !== 'object' || obj === null) {
-        throw new TypeError('Invalid object');
-    }
-
-    return Object.entries(obj)
-        .filter(([key]) => !keys.includes(key))
-        .reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-        }, {} as JsonObject);
-};
-
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
 
     class ModelRaw {
@@ -111,7 +85,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
             // remove relations from attributes
             const excludedKeys = Object.keys(relations || {});
-            const newAttributes = createObjectWithoutKeys(excludedKeys, attributes);
+            const newAttributes: JsonObject = _.omit(attributes, excludedKeys);
     
             // fill missing fillable attributes with null
             this.fillable.filter((key) => !(key in newAttributes)).forEach((key) => {
@@ -355,7 +329,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         fill(attributes: object) {
-            const validAttributes = createObjectWithKeys(this.fillable, attributes);
+            const validAttributes = _.pick(attributes, this.fillable);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
                 const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
@@ -456,7 +430,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                         data: {
                             ...sendsOnlyModifiedFields
                                 ? this.diff()
-                                : createObjectWithKeys(this.fillable, this.attributes),
+                                : _.pick(this.attributes, this.fillable),
                             ...additionalPayload,
                         },
                     }
