@@ -1,7 +1,7 @@
 
 import { AxiosResponse } from 'axios';
 import { EventSource, Event } from './Event';
-import { ReduceableInterface } from './Reducer';
+import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 
 export type RelationRepository = {
@@ -92,16 +92,16 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
-    static get(query: object): Promise<ModelPaginatedResponse>;
-    static find(id: number): Promise<Model>;
+    static get(query: Record<string, unknown>): Promise<ModelPaginatedResponse>;
+    static find(id: number | string): Promise<Model>;
     static create(attributes: JsonObject): Promise<Model>;
-    static update(id: number, attributes: JsonObject): Promise<Model>;
-    static delete(id: number): Promise<AxiosResponse>;
-    static delete(ids: Array<number>): Promise<AxiosResponse>;
-    static restore(id: number): Promise<AxiosResponse>;
-    static restore(ids: Array<number>): Promise<AxiosResponse>;
-    static forceDelete(id: number): Promise<AxiosResponse>;
-    static forceDelete(ids: Array<number>): Promise<AxiosResponse>;
+    static update(id: number | string, attributes: JsonObject): Promise<Model>;
+    static delete(id: number | string): Promise<AxiosResponse>;
+    static delete(ids: Array<number | string>): Promise<AxiosResponse>;
+    static restore(id: number | string): Promise<AxiosResponse>;
+    static restore(ids: Array<number | string>): Promise<AxiosResponse>;
+    static forceDelete(id: number | string): Promise<AxiosResponse>;
+    static forceDelete(ids: Array<number | string>): Promise<AxiosResponse>;
 
     on: EventSource<ModelEvents>['on'];
     once: EventSource<ModelEvents>['once'];
@@ -183,7 +183,7 @@ export type ModelPaginatedResponse = {
     }
 }
 
-export type RepositoryFacade = EventSource<GlobalModelEvents> & ReduceableInterface & {
+export type RepositoryFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
     schema(): ModelSchema;
     schema(className: string): ModelSchemaAttributes;
     make(): {

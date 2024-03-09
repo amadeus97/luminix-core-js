@@ -20,7 +20,7 @@ export default class Auth implements AuthFacade {
         form.action = this.app.make('route').url('login');
         form.style.display = 'none';
 
-        const csrfToken = this.app.make('config').get('app.csrfToken');
+        const csrfToken = this.app.make('config').get('auth.csrf');
 
         if (typeof csrfToken === 'string') {
             const csrfInput = document.createElement('input');
@@ -75,7 +75,7 @@ export default class Auth implements AuthFacade {
         form.action = this.app.make('route').url('logout');
         form.style.display = 'none';
 
-        const csrfToken = this.app.make('config').get('app.csrfToken');
+        const csrfToken = this.app.make('config').get('auth.csrf');
 
         if (typeof csrfToken === 'string') {
             const input = document.createElement('input');

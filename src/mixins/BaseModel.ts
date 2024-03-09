@@ -562,8 +562,25 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return facades.repository.schema(className);
         }
 
-        static async get(query?: object): Promise<ModelPaginatedResponse> {
-            const { data } = await facades.route.call(`luminix.${className}.index`, { params: query });
+        static async get(query?: Record<string, unknown>): Promise<ModelPaginatedResponse> {
+            if (query && typeof query !== 'object') {
+                throw new TypeError('Invalid query');
+            }
+
+            const params = (() => {
+                if (!query) {
+                    return {};
+                }
+                if (typeof query.filters === 'object') {
+                    return {
+                        ...query,
+                        filters: JSON.stringify(query.filters),
+                    };
+                }
+                return query;
+            })();
+
+            const { data } = await facades.route.call(`luminix.${className}.index`, { params });
     
             const Model = facades.repository.make(className);
     
@@ -615,7 +632,7 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return model;
         }
     
-        static async update(id: number, attributes: JsonObject) {
+        static async update(id: number | string, attributes: JsonObject) {
             const Model = facades.repository.make(className);
             const model = new Model({ id });
     
@@ -626,7 +643,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return model;
         }
     
-        static delete(id: number | number[]) {
+        static delete(id: number | string): Promise<AxiosResponse>;
+        static delete(id: Array<number | string>): Promise<AxiosResponse>;
+        static delete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
                 return facades.route.call(`luminix.${className}.destroyMany`, { params: { ids: id } });
             }
@@ -637,7 +656,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return model.delete();
         }
     
-        static async restore(id: number | number[]) {
+        static async restore(id: number | string): Promise<AxiosResponse>;
+        static async restore(id: Array<number | string>): Promise<AxiosResponse>;
+        static async restore(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
                 return facades.route.call(`luminix.${className}.restoreMany`, { data: { ids: id } });
             }
@@ -649,7 +670,9 @@ export function BaseModelFactory(facades: AppFacades, className: string): typeof
             return model.restore();
         }
     
-        static forceDelete(id: number | number[]) {
+        static forceDelete(id: number | string): Promise<AxiosResponse>;
+        static forceDelete(id: Array<number | string>): Promise<AxiosResponse>;
+        static forceDelete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
                 return facades.route.call(`luminix.${className}.destroyMany`, { params: { ids: id, force: true } });
             }

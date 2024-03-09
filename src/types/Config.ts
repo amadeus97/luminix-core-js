@@ -7,23 +7,22 @@ export type AppConfiguration = {
         env?: string;
         debug?: boolean;
         bootUrl?: string | null | false;
-        enforceCamelCaseForModelAttributes?: boolean;
-        csrfToken?: string;
+        enforceCamelCaseForModelAttributes?: boolean
         [key: string]: unknown;
     },
-    boot?: {
-        data?: {
-            user: { 
-                id: number;
-                name: string;
-                email: string;
-                [key: string]: unknown;
-            } | null;
+    auth?: {
+        user: { 
+            id: number;
+            name: string;
+            email: string;
             [key: string]: unknown;
-        };
+        } | null;
+        csrf?: string;
+    },
+    manifest?: {
         models?: ModelSchema;
         routes?: RouteDefinition;
-    }
+    },
     [key: string]: unknown;
 };
 

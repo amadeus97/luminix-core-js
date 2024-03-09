@@ -31,5 +31,7 @@ export type { AppFacade } from './types/App';
 export type { AuthFacade } from './types/Auth';
 export type { LogFacade } from './types/Log';
 export type { RepositoryFacade } from './types/Model';
+export type { ReducibleInterface } from './types/Reducer';
 export type { RouteFacade } from './types/Route';
-export type { Model , BaseModel } from './types/Model';
+export type { Model, BaseModel } from './types/Model';
+export type { EventSource } from './types/Event';

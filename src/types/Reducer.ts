@@ -10,7 +10,7 @@ export interface Reducer {
 
 export type Unsubscribe = () => void;
 
-export type ReduceableInterface = {
+export type ReducibleInterface = {
     reducer(name: string, callback: ReducerCallback, priority?: number): Unsubscribe;
     removeReducer(name: string, callback: ReducerCallback): void;
     getReducer(name: string): Reducer[];

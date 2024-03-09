@@ -12,8 +12,8 @@ import reader from '../helpers/reader';
 import { HasEvents } from '../mixins/HasEvents';
 import { AppConfiguration } from '../types/Config';
 import { Unsubscribe } from 'nanoevents';
-import { RouteDefinition } from '../types/Route';
-import { ModelSchema } from '../types/Model';
+import _ from 'lodash';
+
 class App implements AppFacade {
 
     private facades: AppFacades = {} as AppFacades;
@@ -54,7 +54,7 @@ class App implements AppFacade {
         }
         this.booted = true;
 
-        if (configObject?.app?.debug) {
+        if (configObject.app?.debug) {
             console.log('[Luminix] Booting started...');
         }
 
@@ -67,39 +67,39 @@ class App implements AppFacade {
             }
         });
 
-        this.bind('log', new Log(!!configObject?.app?.debug));
-        this.bind('config', new PropertyBag(configObject));
+        this.bind('log', new Log(!!configObject.app?.debug));
+        
+        const { log: logger } = this.facades;
 
-        const { config, log: logger } = this.facades;
-
-        const bootUrl = config.get('app.bootUrl', '/luminix-api/init');
-
+        const bootUrl = configObject.app?.bootUrl ?? '/luminix-api/init';
+        
         if (typeof bootUrl === 'string' && !!bootUrl && !document.getElementById('luminix-data::config')) {
             const { data } = await axios.get(bootUrl);
             if (data && typeof data === 'object') {
-                config.merge('.', data);
+                _.merge(configObject, data);
             }
-        }
-        if (document.getElementById('luminix-data::config')) {
+        } else if (document.getElementById('luminix-data::config')) {
             const data = reader('config');
             if (data && typeof data === 'object') {
-                config.merge('.', data);
+                _.merge(configObject, data);
             }
         }
-        if (!config.has('auth.user')) {
-            config.set('auth.user', null);
-        }
-        if (!config.has('manifest')) {
-            config.set('manifest', {
-                routes: {},
-                models: {},
-            });
-        }
-        config.lock('manifest');
-        config.lock('auth.user');
 
-        this.bind('route', new Route(config.get('manifest.routes', {}) as RouteDefinition));
-        this.bind('repository', new Repository(config.get('manifest.models', {}) as ModelSchema));
+        const {
+            manifest: { routes = {}, models = {} } = {},
+            ...config
+        } = configObject;
+
+        this.bind('config', new PropertyBag(config));
+
+        if (!this.facades.config.has('auth.user')) {
+            this.facades.config.set('auth.user', null);
+        }
+
+        this.facades.config.lock('auth.user');
+
+        this.bind('route', new Route(routes));
+        this.bind('repository', new Repository(models));
         this.bind('auth', new Auth(this));
 
         this.emit('booting');
@@ -122,7 +122,7 @@ class App implements AppFacade {
         }
 
         logger.info('[Luminix] App boot completed', {
-            config: config.all(),
+            config: this.facades.config.all(),
             plugins: this._plugins,
         });
 
