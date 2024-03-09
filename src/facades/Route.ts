@@ -1,4 +1,4 @@
-import objectPath from 'object-path';
+import _ from 'lodash';
 import {
     RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
 } from '../types/Route';
@@ -50,7 +50,7 @@ class Route {
         if (!this.exists(name)) {
             throw new Error(`Route data for '${name}' was not found.`);
         }
-        return objectPath.get(this.routes, name);
+        return _.get(this.routes, name) as RouteTuple;
     }
 
     url(generator: RouteGenerator): string {
@@ -88,20 +88,25 @@ class Route {
     }
 
     exists(name: string) {
-        return objectPath.has(this.routes, name)
-            && this.isRouteTuple(objectPath.get(this.routes, name));
+        return _.has(this.routes, name)
+            && this.isRouteTuple(_.get(this.routes, name));
     }
 
     call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
+        if (typeof this.axiosOptions !== 'function') {
+            throw new Error('Expect `Route` to be Reducible');
+        }
         const [name, replace] = this.extractGenerator(generator);
 
         const [, ...methods] = this.get(name);
         const url = this.url(replace ? [name, replace] : name);
 
-        const { method = methods[0], ...rest } = config;
+        const axiosOptions = this.axiosOptions(config, name);
+
+        const { method = methods[0], ...rest } = axiosOptions;
 
         if (['get', 'delete'].includes(method)) {
-            return axios[method as HttpMethod](url, config);
+            return axios[method as HttpMethod](url, rest);
         }
 
         const { data, ...restOfRest } = rest;

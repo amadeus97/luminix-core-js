@@ -429,7 +429,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     {
                         data: {
                             ...sendsOnlyModifiedFields
-                                ? this.diff()
+                                ? _.pick(this.diff(), this.fillable)
                                 : _.pick(this.attributes, this.fillable),
                             ...additionalPayload,
                         },

@@ -1,6 +1,6 @@
 // import { getProperty, setProperty, hasProperty, deleteProperty } from "dot-prop";
 import { produce } from 'immer';
-import objectPath from 'object-path';
+import _ from 'lodash';
 
 export default class PropertyBag<T extends object> {
 
@@ -11,7 +11,7 @@ export default class PropertyBag<T extends object> {
     }
 
     get(path: string, defaultValue?: unknown) {
-        return objectPath.get(this.bag, path, defaultValue);
+        return _.get(this.bag, path, defaultValue);
     }
 
     set(path: string, value: unknown) {
@@ -20,13 +20,13 @@ export default class PropertyBag<T extends object> {
         }
 
         if (typeof value === 'object' && value !== null) {
-            if (this.locked.some((item) => objectPath.has(value, item.slice(path.length + 1)))) {
+            if (this.locked.some((item) => _.has(value, item.slice(path.length + 1)))) {
                 throw new Error(`Cannot set a path "${path}" that would override a locked path`);
             }
         }
 
         this.bag = produce(this.bag, (draft) => {
-            objectPath.set(draft, path, value);
+            _.set(draft, path, value);
         });
     }
 
@@ -35,7 +35,7 @@ export default class PropertyBag<T extends object> {
             throw new TypeError('Value must be an object');
         }
         if (path === '.') {
-            if (this.locked.some((item) => objectPath.has(value, item))) {
+            if (this.locked.some((item) => _.has(value, item))) {
                 throw new Error(`Cannot merge a path "${path}" that would override a locked path`);
             }
             this.bag = produce(this.bag, (draft) => {
@@ -63,7 +63,7 @@ export default class PropertyBag<T extends object> {
     }
 
     has(path: string) {
-        return objectPath.has(this.bag, path);
+        return _.has(this.bag, path);
     }
 
     delete(path: string) {
@@ -71,7 +71,7 @@ export default class PropertyBag<T extends object> {
             throw new Error(`Cannot delete a locked path "${path}"`);
         }
         this.bag = produce(this.bag, (draft) => {
-            objectPath.del(draft, path);
+            _.unset(draft, path);
         });
     }
 
