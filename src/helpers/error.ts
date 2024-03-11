@@ -1,15 +1,12 @@
-import reader from './reader';
+import { ErrorFacade } from '../types/Error';
+import app from './app';
 
-const error = (key: string) => {
-    return reader('error::' + key);
-};
 
-error.clear = () => {
-    const els = document.querySelectorAll('#luminix-embed [id^="luminix-data-error::"]');
-
-    els.forEach((el) => {
-        el.remove();
-    });
-};
-
-export default error;
+export default function error(): ErrorFacade;
+export default function error(key: string): string | null;
+export default function error(key?: string): ErrorFacade | string | null {
+    if (key) {
+        return app().make('error').get(key);
+    }
+    return app().make('error');
+}

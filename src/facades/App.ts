@@ -8,11 +8,12 @@ import Route from './Route';
 import Plugin from '../contracts/Plugin';
 import PropertyBag from '../contracts/PropertyBag';
 import axios from 'axios';
-import reader from '../helpers/reader';
+import reader from '../support/reader';
 import { HasEvents } from '../mixins/HasEvents';
 import { AppConfiguration } from '../types/Config';
 import { Unsubscribe } from 'nanoevents';
 import _ from 'lodash';
+import Error from './Error';
 
 class App implements AppFacade {
 
@@ -50,7 +51,7 @@ class App implements AppFacade {
     async boot(configObject: AppConfiguration = {}) {
 
         if (this.booted) {
-            throw new Error('[Luminix] App already booted');
+            throw new window.Error('[Luminix] App already booted');
         }
         this.booted = true;
 
@@ -97,8 +98,9 @@ class App implements AppFacade {
         }
 
         this.facades.config.lock('auth.user');
-
-        this.bind('route', new Route(routes));
+        
+        this.bind('error', new Error());
+        this.bind('route', new Route(routes, this.facades.error));
         this.bind('repository', new Repository(models));
         this.bind('auth', new Auth(this));
 
@@ -133,15 +135,15 @@ class App implements AppFacade {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): Unsubscribe {
-        throw new Error('Method not implemented.');
+        throw new window.Error('Method not implemented.');
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {
-        throw new Error('Method not implemented.');
+        throw new window.Error('Method not implemented.');
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], 'source'>): void {
-        throw new Error('Method not implemented.');
+        throw new window.Error('Method not implemented.');
     }
 
 }

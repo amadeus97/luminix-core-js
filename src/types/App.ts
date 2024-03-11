@@ -6,6 +6,7 @@ import { AuthFacade } from './Auth';
 import { RepositoryFacade } from './Model';
 import { RouteFacade } from './Route';
 import { EventSource, Event } from './Event';
+import { ErrorFacade } from './Error';
 
 export type AppEvents = {
     'init': (e: InitEvent) => void,
@@ -36,6 +37,7 @@ export type AppFacade = AppExternal & {
 export type AppFacades = {
     auth: AuthFacade;
     config: ConfigFacade;
+    error: ErrorFacade;
     log: LogFacade;
     repository: RepositoryFacade;
     route: RouteFacade;

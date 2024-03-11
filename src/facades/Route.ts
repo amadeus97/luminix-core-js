@@ -4,12 +4,15 @@ import {
 } from '../types/Route';
 import axios, { AxiosRequestConfig } from 'axios';
 import { Reducible } from '../mixins/Reducible';
+import { ErrorFacade } from '../types/Error';
+import { isValidationError } from './Error';
 
 class Route {
 
 
     constructor(
-        private routes: RouteDefinition
+        private routes: RouteDefinition,
+        private error: ErrorFacade
     ) {
     }
 
@@ -92,26 +95,40 @@ class Route {
             && this.isRouteTuple(_.get(this.routes, name));
     }
 
-    call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
-        if (typeof this.axiosOptions !== 'function') {
-            throw new Error('Expect `Route` to be Reducible');
+    async call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
+        try {
+            if (typeof this.axiosOptions !== 'function') {
+                throw new Error('Expect `Route` to be Reducible');
+            }
+            const [name, replace] = this.extractGenerator(generator);
+            
+            const [, ...methods] = this.get(name);
+            const url = this.url(replace ? [name, replace] : name);
+            
+            // !Reducer `axiosOptions`
+            const axiosOptions = this.axiosOptions(config, name);
+            
+            const { method = methods[0], ...rest } = axiosOptions;
+            const { data, ...restOfRest } = rest;
+
+            this.error.clear();
+            
+            const response = ['get', 'delete'].includes(method)
+                ? await axios[method as HttpMethod](url, rest)
+                : await axios[method as HttpMethod](url, data, restOfRest);
+            
+            return response;
+        } catch (error: unknown) {
+            if (isValidationError(error)) {
+                const { errors } = error.response.data;
+
+                this.error.set(Object.entries(errors).reduce((acc, [key, value]) => {
+                    acc[key] = value.join(' ');
+                    return acc;
+                }, {} as Record<string,string>));
+            }
+            throw error;
         }
-        const [name, replace] = this.extractGenerator(generator);
-
-        const [, ...methods] = this.get(name);
-        const url = this.url(replace ? [name, replace] : name);
-
-        const axiosOptions = this.axiosOptions(config, name);
-
-        const { method = methods[0], ...rest } = axiosOptions;
-
-        if (['get', 'delete'].includes(method)) {
-            return axios[method as HttpMethod](url, rest);
-        }
-
-        const { data, ...restOfRest } = rest;
-
-        return axios[method as HttpMethod](url, data, restOfRest);
     }
 
     toString()

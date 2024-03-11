@@ -17,6 +17,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         private _attributes: PropertyBag<JsonObject>;
         private _original: JsonObject;
         private _relations: RelationRepository = {};
+        private _exists = false;
 
         constructor(attributes: JsonObject = {}) {
             const { attributes: newAttributes, relations } = this.makeAttributes(attributes);
@@ -260,7 +261,8 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         get exists()
         {
-            return this.getAttribute(this.primaryKey) !== null;
+            // return this.getAttribute(this.primaryKey) !== null;
+            return this._exists;
         }
     
         get isDirty() 
@@ -564,6 +566,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     class: abstract,
                     model: value,
                 });
+                value._exists = true;
                 return value;
             });
     
@@ -586,6 +589,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const Model = facades.repository.make(abstract);
     
             const model = new Model(data);
+            model._exists = true;
     
             facades.repository.emit('fetch', {
                 class: abstract,
@@ -611,6 +615,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const model = new Model({ id });
     
             model.fill(attributes);
+            model._exists = true;
     
             await model.save();
     

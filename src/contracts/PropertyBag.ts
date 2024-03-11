@@ -1,8 +1,20 @@
 // import { getProperty, setProperty, hasProperty, deleteProperty } from "dot-prop";
 import { produce } from 'immer';
 import _ from 'lodash';
+import { Event } from '../types/Event';
+import { Unsubscribe } from 'nanoevents';
 
-export default class PropertyBag<T extends object> {
+export type PropertyBagEventMap<T extends object = any> = {// eslint-disable-line @typescript-eslint/no-explicit-any
+    'change': (e: PropertyBagChangeEvent<T>) => void; 
+};
+
+export type PropertyBagChangeEvent<T extends object> = Event<PropertyBag<T>> & {
+    path: string;
+    value: unknown;
+    type: 'set' | 'merge' | 'delete';
+};
+
+class PropertyBag<T extends object> {
 
     private locked: string[] = [];
 
@@ -28,6 +40,12 @@ export default class PropertyBag<T extends object> {
         this.bag = produce(this.bag, (draft) => {
             _.set(draft, path, value);
         });
+
+        this.emit('change', {
+            path,
+            value,
+            type: 'set',
+        });
     }
 
     merge(path: string, value: unknown) {
@@ -43,6 +61,11 @@ export default class PropertyBag<T extends object> {
                     ...draft,
                     ...value,
                 };
+            });
+            this.emit('change', {
+                path,
+                value,
+                type: 'merge',
             });
             return;
         }
@@ -73,6 +96,12 @@ export default class PropertyBag<T extends object> {
         this.bag = produce(this.bag, (draft) => {
             _.unset(draft, path);
         });
+
+        this.emit('change', {
+            path,
+            value: null,
+            type: 'delete',
+        });
     }
 
     lock(path: string) {
@@ -93,4 +122,20 @@ export default class PropertyBag<T extends object> {
     all() {
         return this.bag;
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    on<K extends keyof PropertyBagEventMap<T>>(_: K, __: PropertyBagEventMap[K]): Unsubscribe {
+        return () => null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    once<K extends keyof PropertyBagEventMap<T>>(_: K, __: PropertyBagEventMap[K]) {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    emit<K extends keyof PropertyBagEventMap<T>>(_: K, __: Omit<Parameters<PropertyBagEventMap[K]>[0], 'source'>) {
+    }
 }
+
+
+export default PropertyBag;

@@ -92,7 +92,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
-    static get(query: Record<string, unknown>): Promise<ModelPaginatedResponse>;
+    static get(query?: Record<string, unknown>): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model>;
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;
