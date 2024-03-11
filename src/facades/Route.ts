@@ -90,6 +90,11 @@ class Route {
         return `/${newPath}`;
     }
 
+    methods(generator: RouteGenerator): HttpMethod[] {
+        const [name] = this.extractGenerator(generator);
+        return this.get(name).slice(1) as HttpMethod[];
+    }
+
     exists(name: string) {
         return _.has(this.routes, name)
             && this.isRouteTuple(_.get(this.routes, name));

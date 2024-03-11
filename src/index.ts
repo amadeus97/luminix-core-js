@@ -6,6 +6,8 @@ import log from './helpers/log';
 import model from './helpers/model';
 import route from './helpers/route';
 
+import { isValidationError } from './facades/Error';
+
 import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
 import { Reducible } from './mixins/Reducible';
@@ -19,6 +21,8 @@ export {
     log,
     model,
     route,
+
+    isValidationError,
 
     Plugin,
     PropertyBag,

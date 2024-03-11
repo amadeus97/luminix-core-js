@@ -8,6 +8,7 @@ export type RouteFacade = ReducibleInterface & {
     url(generator: RouteGenerator): string;
     exists(name: string): boolean;
     call(generator: RouteGenerator, config?: AxiosRequestConfig): Promise<AxiosResponse>;
+    methods(generator: RouteGenerator): HttpMethod[];
 }
 
 export type RouteGenerator = string | [string, RouteReplacer];
