@@ -1,9 +1,8 @@
 
 import _ from 'lodash';
-import { diff } from 'deep-object-diff';
 import PropertyBag from '../contracts/PropertyBag';
 
-import { BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, Model, RelationRepository, ModelEvents } from '../types/Model';
+import { BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, Model, RelationRepository, ModelEvents, JsonValue } from '../types/Model';
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
@@ -18,6 +17,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         private _original: JsonObject;
         private _relations: RelationRepository = {};
         private _exists = false;
+        private _changedKeys: string[] = [];
 
         constructor(attributes: JsonObject = {}) {
             const { attributes: newAttributes, relations } = this.makeAttributes(attributes);
@@ -318,6 +318,8 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }
     
             this._attributes.set(key, mutated);
+
+            this._changedKeys.push(key);
     
             this.dispatchChangeEvent({ [key]: mutated });
         }
@@ -359,6 +361,8 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }
     
             this._attributes.merge('.', mutatedAttributes);
+
+            this._changedKeys.push(...Object.keys(mutatedAttributes));
     
             this.dispatchChangeEvent(mutatedAttributes);
         }
@@ -391,7 +395,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         diff(): JsonObject {
-            return diff(this.original, this.attributes) as JsonObject;
+            return this._changedKeys.reduce((acc, key) => {
+                acc[key] = this._attributes.get(key) as JsonValue;
+                return acc;
+            }, {} as JsonObject);
         }
 
         async refresh() {

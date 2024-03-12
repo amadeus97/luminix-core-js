@@ -101,23 +101,23 @@ class Route {
     }
 
     async call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
-        try {
-            if (typeof this.axiosOptions !== 'function') {
-                throw new Error('Expect `Route` to be Reducible');
-            }
-            const [name, replace] = this.extractGenerator(generator);
-            
-            const [, ...methods] = this.get(name);
-            const url = this.url(replace ? [name, replace] : name);
-            
-            // !Reducer `axiosOptions`
-            const axiosOptions = this.axiosOptions(config, name);
-            
-            const { method = methods[0], ...rest } = axiosOptions;
-            const { data, ...restOfRest } = rest;
+        if (typeof this.axiosOptions !== 'function') {
+            throw new Error('Expect `Route` to be Reducible');
+        }
+        const [name, replace] = this.extractGenerator(generator);
+        
+        const [, ...methods] = this.get(name);
+        const url = this.url(replace ? [name, replace] : name);
+        
+        // !Reducer `axiosOptions`
+        const axiosOptions = this.axiosOptions(config, name);
+        
+        const { method = methods[0], ...rest } = axiosOptions;
+        const { data, ...restOfRest } = rest;
 
-            this.error.clear();
-            
+        this.error.clear();
+
+        try {
             const response = ['get', 'delete'].includes(method)
                 ? await axios[method as HttpMethod](url, rest)
                 : await axios[method as HttpMethod](url, data, restOfRest);
@@ -131,6 +131,13 @@ class Route {
                     acc[key] = value.join(' ');
                     return acc;
                 }, {} as Record<string,string>));
+            } else if (axios.isAxiosError(error)) {
+                if (typeof this.axiosError !== 'function') {
+                    throw new Error('Expect `Route` to be Reducible');
+                }
+                this.error.set(this.axiosError({ axios: error.message }, { 
+                    error, name, replace, config
+                }));
             }
             throw error;
         }
