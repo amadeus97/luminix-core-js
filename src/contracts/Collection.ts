@@ -68,10 +68,29 @@ export class Collection<T = unknown> extends Array<T> {
         return this;
     }
 
-    // methods that should return a new collection
+    copyWithin(target: number, start: number, end?: number | undefined): this {
+        super.copyWithin(target, start, end);
+        this.emit('change');
+        return this;
+    }
+
+    // methods that do not mutate the collection
+    toReversed(): Collection<T> {
+        return this.copy().reverse();
+    }
+
+    toSorted(compareFn?: (a: T, b: T) => number): Collection<T> {
+        return this.copy().sort(compareFn);
+    }
+
+    toSpliced(start: number, deleteCount: number, ...items: T[]): Collection<T>;
+    toSpliced(start: number, deleteCount?: number | undefined): Collection<T>;
+    toSpliced(start: unknown, deleteCount?: unknown, ...items: unknown[]): Collection<T> {
+        return this.copy().splice(start as number, deleteCount as number, ...items as T[]);
+    }
 
 
-    // Eloquent collection methods
+    // Illuminate collection methods
 
     tap(callback: (collection: this) => void): this {
         callback(this);
@@ -196,12 +215,7 @@ export class Collection<T = unknown> extends Array<T> {
     lastWhere(key: keyof T, operator: Operator, value: unknown): T | undefined
     lastWhere(key: keyof T, operator: Operator | unknown, value?: unknown): T | undefined {
         if (typeof value === 'undefined' || value === null) {
-            for (let i = this.length - 1; i >= 0; i--) {
-                if (this[i][key] == operator) {
-                    return this[i];
-                }
-            }
-            return undefined;
+            return this.findLast((i) => i[key] == operator);
         }
 
         const OperationPredicates = {
@@ -217,13 +231,7 @@ export class Collection<T = unknown> extends Array<T> {
             throw new TypeError(`Invalid operator: ${operator}`);
         }
 
-        for (let i = this.length - 1; i >= 0; i--) {
-            if (OperationPredicates[operator as Operator](this[i])) {
-                return this[i];
-            }
-        }
-
-        return undefined;
+        return this.findLast((i) => OperationPredicates[operator as Operator](i));
     }
 
     max(key?: string): number | undefined {
@@ -258,7 +266,7 @@ export class Collection<T = unknown> extends Array<T> {
             if (!this.every((i) => typeof i === 'number')) {
                 throw new TypeError('Cannot calculate median of non-numeric values');
             }
-            const sorted = (this as Collection<number>).sort();
+            const sorted = (this as Collection<number>).copy().sort();
             const middle = Math.floor(sorted.length / 2);
             return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
         }
@@ -396,7 +404,7 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     sortBy(key: keyof T): Collection<T> {
-        return this.sort((a, b) => {
+        return this.copy().sort((a, b) => {
             if (a[key] < b[key]) {
                 return -1;
             }
@@ -408,7 +416,7 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     sortByDesc(key: keyof T): Collection<T> {
-        return this.sort((a, b) => {
+        return this.copy().sort((a, b) => {
             if (a[key] > b[key]) {
                 return -1;
             }
@@ -420,7 +428,7 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     sortDesc(): Collection<T> {
-        return this.sort((a, b) => {
+        return this.copy().sort((a, b) => {
             if (a < b) {
                 return 1;
             }
@@ -497,14 +505,17 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     unique(key?: keyof T): Collection<T>
-    unique(callback: (value: T, key: number, collection: T[]) => boolean): Collection<T>
-    unique(key?: (keyof T)|((value: T, key: number, collection: T[]) => boolean)): Collection<T> {
+    unique(callback: (value: T) => boolean): Collection<T>
+    unique(key?: (keyof T)|((value: T) => boolean)): Collection<T> {
         if (typeof key === 'undefined') {
             return this.filter((i, k) => this.findIndex((j) => j == i) === k) as Collection<T>;
         }
 
         if (typeof key === 'function') {
-            return this.filter((i, k) => this.findIndex(() => key(i, k, this)) === k) as Collection<T>;
+            // return this.filter((i, k) => this.findIndex(() => key(i, k, this))) as Collection<T>;
+            return this.filter((i, k) => {
+                return this.findIndex((j) => key(i) === key(j)) === k;
+            }) as Collection<T>;
         }
 
         return this.filter((i, k) => this.findIndex((j) => j[key] == i[key]) === k) as Collection<T>;
