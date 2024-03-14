@@ -8,6 +8,7 @@ import { HasEvents } from '../mixins/HasEvents';
 import _ from 'lodash';
 import { Unsubscribe } from 'nanoevents';
 import { Reducer, ReducerCallback, Unsubscribe as UnsubscribeReducer } from '../types/Reducer';
+import { Collection } from '../contracts/Collection';
 
 
 class Repository implements RepositoryFacade {
@@ -113,7 +114,7 @@ class Repository implements RepositoryFacade {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public getReducer(_: string): Reducer[] {
+    public getReducer(_: string): Collection<Reducer> {
         throw new Error('Method not implemented.');
     }
 

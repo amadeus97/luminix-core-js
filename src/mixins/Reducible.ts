@@ -2,13 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isDraftable, produce } from 'immer';
 import { ReducerCallback, Reducer } from '../types/Reducer';
+import CollectionWithEvents, { Collection } from '../contracts/Collection';
 
 type Constructor = new (...args: any[]) => {};
 
 export function Reducible<T extends Constructor>(Base: T) {
     return class extends Base {
         reducers: {
-            [name: string]: Reducer[]
+            [name: string]: Collection<Reducer> // Reducer[]
         } = {};
 
         constructor(...args: any[]) {
@@ -39,12 +40,11 @@ export function Reducible<T extends Constructor>(Base: T) {
                 throw new Error(`Cannot create reducer '${name}' on '${this}' as it is a reserved property`);
             }
             if (!this.reducers[name]) {
-                this.reducers[name] = [];
+                this.reducers[name] = new CollectionWithEvents<Reducer>();
             }
-            this.reducers[name] = [
-                ...this.reducers[name],
-                { callback, priority }
-            ].sort((a, b) => a.priority - b.priority);
+
+            this.reducers[name].push({ callback, priority });
+            this.reducers[name].sort((a, b) => a.priority - b.priority);
 
             return () => this.removeReducer(name, callback);
         }
@@ -54,10 +54,10 @@ export function Reducible<T extends Constructor>(Base: T) {
             if (index === -1) {
                 return;
             }
-            this.reducers[name].splice(index, 1);
+            this.reducers[name].pull(index);
         }
 
-        getReducer(name: string): Reducer[] {
+        getReducer(name: string): Collection<Reducer> {
             return this.reducers[name];
         }
 
@@ -66,11 +66,11 @@ export function Reducible<T extends Constructor>(Base: T) {
         }
 
         clearReducer(name: string) {
-            this.reducers[name] = [];
+            this.reducers[name].flush();
         }
 
         flushReducers() {
-            this.reducers = {};
+            Object.values(this.reducers).forEach((collection) => collection.flush());
         }
     };
 }
