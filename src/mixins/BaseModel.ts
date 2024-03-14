@@ -13,6 +13,7 @@ import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
+import CollectionWithEvents from '../contracts/Collection';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlobal: EmitGlobalCallback): typeof BaseModel {
@@ -108,7 +109,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                     }
     
                     if (!isSingle && Array.isArray(attributes[key])) {
-                        newRelations[key] = (attributes[key] as object[]).map((item) => new Model(item as JsonObject));
+                        newRelations[key] = new CollectionWithEvents(
+                            ...(attributes[key] as JsonObject[]).map((item) => new Model(item))
+                        );
                     }
                 });
             }

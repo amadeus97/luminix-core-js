@@ -21,6 +21,8 @@ export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Ba
     
         #emitter;
 
+        static name = Base.name;
+
         constructor(...args: any[]) {
             super(...args);
             this.#emitter = this.#createNanoEvents();

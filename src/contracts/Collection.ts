@@ -5,6 +5,8 @@ import { CollectionEvents, Operator } from '../types/Collection';
 
 export class Collection<T = unknown> extends Array<T> {
 
+    static name = 'Collection';
+
     // methods that mutates the collection
     fill(value: T, start?: number | undefined, end?: number | undefined): this {
         super.fill(value, start, end);
@@ -68,34 +70,6 @@ export class Collection<T = unknown> extends Array<T> {
 
     // methods that should return a new collection
 
-    map<V = unknown>(callback: (item: T, index: number, collection: T[]) => V): Collection<V> {
-        const result: V[] = super.map(callback);
-
-        return new (HasEvents(Collection))(...result);
-    }
-
-    filter(callback: (item: T, index: number, collection: T[]) => boolean): Collection<T> {
-        const result: T[] = super.filter(callback);
-
-        return new (HasEvents(Collection))(...result);
-    }
-
-    slice(start?: number, end?: number): Collection<T> {
-        const result: T[] = super.slice(start, end);
-
-        return new (HasEvents(Collection))(...result);
-    }
-
-    concat(...items: (T | ConcatArray<T>)[]): Collection<T> {
-        const result: T[] = super.concat(...items);
-
-        return new (HasEvents(Collection))(...result);
-    }
-
-
-
-
-
 
     // Eloquent collection methods
 
@@ -105,7 +79,7 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     pluck<K extends keyof T>(key: K): Collection<T[K]> {
-        return this.map((item) => item[key]);
+        return this.map((item) => item[key]) as Collection<T[K]>;
     }
 
     first(): T | undefined {
@@ -148,7 +122,7 @@ export class Collection<T = unknown> extends Array<T> {
         const result: Collection<Collection<T>> = new (HasEvents(Collection))();
 
         for (let i = 0; i < this.length; i += size) {
-            result.push(this.slice(i, i + size));
+            result.push(this.slice(i, i + size) as Collection<T>);
         }
 
         return result;
@@ -175,11 +149,11 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     diff(collection: Collection<T>): Collection<T> {
-        return this.filter((i) => !collection.includes(i));
+        return this.filter((i) => !collection.includes(i)) as Collection<T>;
     }
 
     intersect(collection: Collection<T>): Collection<T> {
-        return this.filter((i) => collection.includes(i));
+        return this.filter((i) => collection.includes(i)) as Collection<T>;
     }
 
     // firstWhere(key: keyof T, value: unknown): T | undefined {
@@ -410,7 +384,7 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     reject(callback: (value: T, key: number, collection: T[]) => boolean): Collection<T> {
-        return this.filter((i, k) => !callback(i, k, this));
+        return this.filter((i, k) => !callback(i, k, this)) as Collection<T>;
     }
 
     replace(index: number, item: T): T | undefined {
@@ -463,7 +437,7 @@ export class Collection<T = unknown> extends Array<T> {
         const groupSize = Math.ceil(this.length / size);
 
         for (let i = 0; i < this.length; i += groupSize) {
-            result.push(this.slice(i, i + groupSize));
+            result.push(this.slice(i, i + groupSize) as Collection<T>);
         }
 
         return result;
@@ -493,7 +467,7 @@ export class Collection<T = unknown> extends Array<T> {
     }
 
     take(amount: number): Collection<T> {
-        return this.slice(0, amount);
+        return this.slice(0, amount) as Collection<T>;
     }
 
     takeUntil(callback: (value: T, key: number, collection: T[]) => boolean): Collection<T> {
@@ -526,14 +500,14 @@ export class Collection<T = unknown> extends Array<T> {
     unique(callback: (value: T, key: number, collection: T[]) => boolean): Collection<T>
     unique(key?: (keyof T)|((value: T, key: number, collection: T[]) => boolean)): Collection<T> {
         if (typeof key === 'undefined') {
-            return this.filter((i, k) => this.findIndex((j) => j == i) === k);
+            return this.filter((i, k) => this.findIndex((j) => j == i) === k) as Collection<T>;
         }
 
         if (typeof key === 'function') {
-            return this.filter((i, k) => this.findIndex(() => key(i, k, this)) === k);
+            return this.filter((i, k) => this.findIndex(() => key(i, k, this)) === k) as Collection<T>;
         }
 
-        return this.filter((i, k) => this.findIndex((j) => j[key] == i[key]) === k);
+        return this.filter((i, k) => this.findIndex((j) => j[key] == i[key]) === k) as Collection<T>;
     }
 
 
@@ -541,7 +515,7 @@ export class Collection<T = unknown> extends Array<T> {
     where(key: keyof T, operator: Operator, value: unknown): Collection<T>
     where(key: keyof T, operator: Operator | unknown, value?: unknown): Collection<T> {
         if (typeof value === 'undefined' || value === null) {
-            return this.filter(item => item[key] == operator);
+            return this.filter(item => item[key] == operator) as Collection<T>;
         }
 
         const OperationPredicates = {
@@ -557,7 +531,7 @@ export class Collection<T = unknown> extends Array<T> {
             throw new TypeError(`Invalid operator: ${operator}`);
         }
 
-        return this.filter(item => OperationPredicates[operator as Operator](item));
+        return this.filter(item => OperationPredicates[operator as Operator](item)) as Collection<T>;
         
     }
 
@@ -565,7 +539,7 @@ export class Collection<T = unknown> extends Array<T> {
     whereStrict(key: keyof T, operator: Operator, value: unknown): Collection<T>
     whereStrict(key: keyof T, operator: Operator | unknown, value?: unknown): Collection<T> {
         if (typeof value === 'undefined' || value === null) {
-            return this.filter(item => item[key] === operator);
+            return this.filter(item => item[key] === operator) as Collection<T>;
         }
 
         const OperationPredicates = {
@@ -581,7 +555,7 @@ export class Collection<T = unknown> extends Array<T> {
             throw new TypeError(`Invalid operator: ${operator}`);
         }
 
-        return this.filter(item => OperationPredicates[operator as Operator](item));
+        return this.filter(item => OperationPredicates[operator as Operator](item)) as Collection<T>;
     }
 
     whereBetween(key: keyof T, values: [number, number]): Collection<T> {
@@ -593,11 +567,11 @@ export class Collection<T = unknown> extends Array<T> {
             throw new TypeError('Cannot filter non-numeric values');
         }
 
-        return (this ).filter((item) => (item[key] as number) >= values[0] && (item[key] as number) <= values[1]);
+        return this.filter((item) => (item[key] as number) >= values[0] && (item[key] as number) <= values[1]) as Collection<T>;
     }
     
     whereIn(key: keyof T, values: unknown[]): Collection<T> {
-        return this.filter((item) => values.includes(item[key]));
+        return this.filter((item) => values.includes(item[key])) as Collection<T>;
     }
 
     whereNotBetween(key: keyof T, values: [number, number]): Collection<T> {
@@ -609,19 +583,19 @@ export class Collection<T = unknown> extends Array<T> {
             throw new TypeError('Cannot filter non-numeric values');
         }
 
-        return (this ).filter((item) => (item[key] as number) < values[0] || (item[key] as number) > values[1]);
+        return this.filter((item) => (item[key] as number) < values[0] || (item[key] as number) > values[1]) as Collection<T>;
     }
 
     whereNotIn(key: keyof T, values: unknown[]): Collection<T> {
-        return this.filter((item) => !values.includes(item[key]));
+        return this.filter((item) => !values.includes(item[key])) as Collection<T>;
     }
 
     whereNotNull(key: keyof T): Collection<T> {
-        return this.filter((item) => item[key] !== null && item[key] !== undefined);
+        return this.filter((item) => item[key] !== null && item[key] !== undefined) as Collection<T>;
     }
 
     whereNull(key: keyof T): Collection<T> {
-        return this.filter((item) => item[key] === null || item[key] === undefined);
+        return this.filter((item) => item[key] === null || item[key] === undefined) as Collection<T>;
     }
 
 
@@ -648,7 +622,7 @@ export class Collection<T = unknown> extends Array<T> {
      * @returns {Collection<T>} 
      */
     copy(): Collection<T> {
-        return this.slice();
+        return this.slice() as Collection<T>;
     }
 
 
@@ -674,6 +648,8 @@ export class Collection<T = unknown> extends Array<T> {
 
 }
 
-export default HasEvents<CollectionEvents, typeof Collection>(Collection);
+const CollectionWithEvents = HasEvents<CollectionEvents, typeof Collection>(Collection);
+
+export default CollectionWithEvents;
 
 

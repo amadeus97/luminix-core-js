@@ -3,9 +3,10 @@ import { AxiosResponse } from 'axios';
 import { EventSource, Event } from './Event';
 import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
+import { Collection } from '../contracts/Collection';
 
 export type RelationRepository = {
-    [relationName: string]: Model | Model[]
+    [relationName: string]: Model | Collection<Model>,
 }
 
 export type ModelEvents = {
