@@ -55,6 +55,12 @@ export type ModelGlobalEvent = Event<RepositoryFacade> & {
     force?: boolean,
 };
 
+export type EmitGlobalCallback = <T extends keyof GlobalModelEvents>(
+    event: T,
+    data: Omit<Parameters<GlobalModelEvents[T]>[0], 'source'>
+) => void;
+
+
 export type ModelGlobalErrorEvent = ModelGlobalEvent & {
     error: unknown,
     operation: 'save' | 'delete' | 'restore' | 'forceDelete',

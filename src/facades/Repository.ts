@@ -1,4 +1,4 @@
-import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model } from '../types/Model';
+import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model, RepositoryFacade, EmitGlobalCallback } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
@@ -6,9 +6,11 @@ import { Reducible } from '../mixins/Reducible';
 import { AppFacade } from '../types/App';
 import { HasEvents } from '../mixins/HasEvents';
 import _ from 'lodash';
+import { Unsubscribe } from 'nanoevents';
+import { Reducer, ReducerCallback, Unsubscribe as UnsubscribeReducer } from '../types/Reducer';
 
 
-class Repository {
+class Repository implements RepositoryFacade {
 
     private _models: { [abstract: string]: typeof Model } = {};
 
@@ -30,9 +32,15 @@ class Repository {
             if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
                 throw new Error('Expect `Repository` to be Reducible');
             }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const emitGlobal: EmitGlobalCallback = ((event: any, payload: any) => {
+                this.emit(event, payload);
+            });
+
             // !Reducer `model`
             const Model: typeof BaseModel = this.model(
-                BaseModelFactory(app.make(), abstract),
+                BaseModelFactory(app.make(), abstract, emitGlobal),
                 abstract
             );
 
@@ -78,9 +86,55 @@ class Repository {
         return 'repository';
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public on<K extends keyof GlobalModelEvents>(_: K, __: GlobalModelEvents[K]): Unsubscribe {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public once<K extends keyof GlobalModelEvents>(_: K, __: GlobalModelEvents[K]): void {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public emit<K extends keyof GlobalModelEvents>(_: K, __?: Omit<Parameters<GlobalModelEvents[K]>[0], 'source'>): void {
+        throw new Error('Method not implemented.');
+    }
+
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public reducer(_: string, __: ReducerCallback): UnsubscribeReducer {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public removeReducer(_: string): void {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public getReducer(_: string): Reducer[] {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public hasReducer(_: string): boolean {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public clearReducer(_: string): void {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public flushReducers(): void {
+        throw new Error('Method not implemented.');
+    }
+
     [reducer: string]: unknown;
 }
 
 
-export default Reducible(HasEvents<GlobalModelEvents, typeof Repository>(Repository));
+export default HasEvents<GlobalModelEvents, typeof Repository>(Reducible(Repository));
 

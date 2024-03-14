@@ -1,5 +1,6 @@
 import app from './helpers/app';
 import auth from './helpers/auth';
+import collect from './helpers/collect';
 import config from './helpers/config';
 import error from './helpers/error';
 import log from './helpers/log';
@@ -13,9 +14,13 @@ import PropertyBag from './contracts/PropertyBag';
 import { Reducible } from './mixins/Reducible';
 import { HasEvents } from './mixins/HasEvents';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+
 export {
     app,
     auth,
+    collect,
     config,
     error,
     log,

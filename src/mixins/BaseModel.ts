@@ -2,40 +2,31 @@
 import _ from 'lodash';
 import PropertyBag from '../contracts/PropertyBag';
 
-import { BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes, ModelPaginatedResponse, Model, RelationRepository, ModelEvents, JsonValue } from '../types/Model';
+import { 
+    BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes,
+    ModelPaginatedResponse, Model, RelationRepository, ModelEvents,
+    JsonValue, EmitGlobalCallback
+} from '../types/Model';
+
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
 
-export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
+
+export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlobal: EmitGlobalCallback): typeof BaseModel {
 
     class ModelRaw {
 
-        private _attributes: PropertyBag<JsonObject>;
-        private _original: JsonObject;
+        private _attributes: PropertyBag<JsonObject> = new PropertyBag({});
+        private _original: JsonObject = {};
         private _relations: RelationRepository = {};
         private _exists = false;
         private _changedKeys: string[] = [];
 
         constructor(attributes: JsonObject = {}) {
-            const { attributes: newAttributes, relations } = this.makeAttributes(attributes);
-
-            if (!this.validateJsonObject(newAttributes)) {
-                if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
-                } else {
-                    facades.log.warning(`Invalid attributes for model "${abstract}".
-                        This will throw an error in production.`, {
-                        attributes, abstract
-                    });
-                }
-            }
-
-            this._attributes = new PropertyBag(newAttributes);
-            this._original = newAttributes;
-            this._relations = relations;
+            this.makeAttributes(attributes);
 
         }
     
@@ -121,11 +112,22 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     }
                 });
             }
-    
-            return {
-                attributes: newAttributes,
-                relations: newRelations,
-            };
+
+            if (!this.validateJsonObject(newAttributes)) {
+                if (facades.config.get('app.env', 'production') === 'production') {
+                    throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
+                } else {
+                    facades.log.warning(`Invalid attributes for model "${abstract}".
+                        This will throw an error in production.`, {
+                        attributes, abstract
+                    });
+                }
+            }
+
+            this._attributes = new PropertyBag(newAttributes);
+            this._original = newAttributes;
+            this._relations = newRelations;
+            this._changedKeys = [];
         }
     
         private makePrimaryKeyReplacer(): RouteReplacer {
@@ -145,7 +147,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: attributes,
             });
     
-            facades.repository.emit('create', {
+            emitGlobal('create', {
                 class: abstract,
                 model: this,
             });
@@ -156,7 +158,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: attributes,
             });
     
-            facades.repository.emit('update', {
+            emitGlobal('update', {
                 class: abstract,
                 model: this,
             });
@@ -167,7 +169,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: this.diff(),
             });
     
-            facades.repository.emit('save', {
+            emitGlobal('save', {
                 class: abstract,
                 model: this,
             });
@@ -179,7 +181,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 [this.getKeyName()]: this.getKey(),
             });
     
-            facades.repository.emit('delete', {
+            emitGlobal('delete', {
                 class: abstract,
                 model: this,
                 force,
@@ -191,7 +193,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: this.attributes,
             });
     
-            facades.repository.emit('restore', {
+            emitGlobal('restore', {
                 class: abstract,
                 model: this,
             });
@@ -203,7 +205,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 operation,
             });
     
-            facades.repository.emit('error', {
+            emitGlobal('error', {
                 class: abstract,
                 model: this,
                 error,
@@ -261,13 +263,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         get exists()
         {
-            // return this.getAttribute(this.primaryKey) !== null;
             return this._exists;
         }
     
         get isDirty() 
         {
-            return Object.keys(this.diff()).length > 0;
+            return this._changedKeys.length > 0;
         }
     
         getAttribute(key: string) {
@@ -409,11 +410,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 `luminix.${abstract}.show`,
                 this.makePrimaryKeyReplacer()
             ]);
-            const { relations, attributes } = this.makeAttributes(data);
-
-            this._attributes = new PropertyBag(attributes);
-            this._original = attributes;
-            this._relations = relations;
+            this.makeAttributes(data);
             
         }
     
@@ -446,12 +443,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 );
     
                 if ([200, 201].includes(response.status)) {
-                    
-                    const { attributes, relations } = this.makeAttributes(response.data);
-    
-                    this._attributes = new PropertyBag(attributes);
-                    this._original = attributes;
-                    this._relations = relations;
+                    this.makeAttributes(response.data);
     
                     this.dispatchSaveEvent();
                     if (!exists) {
@@ -569,7 +561,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
             const models: Model[] = data.data.map((item: JsonObject) => {
                 const value = new Model(item);
-                facades.repository.emit('fetch', {
+                emitGlobal('fetch', {
                     class: abstract,
                     model: value,
                 });
@@ -598,7 +590,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const model = new Model(data);
             model._exists = true;
     
-            facades.repository.emit('fetch', {
+            emitGlobal('fetch', {
                 class: abstract,
                 model,
             });
@@ -736,12 +728,11 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return reducer.bind(facades.repository)(undefined, target);
                     }
 
-                    return target[prop];
+                    return Reflect.get(target, prop);
                 },
                 set: (target, prop: string, value) => {
                     if (prop in target && typeof target[prop] !== 'function') {
-                        target[prop] = value;
-                        return true;
+                        return Reflect.set(target, prop, value);
                     }
 
                     const { config } = facades;
@@ -752,7 +743,7 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
                     if (target.fillable.includes(lookupKey)) {
                         target.setAttribute(
-                            lookupKey, 
+                            lookupKey,
                             value
                         );
                         return true;
