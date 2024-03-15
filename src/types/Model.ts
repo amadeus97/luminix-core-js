@@ -56,11 +56,6 @@ export type ModelGlobalEvent = Event<RepositoryFacade> & {
     force?: boolean,
 };
 
-export type EmitGlobalCallback = <T extends keyof GlobalModelEvents>(
-    event: T,
-    data: Omit<Parameters<GlobalModelEvents[T]>[0], 'source'>
-) => void;
-
 
 export type ModelGlobalErrorEvent = ModelGlobalEvent & {
     error: unknown,
@@ -99,7 +94,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
-    static get(query?: Record<string, unknown>): Promise<ModelPaginatedResponse>;
+    static get(options: ModelGetOptions): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model>;
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;
@@ -166,8 +161,29 @@ export interface ModelSchema {
     [abstract: string]: ModelSchemaAttributes;
 }
 
+export type ModelQuery = JsonObject & {
+    q?: string;
+    page?: number;
+    per_page?: number;
+    order_by?: string;
+    filters?: JsonObject;
+    tab?: string;
+    minified?: boolean;
+}
+
+export type ModelGetOptions = {
+    query?: ModelQuery,
+    linkBase?: string,
+};
+
+export type ModelPaginatedLink = {
+    url: string | null,
+    label: string,
+    active: boolean,
+};
+
 export type ModelPaginatedResponse = {
-    data: Model[],
+    data: Collection<Model>,
     links: {
         first: string,
         last: string,
@@ -182,11 +198,7 @@ export type ModelPaginatedResponse = {
         per_page: number,
         to: number,
         total: number,
-        links: Array<{
-            url: string | null,
-            label: string,
-            active: boolean,
-        }>,
+        links: Array<ModelPaginatedLink>,
     }
 }
 

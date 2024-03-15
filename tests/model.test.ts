@@ -21,7 +21,7 @@ describe('testing models', () => {
             email: 'johndoe@example.com'
         });
 
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users', { name: 'John Doe', email: 'johndoe@example.com' }, {});
+        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users', { name: 'John Doe', email: 'johndoe@example.com', password: null }, {});
         expect(user.id).toBe(1);
 
         const user2 = new User();

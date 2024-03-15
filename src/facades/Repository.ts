@@ -1,4 +1,4 @@
-import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model, RepositoryFacade, EmitGlobalCallback } from '../types/Model';
+import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model, RepositoryFacade } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
@@ -34,14 +34,9 @@ class Repository implements RepositoryFacade {
                 throw new Error('Expect `Repository` to be Reducible');
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const emitGlobal: EmitGlobalCallback = ((event: any, payload: any) => {
-                this.emit(event, payload);
-            });
-
             // !Reducer `model`
             const Model: typeof BaseModel = this.model(
-                BaseModelFactory(app.make(), abstract, emitGlobal),
+                BaseModelFactory(app.make(), abstract),
                 abstract
             );
 

@@ -5,7 +5,9 @@ import PropertyBag from '../contracts/PropertyBag';
 import { 
     BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes,
     ModelPaginatedResponse, Model, RelationRepository, ModelEvents,
-    JsonValue, EmitGlobalCallback
+    JsonValue,
+    ModelGetOptions,
+    ModelPaginatedLink
 } from '../types/Model';
 
 import { AppFacades } from '../types/App';
@@ -14,9 +16,10 @@ import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
 import CollectionWithEvents from '../contracts/Collection';
+import { createMergedSearchParams } from '../support/searchParams';
 
 
-export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlobal: EmitGlobalCallback): typeof BaseModel {
+export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
 
     class ModelRaw {
 
@@ -150,7 +153,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                 value: attributes,
             });
     
-            emitGlobal('create', {
+            facades.repository.emit('create', {
                 class: abstract,
                 model: this,
             });
@@ -161,7 +164,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                 value: attributes,
             });
     
-            emitGlobal('update', {
+            facades.repository.emit('update', {
                 class: abstract,
                 model: this,
             });
@@ -172,7 +175,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                 value: this.diff(),
             });
     
-            emitGlobal('save', {
+            facades.repository.emit('save', {
                 class: abstract,
                 model: this,
             });
@@ -184,7 +187,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                 [this.getKeyName()]: this.getKey(),
             });
     
-            emitGlobal('delete', {
+            facades.repository.emit('delete', {
                 class: abstract,
                 model: this,
                 force,
@@ -196,7 +199,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                 value: this.attributes,
             });
     
-            emitGlobal('restore', {
+            facades.repository.emit('restore', {
                 class: abstract,
                 model: this,
             });
@@ -208,7 +211,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                 operation,
             });
     
-            emitGlobal('error', {
+            facades.repository.emit('error', {
                 class: abstract,
                 model: this,
                 error,
@@ -437,9 +440,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
                     route,
                     {
                         data: {
-                            ...sendsOnlyModifiedFields
-                                ? _.pick(this.diff(), this.fillable)
-                                : _.pick(this.attributes, this.fillable),
+                            ..._.pick(
+                                sendsOnlyModifiedFields && exists
+                                    ? this.diff()
+                                    : this.attributes,
+                                this.fillable
+                            ),
                             ...additionalPayload,
                         },
                     }
@@ -447,7 +453,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
     
                 if ([200, 201].includes(response.status)) {
                     this.makeAttributes(response.data);
-    
+                    this._exists = true;
                     this.dispatchSaveEvent();
                     if (!exists) {
                         this.dispatchCreateEvent(response.data);
@@ -540,7 +546,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
             return facades.repository.schema(abstract);
         }
 
-        static async get(query?: Record<string, unknown>): Promise<ModelPaginatedResponse> {
+        static async get(options: ModelGetOptions = {}): Promise<ModelPaginatedResponse> {
+
+            const {
+                query, linkBase
+            } = options;
+
             if (query && typeof query !== 'object') {
                 throw new TypeError('Invalid query');
             }
@@ -562,15 +573,39 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
     
             const Model = facades.repository.make(abstract);
     
-            const models: Model[] = data.data.map((item: JsonObject) => {
-                const value = new Model(item);
-                emitGlobal('fetch', {
-                    class: abstract,
-                    model: value,
-                });
-                value._exists = true;
-                return value;
-            });
+            const models: Model[] = new CollectionWithEvents(
+                ...data.data.map((item: JsonObject) => {
+                    const value = new Model(item);
+                    facades.repository.emit('fetch', {
+                        class: abstract,
+                        model: value,
+                    });
+                    value._exists = true;
+                    return value;
+                })
+            );
+
+            if (linkBase) {
+                const [base] = linkBase.split('?');
+                return {
+                    ...data,
+                    data: models,
+                    links: {
+                        first: `${base}?${createMergedSearchParams(linkBase, data.links.first).toString()}`,
+                        last: `${base}?${createMergedSearchParams(linkBase, data.links.last).toString()}`,
+                        next: data.links.next && `${base}?${createMergedSearchParams(linkBase, data.links.next).toString()}`,
+                        prev: data.links.prev && `${base}?${createMergedSearchParams(linkBase, data.links.prev).toString()}`
+                            
+                    },
+                    meta: {
+                        ...data.meta,
+                        links: data.meta.links.map((link: ModelPaginatedLink) => ({
+                            ...link,
+                            url: link.url && `${base}?${createMergedSearchParams(linkBase, link.url).toString()}`,
+                        })),
+                    }
+                };
+            }
     
             return {
                 ...data,
@@ -593,7 +628,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string, emitGlob
             const model = new Model(data);
             model._exists = true;
     
-            emitGlobal('fetch', {
+            facades.repository.emit('fetch', {
                 class: abstract,
                 model,
             });
