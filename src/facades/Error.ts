@@ -3,18 +3,13 @@ import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
 import { HasEvents } from '../mixins/HasEvents';
 import { ErrorEventMap, ErrorFacade, ValidationError } from '../types/Error';
 import reader from '../support/reader';
+import { isAxiosError } from 'axios';
 
 const ErrorBag = HasEvents<PropertyBagEventMap<Record<string, string>>, typeof PropertyBag<Record<string, string>>>(PropertyBag<Record<string, string>>);
 
 export const isValidationError = (error: unknown): error is ValidationError => {
-    return typeof error === 'object'
-        && error !== null
-        && 'response' in error
-        && typeof error.response === 'object'
-        && error.response !== null
-        && 'status' in error.response
-        && 'data' in error.response
-        && typeof error.response.data === 'object'
+    return isAxiosError(error)
+        && error.response !== undefined
         && error.response.data !== null
         && 'message' in error.response.data
         && typeof error.response.data.message === 'string'
@@ -22,7 +17,7 @@ export const isValidationError = (error: unknown): error is ValidationError => {
         && typeof error.response.data.errors === 'object'
         && error.response.data.errors !== null
         && Object.values(error.response.data.errors).every((value) => Array.isArray(value) && value.every((v) => typeof v === 'string'))
-        && error?.response?.status === 422;
+        && error.response.status === 422;
 };
 
 class Error implements ErrorFacade {

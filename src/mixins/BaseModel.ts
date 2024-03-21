@@ -616,7 +616,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static async find(id: number | string) {
             const pk = facades.repository.schema(abstract).primaryKey;
             if (!pk) {
-                throw new Error(`Primary key not found for class '${abstract}'`);
+                throw new Error(`'${abstract}' must have a primary key`);
             }
             const { data } = await facades.route.call([
                 `luminix.${abstract}.show`,
