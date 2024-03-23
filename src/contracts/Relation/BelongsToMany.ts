@@ -42,7 +42,23 @@ export default class BelongsToMany extends Relation {
         return query;
     }
 
-    async attach(id: string | number, pivot: JsonObject = {}) {
+    get(page = 1, perPage = 15, replaceLinksWith?: string) {
+        return this.query().get(page, perPage, replaceLinksWith);
+    }
+
+    all() {
+        return this.query().all();
+    }
+
+    first() {
+        return this.query().first();
+    }
+
+    find(id: string | number) {
+        return this.query().find(id);
+    }
+
+    async attachWithoutFetch(id: string | number, pivot: JsonObject = {}) {
         await this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:attach`,
             {
@@ -52,6 +68,10 @@ export default class BelongsToMany extends Relation {
         ], {
             data: pivot,
         });
+    }
+
+    async attach(id: string | number, pivot: JsonObject = {}) {
+        await this.attachWithoutFetch(id, pivot);
 
         if (this.items) {
             const currentIndex = this.items.findIndex((item) => item.getKey() === id);
@@ -62,11 +82,11 @@ export default class BelongsToMany extends Relation {
                 this.items.push(freshItem);
             }
         } else {
-            this.items = (await this.get()).data;
+            this.items = await this.all();
         }
     }
 
-    async detach(id: string | number) {
+    async detachWithoutFetch(id: string | number) {
         await this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:detach`,
             {
@@ -74,6 +94,10 @@ export default class BelongsToMany extends Relation {
                 itemId: id,
             }
         ]);
+    }
+
+    async detach(id: string | number) {
+        await this.detachWithoutFetch(id);
 
         if (this.items) {
             const currentIndex = this.items.findIndex((item) => item.getKey() === id);
@@ -83,7 +107,7 @@ export default class BelongsToMany extends Relation {
         }
     }
 
-    async sync(ids: (string | number | JsonObject)[]) {
+    async syncWithoutFetch(ids: (string | number | JsonObject)[]) {
         await this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:sync`,
             {
@@ -92,13 +116,17 @@ export default class BelongsToMany extends Relation {
         ], {
             data: ids,
         });
+    }
 
-        const newItems = await this.get();
+    async sync(ids: (string | number | JsonObject)[]) {
+        await this.syncWithoutFetch(ids);
+
+        const newItems = await this.all();
 
         if (this.items) {
-            this.items.flush().push(...newItems.data);
+            this.items.flush().push(...newItems);
         } else {
-            this.items = newItems.data;
+            this.items = newItems;
         }
 
     }

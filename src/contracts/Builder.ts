@@ -3,7 +3,7 @@ import PropertyBag from './PropertyBag';
 import { JsonObject, JsonValue, Model, ModelPaginatedLink, ModelPaginatedResponse, ModelQuery } from '../types/Model';
 
 import { AppFacades } from '../types/App';
-import CollectionWithEvents from './Collection';
+import CollectionWithEvents, { Collection } from './Collection';
 import { createMergedSearchParams } from '../support/searchParams';
 import { HasEvents } from '..';
 import { BuilderEventMap, BuilderInterface } from '../types/Builder';
@@ -159,6 +159,39 @@ class Builder implements BuilderInterface {
         });
 
         return result.data.length ? result.data[0] : null;
+    }
+
+    async all(): Promise<Collection<Model>> {
+        const firstPage = await this.exec(1, this.facades.config.get('luminix.backend.api.max_per_page', 150) as number);
+
+        const pages = firstPage.meta.last_page;
+
+        if (pages === 1) {
+            return firstPage.data;
+        }
+
+        const pagesToFetch = Array.from({ length: pages - 1 }, (_, i) => i + 2);
+
+        const results = await Promise.all(
+            pagesToFetch.map((page) => this.exec(page, this.facades.config.get('luminix.backend.api.max_per_page', 150) as number))
+        );
+
+        const all = new CollectionWithEvents(
+            ...results.reduce((acc, result) => {
+                acc.push(...result.data);
+                return acc;
+            }, firstPage.data)
+        );
+
+        this.emit('success', {
+            response: {
+                ...firstPage,
+                data: all,
+            },
+            items: all,
+        });
+
+        return all;
     }
 
 

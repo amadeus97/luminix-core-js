@@ -10,6 +10,7 @@ export type BuilderInterface = EventSource<BuilderEventMap> & {
     searchBy(term: string): BuilderInterface,
     minified(): BuilderInterface,
     get(page: number, perPage: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>,
+    all(): Promise<Collection<Model>>,
     first(): Promise<Model | null>,
     find(id: string | number): Promise<Model | null>,
 

@@ -68,18 +68,18 @@ export default class Relation {
         return this.query().minified();
     }
 
-    get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse>
-    {
-        return this.query().get(page, perPage, replaceLinksWith);
-    }
+    // get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse>
+    // {
+    //     return this.query().get(page, perPage, replaceLinksWith);
+    // }
 
-    first(): Promise<Model | null>
-    {
-        return this.query().first();
-    }
+    // first(): Promise<Model | null>
+    // {
+    //     return this.query().first();
+    // }
 
-    find(id: string | number): Promise<Model | null>
-    {
-        return this.query().find(id);
-    }
+    // find(id: string | number): Promise<Model | null>
+    // {
+    //     return this.query().find(id);
+    // }
 }

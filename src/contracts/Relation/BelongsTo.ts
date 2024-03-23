@@ -21,7 +21,7 @@ export default class BelongsTo extends Relation {
         super(facades, parent, related, items);
     }
 
-    private findInverseRelation(): string {
+    private guessInverseRelation(): string {
         const { relations } = this.related.getSchema();
 
         for (const relationName in relations) {
@@ -38,7 +38,7 @@ export default class BelongsTo extends Relation {
     query(): BuilderInterface {
         const query = super.query();
 
-        const relation = this.findInverseRelation();
+        const relation = this.guessInverseRelation();
 
         query.where(relation, this.parent.getKey());
         query.lock(relation);
@@ -46,6 +46,9 @@ export default class BelongsTo extends Relation {
         return query;
     }
 
+    get() {
+        return this.query().first();
+    }
 
     getForeignKey(): string {
         return this.foreignKey;
