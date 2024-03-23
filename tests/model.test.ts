@@ -73,15 +73,29 @@ describe('testing models', () => {
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({
             data: {
-                id: 1,
-                name: 'John Doe',
-                email: 'johndoe@example.com'
+                data: [
+                    {
+                        id: 1,
+                        name: 'John Doe',
+                        email: 'johndoe@example.com'
+                    }
+                ]
             }
         }));
 
         const user = await User.find(1);
 
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users/1', {});
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
+            params: {
+                filters: JSON.stringify({ id: 1 }),
+                page: 1,
+                per_page: 1
+            }
+        });
 
         user.name = 'Jane Doe';
 
@@ -103,16 +117,30 @@ describe('testing models', () => {
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({
             data: {
-                id: 1,
-                body: 'First Comment',
-                post_id: 1,
-                user_id: 1,
+                data: [
+                    {
+                        id: 1,
+                        body: 'First Comment',
+                        post_id: 1,
+                        user_id: 1,
+                    }
+                ]
             }
         }));
 
         const comment = await PostComment.find(1);
 
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/post_comments/1', {});
+        if (!comment) {
+            throw new Error('Comment not found');
+        }
+
+        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/post_comments', {
+            params: {
+                filters: JSON.stringify({ id: 1 }),
+                page: 1,
+                per_page: 1
+            }
+        });
 
         comment.body = 'First Comment Updated';
 
@@ -388,7 +416,7 @@ describe('testing models', () => {
         expect(() => Attachment.create({})).rejects.toThrow('Route data for \'luminix.attachment.store\' was not found.');
         expect(() => Attachment.update(1, {})).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');
         expect(() => Attachment.delete(1)).rejects.toThrow('Route data for \'luminix.attachment.destroy\' was not found.');
-        expect(() => Attachment.find(1)).rejects.toThrow('Route data for \'luminix.attachment.show\' was not found.');
+        expect(() => Attachment.find(1)).rejects.toThrow('Route data for \'luminix.attachment.index\' was not found.');
         expect(() => Attachment.restore(1)).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');
         expect(() => Attachment.forceDelete(1)).rejects.toThrow('Route data for \'luminix.attachment.destroy\' was not found.');
 

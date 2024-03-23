@@ -123,6 +123,10 @@ class PropertyBag<T extends object> {
         return this.bag;
     }
 
+    isEmpty() {
+        return _.isEmpty(this.bag);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     on<K extends keyof PropertyBagEventMap<T>>(_: K, __: PropertyBagEventMap[K]): Unsubscribe {
         return () => null;

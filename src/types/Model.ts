@@ -4,6 +4,7 @@ import { EventSource, Event } from './Event';
 import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Collection } from '../contracts/Collection';
+import Builder from '../contracts/Builder';
 
 export type RelationRepository = {
     [relationName: string]: Model | Collection<Model>,
@@ -76,9 +77,10 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     get softDeletes(): boolean;
     get fillable(): string[];
     get relations(): RelationRepository;
-    get exists(): boolean;
     get isDirty(): boolean;
     get casts(): ModelSchemaAttributes['casts'];
+
+    exists: boolean;
 
     getAttribute(key: string): unknown;
     setAttribute(key: string, value: unknown): void;
@@ -94,8 +96,16 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
-    static get(options: ModelGetOptions): Promise<ModelPaginatedResponse>;
-    static find(id: number | string): Promise<Model>;
+
+    static query(): Builder;
+    static get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
+    static find(id: number | string): Promise<Model | null>;
+    static first(): Promise<Model | null>;
+    static where(key: string, value: JsonValue): Builder;
+    static orderBy(column: string, direction?: 'asc' | 'desc'): Builder;
+    static searchBy(term: string): Builder;
+    static minified(): Builder;
+
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;
     static delete(id: number | string): Promise<AxiosResponse>;

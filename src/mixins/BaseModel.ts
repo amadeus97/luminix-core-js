@@ -6,8 +6,6 @@ import {
     BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes,
     ModelPaginatedResponse, Model, RelationRepository, ModelEvents,
     JsonValue,
-    ModelGetOptions,
-    ModelPaginatedLink
 } from '../types/Model';
 
 import { AppFacades } from '../types/App';
@@ -16,7 +14,8 @@ import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
 import CollectionWithEvents from '../contracts/Collection';
-import { createMergedSearchParams } from '../support/searchParams';
+
+import Builder from '../contracts/Builder';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -26,8 +25,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         private _attributes: PropertyBag<JsonObject> = new PropertyBag({});
         private _original: JsonObject = {};
         private _relations: RelationRepository = {};
-        private _exists = false;
         private _changedKeys: string[] = [];
+        
+        public exists = false;
 
         constructor(attributes: JsonObject = {}) {
             this.makeAttributes(attributes);
@@ -267,11 +267,6 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             };
         }
     
-        get exists()
-        {
-            return this._exists;
-        }
-    
         get isDirty() 
         {
             return this._changedKeys.length > 0;
@@ -417,7 +412,6 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 this.makePrimaryKeyReplacer()
             ]);
             this.makeAttributes(data);
-            
         }
     
         async save(options: ModelSaveOptions = {}): Promise<AxiosResponse> {
@@ -453,7 +447,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
                 if ([200, 201].includes(response.status)) {
                     this.makeAttributes(response.data);
-                    this._exists = true;
+                    this.exists = true;
                     this.dispatchSaveEvent();
                     if (!exists) {
                         this.dispatchCreateEvent(response.data);
@@ -470,6 +464,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 this.dispatchErrorEvent(error, 'save');
                 throw error;
             }
+        }
+
+        async push(): Promise<AxiosResponse> {
+            throw new Error('Method not implemented.');
         }
     
         async delete(): Promise<AxiosResponse> {
@@ -546,94 +544,36 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return facades.repository.schema(abstract);
         }
 
-        static async get(options: ModelGetOptions = {}): Promise<ModelPaginatedResponse> {
+        static query(): Builder {
+            return new Builder(facades, abstract);
+        }
 
-            const {
-                query, linkBase
-            } = options;
+        static where(key: string, value: JsonValue): Builder {
+            return this.query().where(key, value);
+        }
 
-            if (query && typeof query !== 'object') {
-                throw new TypeError('Invalid query');
-            }
+        static orderBy(key: string, direction: 'asc' | 'desc' = 'asc'): Builder {
+            return this.query().orderBy(key, direction);
+        }
 
-            const params = (() => {
-                if (!query) {
-                    return {};
-                }
-                if (typeof query.filters === 'object') {
-                    return {
-                        ...query,
-                        filters: JSON.stringify(query.filters),
-                    };
-                }
-                return query;
-            })();
+        static searchBy(term: string): Builder {
+            return this.query().searchBy(term);
+        }
 
-            const { data } = await facades.route.call(`luminix.${abstract}.index`, { params });
-    
-            const Model = facades.repository.make(abstract);
-    
-            const models: Model[] = new CollectionWithEvents(
-                ...data.data.map((item: JsonObject) => {
-                    const value = new Model(item);
-                    facades.repository.emit('fetch', {
-                        class: abstract,
-                        model: value,
-                    });
-                    value._exists = true;
-                    return value;
-                })
-            );
+        static minified(): Builder {
+            return this.query().minified();
+        }
 
-            if (linkBase) {
-                const [base] = linkBase.split('?');
-                return {
-                    ...data,
-                    data: models,
-                    links: {
-                        first: `${base}?${createMergedSearchParams(linkBase, data.links.first).toString()}`,
-                        last: `${base}?${createMergedSearchParams(linkBase, data.links.last).toString()}`,
-                        next: data.links.next && `${base}?${createMergedSearchParams(linkBase, data.links.next).toString()}`,
-                        prev: data.links.prev && `${base}?${createMergedSearchParams(linkBase, data.links.prev).toString()}`
-                            
-                    },
-                    meta: {
-                        ...data.meta,
-                        links: data.meta.links.map((link: ModelPaginatedLink) => ({
-                            ...link,
-                            url: link.url && `${base}?${createMergedSearchParams(linkBase, link.url).toString()}`,
-                        })),
-                    }
-                };
-            }
-    
-            return {
-                ...data,
-                data: models,
-            };
+        static get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+            return this.query().get(page, perPage, replaceLinksWith);
         }
     
-        static async find(id: number | string) {
-            const pk = facades.repository.schema(abstract).primaryKey;
-            if (!pk) {
-                throw new Error(`'${abstract}' must have a primary key`);
-            }
-            const { data } = await facades.route.call([
-                `luminix.${abstract}.show`,
-                { [pk]: id }
-            ]);
-            
-            const Model = facades.repository.make(abstract);
-    
-            const model = new Model(data);
-            model._exists = true;
-    
-            facades.repository.emit('fetch', {
-                class: abstract,
-                model,
-            });
-    
-            return model;
+        static find(id: number | string) {
+            return this.query().find(id);
+        }
+
+        static first() {
+            return this.query().first();
         }
     
         static async create(attributes: JsonObject) {
@@ -652,7 +592,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const model = new Model({ id });
     
             model.fill(attributes);
-            model._exists = true;
+            model.exists = true;
     
             await model.save();
     
@@ -731,6 +671,10 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
             return new Proxy(this, {
                 get: (target: Model, prop: string) => {
 
+                    if (prop === '__isModel') {
+                        return true;
+                    }
+
                     const { config } = facades;
 
                     // If the property exists in the target, return it.
@@ -797,4 +741,11 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
     };
 
+}
+
+export function isModel(value: unknown): value is Model {
+    return typeof value === 'object' 
+        && value !== null
+        && '__isModel' in value
+        && value.__isModel === true;
 }

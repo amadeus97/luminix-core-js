@@ -512,7 +512,6 @@ export class Collection<T = unknown> extends Array<T> {
         }
 
         if (typeof key === 'function') {
-            // return this.filter((i, k) => this.findIndex(() => key(i, k, this))) as Collection<T>;
             return this.filter((i, k) => {
                 return this.findIndex((j) => key(i) === key(j)) === k;
             }) as Collection<T>;
@@ -634,6 +633,21 @@ export class Collection<T = unknown> extends Array<T> {
      */
     copy(): Collection<T> {
         return this.slice() as Collection<T>;
+    }
+
+
+
+
+    // methods for typing purposes
+    filter<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: unknown): Collection<S>;
+    filter(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): Collection<T>;
+    filter<S extends T>(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): Collection<T> | Collection<S> {
+        return super.filter(predicate, thisArg) as Collection<T> | Collection<S>;
+    }
+
+
+    slice(start?: number | undefined, end?: number | undefined): Collection<T> {
+        return super.slice(start, end) as Collection<T>;
     }
 
 
