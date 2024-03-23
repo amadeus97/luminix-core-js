@@ -230,6 +230,43 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     || (Array.isArray(value) && value.every((item) => this.validateJsonObject(item)));
             });
         }
+
+        // private createQueryForRelation(relation: string): Builder {
+        //     const { relations } = facades.repository.schema(abstract);
+        //     const { model, type } = relations[relation];
+    
+        //     const { relations: relatedRelations } = facades.repository.schema(model);
+
+        //     const query = new Builder(facades, model);
+
+        //     const findRelatedRelation = (relationType: string) => {
+        //         const relatedRelation = Object.entries(relatedRelations).find(([, value]) => {
+        //             return value.model === abstract && value.type === relationType;
+        //         });
+        //         if (!relatedRelation) {
+        //             throw new Error(`[Luminix] Cannot find relation for model "${abstract}" in model "${model}"`);
+        //         }
+        //         return relatedRelation[0];
+        //     };
+
+        //     if (type === 'BelongsTo') {
+        //         const relatedKey = findRelatedRelation('HasOne') || findRelatedRelation('HasMany');
+        //         query.where(relatedKey, this.getKey());
+        //         query.lock(relatedKey);
+        //     } else if (type === 'BelongsToMany') {
+        //         const relatedKey = findRelatedRelation('BelongsToMany');
+        //         query.where(relatedKey, this.getKey());
+        //         query.lock(relatedKey);
+        //     } else if (['HasOne', 'HasMany'].includes(type)) {
+        //         const relatedKey = findRelatedRelation('BelongsTo');
+        //         query.where(relatedKey, this.getKey());
+        //         query.lock(relatedKey);
+        //     } else if (type === 'MorphTo') {
+
+        //     }
+        
+        //     return query;
+        // }
     
         get attributes() {
             return this._attributes.all();
@@ -403,6 +440,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }, {} as JsonObject);
         }
 
+        getType(): string {
+            return abstract;
+        }
+
         async refresh() {
             if (!this.exists) {
                 throw new Error('[Luminix] Cannot refresh a model that does not exist');
@@ -489,6 +530,28 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 throw error;
             }
         }
+
+        async update(data: JsonObject): Promise<void> {
+            try {
+                const response = await facades.route.call([
+                    `luminix.${abstract}.update`,
+                    this.makePrimaryKeyReplacer()
+                ], { data });
+
+                if (response.status === 200) {
+                    this.makeAttributes(response.data);
+                    this.dispatchUpdateEvent(response.data);
+                    return;
+                }
+
+                throw response;
+            } catch (error) {
+                facades.log.error(error);
+                this.dispatchErrorEvent(error, 'save');
+                throw error;
+            }
+
+        }
     
         async forceDelete(): Promise<AxiosResponse> {
             try {
@@ -544,23 +607,23 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return facades.repository.schema(abstract);
         }
 
-        static query(): Builder {
+        static query() {
             return new Builder(facades, abstract);
         }
 
-        static where(key: string, value: JsonValue): Builder {
+        static where(key: string, value: JsonValue) {
             return this.query().where(key, value);
         }
 
-        static orderBy(key: string, direction: 'asc' | 'desc' = 'asc'): Builder {
+        static orderBy(key: string, direction: 'asc' | 'desc' = 'asc') {
             return this.query().orderBy(key, direction);
         }
 
-        static searchBy(term: string): Builder {
+        static searchBy(term: string) {
             return this.query().searchBy(term);
         }
 
-        static minified(): Builder {
+        static minified() {
             return this.query().minified();
         }
 

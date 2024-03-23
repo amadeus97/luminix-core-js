@@ -1,12 +1,15 @@
 import { Unsubscribe } from 'nanoevents';
-import { PropertyBag } from '..';
+import PropertyBag from './PropertyBag';
 import { JsonObject, JsonValue, Model, ModelPaginatedLink, ModelPaginatedResponse, ModelQuery } from '../types/Model';
-import { PropertyBagEventMap } from './PropertyBag';
+
 import { AppFacades } from '../types/App';
 import CollectionWithEvents from './Collection';
 import { createMergedSearchParams } from '../support/searchParams';
+import { HasEvents } from '..';
+import { BuilderEventMap, BuilderInterface } from '../types/Builder';
+import { EventData } from '../types/Event';
 
-export default class Builder {
+class Builder implements BuilderInterface {
 
     private bag: PropertyBag<ModelQuery>;
 
@@ -18,8 +21,23 @@ export default class Builder {
         this.bag = new PropertyBag(query);
     }
 
-    on<T extends keyof PropertyBagEventMap>(e: T, callback: PropertyBagEventMap[T]): Unsubscribe {
-        return this.bag.on(e, callback);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    on<T extends keyof BuilderEventMap>(_: T, __: BuilderEventMap[T]): Unsubscribe {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    once<T extends keyof BuilderEventMap>(_: T, __: BuilderEventMap[T]): void {
+        throw new Error('Method not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    emit<T extends keyof BuilderEventMap>(_: T, __: EventData<BuilderEventMap, T>): void {
+        throw new Error('Method not implemented.');
+    }
+
+    lock(path: string): void {
+        this.bag.lock(path);
     }
 
 
@@ -48,21 +66,21 @@ export default class Builder {
         return this;
     }
 
-    async get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+    private async exec(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
         this.bag.set('page', page);
         this.bag.set('per_page', perPage);
 
-        const params = (() => {
-            if (typeof this.bag.get('filters') === 'object') {
-                return {
-                    ...this.bag.all(),
-                    filters: JSON.stringify(this.bag.get('filters')),
-                };
-            }
-            return this.bag.all();
-        })();
+        // const params = (() => {
+        //     if (typeof this.bag.get('filters') === 'object') {
+        //         return {
+        //             ...this.bag.all(),
+        //             filters: JSON.stringify(this.bag.get('filters')),
+        //         };
+        //     }
+        //     return this.bag.all();
+        // })();
 
-        const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, { params });
+        const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, { params: this.bag.all() });
 
         const Model = this.facades.repository.make(this.abstract);
 
@@ -106,10 +124,25 @@ export default class Builder {
         };
     }
 
+    async get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+        const result = await this.exec(page, perPage, replaceLinksWith);
+        this.emit('success', {
+            response: result,
+            items: result.data,
+        });
+        return result;
+    }
+
 
     async first(): Promise<Model | null> {
-        const { data } = await this.get(1, 1);
-        return data.length ? data[0] : null;
+        const result = await this.exec(1, 1);
+
+        this.emit('success', {
+            response: result,
+            items: result.data.length ? result.data[0] : null,
+        });
+
+        return result.data.length ? result.data[0] : null;
     }
 
     async find(id: string | number): Promise<Model | null> {
@@ -117,10 +150,20 @@ export default class Builder {
         if (!pk) {
             throw new Error(`Cannot call 'Builder.find()' without a primaryKey. '${this.abstract}' must have a primary key`);
         }
-        return this.where(pk, id).first();
+
+        const result = await this.where(pk, id).exec(1, 1);
+
+        this.emit('success', {
+            response: result,
+            items: result.data.length ? result.data[0] : null,
+        });
+
+        return result.data.length ? result.data[0] : null;
     }
 
 
     
 }
 
+
+export default HasEvents<BuilderEventMap, typeof Builder>(Builder);

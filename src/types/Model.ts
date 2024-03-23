@@ -4,7 +4,7 @@ import { EventSource, Event } from './Event';
 import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Collection } from '../contracts/Collection';
-import Builder from '../contracts/Builder';
+import { BuilderInterface } from './Builder';
 
 export type RelationRepository = {
     [relationName: string]: Model | Collection<Model>,
@@ -89,22 +89,25 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     fill(attributes: JsonObject): void;
     json(): JsonObject;
     diff(): JsonObject;
+    getType(): string;
     save(options?: ModelSaveOptions): Promise<AxiosResponse<unknown, unknown>>;
+    update(attributes: JsonObject): Promise<void>;
     delete(): Promise<AxiosResponse<unknown, unknown>>;
     forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
     restore(): Promise<AxiosResponse<unknown, unknown>>;
+    refresh(): Promise<void>;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
 
-    static query(): Builder;
+    static query(): BuilderInterface;
     static get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model | null>;
     static first(): Promise<Model | null>;
-    static where(key: string, value: JsonValue): Builder;
-    static orderBy(column: string, direction?: 'asc' | 'desc'): Builder;
-    static searchBy(term: string): Builder;
-    static minified(): Builder;
+    static where(key: string, value: JsonValue): BuilderInterface;
+    static orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
+    static searchBy(term: string): BuilderInterface;
+    static minified(): BuilderInterface;
 
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;
@@ -155,6 +158,8 @@ export interface ModelSchemaAttributes {
         [relationName: string]: {
             model: string,
             type: 'HasOne' | 'HasMany' | 'BelongsTo' | 'BelongsToMany' | 'MorphOne' | 'MorphMany' | 'MorphTo' | 'MorphToMany' | 'MorphedByMany',
+            foreignKey: string | null,
+            localKey: string | null,
         }
     },
     casts: {
