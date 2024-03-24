@@ -4,7 +4,7 @@ import PropertyBag from '../contracts/PropertyBag';
 
 import { 
     BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes,
-    ModelPaginatedResponse, Model, RelationRepository, ModelEvents,
+    ModelPaginatedResponse, Model as ModelInterface, RelationRepository, ModelEvents,
     JsonValue,
 } from '../types/Model';
 
@@ -16,6 +16,9 @@ import { Unsubscribe } from 'nanoevents';
 import CollectionWithEvents from '../contracts/Collection';
 
 import Builder from '../contracts/Builder';
+import BelongsTo from '../contracts/Relation/BelongsTo';
+import BelongsToMany from '../contracts/Relation/BelongsToMany';
+import Relation from '../contracts/Relation';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -30,6 +33,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         public exists = false;
 
         constructor(attributes: JsonObject = {}) {
+            this.makeRelations();
             this.makeAttributes(attributes);
 
         }
@@ -74,6 +78,47 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
             return value;
         }
+
+        private makeRelations() {
+            const { relations } = facades.repository.schema(abstract);
+    
+            this._relations = {};
+
+            if (!relations) {
+                return;
+            }
+
+            const relationMap: {
+                [name: string]: typeof Relation
+            } = {
+                'BelongsTo': BelongsTo,
+                'BelongsToMany': BelongsToMany,
+            };
+    
+            Object.entries(relations).forEach(([key, relation]) => {
+                const { type, model, foreignKey } = relation;
+
+                const Related = facades.repository.make(model);
+
+                // const items = key in attributes 
+                //     ? (Array.isArray(attributes[key])
+                //         ? new CollectionWithEvents(...(attributes[key] as JsonObject[]).map((item) => new Related(item)))
+                //         : new Related(attributes[key] as JsonObject))
+                //     : null;
+
+                const RelationClass = type in relationMap
+                    ? relationMap[type]
+                    : Relation;
+
+                this._relations[key] = new RelationClass(
+                    facades,
+                    this,
+                    Related,
+                    null,
+                    foreignKey
+                );
+            });
+        }
     
         private makeAttributes(attributes: JsonObject)
         {
@@ -87,8 +132,6 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             this.fillable.filter((key) => !(key in newAttributes)).forEach((key) => {
                 newAttributes[key] = null;
             });
-    
-            const newRelations: RelationRepository = {};
     
             if (relations) {
                 Object.entries(relations).forEach(([key, relation]) => {
@@ -108,13 +151,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo'].includes(type);
     
                     if (isSingle && typeof relationData === 'object' && relationData !== null) {
-                        newRelations[key] = new Model(relationData as JsonObject);
+                        this.relation(key).set(new Model(relationData as JsonObject));
                     }
     
                     if (!isSingle && Array.isArray(attributes[key])) {
-                        newRelations[key] = new CollectionWithEvents(
-                            ...(attributes[key] as JsonObject[]).map((item) => new Model(item))
-                        );
+                        this.relation(key).set(new CollectionWithEvents(
+                            ...(relationData as JsonObject[]).map((item) => new Model(item))
+                        ));
                     }
                 });
             }
@@ -132,7 +175,6 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
             this._attributes = new PropertyBag(newAttributes);
             this._original = newAttributes;
-            this._relations = newRelations;
             this._changedKeys = [];
         }
     
@@ -409,13 +451,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         json() {
             const modelRelations = facades.repository.schema(abstract).relations;
     
-            const relations = Object.entries(this.relations).reduce((acc, [key, value]) => {
+            const relations = Object.entries(this.relations).reduce((acc, [key, relation]) => {
                 const { type } = modelRelations[key];
-                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && !Array.isArray(value)) {
-                    acc[key] = value.json();
+                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && relation.isLoaded() && !Array.isArray(relation.getLoadedItems())) {
+                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as ModelInterface).json();
                 }
-                if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && Array.isArray(value)) {
-                    acc[key] = value.map((item) => item.json());
+                if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && relation.isLoaded() && Array.isArray(relation.getLoadedItems())) {
+                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as ModelInterface[]).map((item) => item.json());
                 }
                 return acc;
             }, {} as JsonObject);
@@ -442,6 +484,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
         getType(): string {
             return abstract;
+        }
+
+        relation(name: string) {
+            return this.relations[name];
         }
 
         async refresh() {
@@ -723,7 +769,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     return HasEvents<ModelEvents, typeof ModelRaw>(ModelRaw);
 }
 
-export function ModelFactory(facades: AppFacades, abstract: string, CustomModel: typeof BaseModel): typeof Model {
+export function ModelFactory(facades: AppFacades, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
     return class extends CustomModel {
 
         static name = _.upperFirst(_.camelCase(abstract));
@@ -732,7 +778,7 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
             super(attributes);
 
             return new Proxy(this, {
-                get: (target: Model, prop: string) => {
+                get: (target: ModelInterface, prop: string) => {
 
                     if (prop === '__isModel') {
                         return true;
@@ -751,7 +797,11 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
                     // If the property is a relation, return it.
                     if (Object.keys(target.relations).includes(prop)) {
-                        return target.relations[prop];
+                        return target.relations[prop].getLoadedItems();
+                    }
+                    // If is calling the relation method, return it.
+                    if (prop.endsWith('Relation') && Object.keys(target.relations).includes(prop.slice(0, -8))) {
+                        return () => target.relations[prop.slice(0, -8)];
                     }
 
                     const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
@@ -806,9 +856,9 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
 }
 
-export function isModel(value: unknown): value is Model {
+export function isModel(value: unknown): value is ModelInterface {
     return typeof value === 'object' 
         && value !== null
-        && '__isModel' in value
-        && value.__isModel === true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        && (value as any).__isModel === true;
 }

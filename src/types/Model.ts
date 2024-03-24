@@ -5,9 +5,11 @@ import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Collection } from '../contracts/Collection';
 import { BuilderInterface } from './Builder';
+import Relation from '../contracts/Relation';
 
 export type RelationRepository = {
-    [relationName: string]: Model | Collection<Model>,
+    // [relationName: string]: Model | Collection<Model>,
+    [relationName: string]: Relation,
 }
 
 export type ModelEvents = {
