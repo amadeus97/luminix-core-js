@@ -16,6 +16,8 @@ import {
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 
+const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
+
 class Builder implements BuilderInterface {
 
     private bag: PropertyBag<ModelQuery>;
@@ -25,7 +27,7 @@ class Builder implements BuilderInterface {
         protected abstract: string,
         protected query: ModelQuery = {},
     ) {
-        this.bag = new PropertyBag(query);
+        this.bag = new QueryBag(query);
         this.bag.on('change', () => {
             this.emit('change', {
                 data: this.bag,

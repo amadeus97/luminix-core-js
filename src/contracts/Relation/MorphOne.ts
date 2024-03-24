@@ -2,6 +2,7 @@
 import NotModelException from '../../exceptions/NotModelException';
 import { AppFacades } from '../../types/App';
 import { Model } from '../../types/Model';
+import { isModel } from '../../mixins/BaseModel';
 
 
 import MorphOneOrMany from './MorphOneOrMany';
@@ -18,7 +19,7 @@ export default class MorphOne extends MorphOneOrMany
     ) {
         super(facades, parent, related, items, foreignKey);
 
-        if (items !== null && !(items instanceof Model)) {
+        if (items !== null && !isModel(items)) {
             throw new NotModelException('MorphOne.constructor()', 'Model or null');
         }
     }
