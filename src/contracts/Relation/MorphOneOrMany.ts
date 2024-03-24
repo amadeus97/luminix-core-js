@@ -3,6 +3,8 @@ import { Model } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 
 import HasOneOrMany from './HasOneOrMany';
+import NotModelException from '../../exceptions/NotModelException';
+import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 
 
 export default class MorphOneOrMany extends HasOneOrMany
@@ -27,11 +29,11 @@ export default class MorphOneOrMany extends HasOneOrMany
 
     async saveQuietly(item: Model) {
         if (!isModel(item)) {
-            throw new Error('MorphOneOrMany save method expects a Model instance');
+            throw new NotModelException('MorphOneOrMany.saveQuietly()');
         }
 
         if (item.getType() !== this.related.getSchemaName()) {
-            throw new Error(`MorphOneOrMany save method expects a '${this.related.getSchemaName()}' instance`);
+            throw new ModelInvalidRelatedTypeException('MorphOneOrMany.saveQuietly()', this.related.getSchemaName(), item.getType());
         }
 
         const relation = this.guessInverseRelation();

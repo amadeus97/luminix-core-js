@@ -5,6 +5,7 @@ import { isModel } from '../../mixins/BaseModel';
 import { AppFacades } from '../../types/App';
 import { Collection } from '../Collection';
 import { BuilderInterface } from '../../types/Builder';
+import NotModelException from '../../exceptions/NotModelException';
 
 export default class BelongsToMany extends Relation {
 
@@ -15,7 +16,7 @@ export default class BelongsToMany extends Relation {
         protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
-            throw new Error('BelongsToMany expects null or Collection of models instance');
+            throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
         }
         super(facades, parent, related, items);
     }
@@ -107,6 +108,20 @@ export default class BelongsToMany extends Relation {
         });
     }
 
+    async syncWithPivotValuesQuietly(ids: (string | number)[], pivot: JsonObject) {
+        await this.facades.route.call([
+            `luminix.${this.parent.getType()}.${this.getName()}:sync`,
+            {
+                [this.parent.getKeyName()]: this.parent.getKey(),
+            }
+        ], {
+            data: ids.map((id) => ({
+                [this.related.getSchema().primaryKey]: id,
+                ...pivot,
+            })),
+        });
+    }
+
     async sync(ids: (string | number | JsonObject)[]) {
         await this.syncQuietly(ids);
 
@@ -118,6 +133,18 @@ export default class BelongsToMany extends Relation {
             this.items = newItems;
         }
 
+    }
+
+    async syncWithPivotValues(ids: (string | number)[], pivot: JsonObject) {
+        await this.syncWithPivotValuesQuietly(ids, pivot);
+
+        const newItems = await this.all();
+
+        if (this.items) {
+            this.items.flush().push(...newItems);
+        } else {
+            this.items = newItems;
+        }
     }
 }
 

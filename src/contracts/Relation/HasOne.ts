@@ -3,6 +3,7 @@ import { isModel } from '../../mixins/BaseModel';
 import { AppFacades } from '../../types/App';
 
 import HasOneOrMany from './HasOneOrMany';
+import NotModelException from '../../exceptions/NotModelException';
 
 export default class HasOne extends HasOneOrMany
 {
@@ -15,7 +16,7 @@ export default class HasOne extends HasOneOrMany
         protected foreignKey: string | null = null,
     ) {
         if (!isModel(items) && items !== null) {
-            throw new Error('HasOne expects a Model instance or null');
+            throw new NotModelException('HasOne.constructor()', 'Model or null');
         }
         super(facades, parent, related, items, foreignKey);
     }

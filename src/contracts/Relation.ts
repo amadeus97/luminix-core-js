@@ -4,6 +4,12 @@ import { BaseModel, JsonValue, Model } from '../types/Model';
 
 import { Collection } from './Collection';
 
+import NotReducibleException from '../exceptions/NotReducibleException';
+import RelationNotFoundException from '../exceptions/RelationNotFoundException';
+import NotModelException from '../exceptions/NotModelException';
+import NoInverseRelationException from '../exceptions/NoInverseRelationException';
+import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
+
 export default class Relation {
 
     constructor(
@@ -14,12 +20,16 @@ export default class Relation {
         protected foreignKey: string | null = null,
     ) {
         if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
-            throw new Error('Relation expects null, Model or Collection of models instance');
+            throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
         }
     }
 
     guessInverseRelation(): string {
         const { relations } = this.related.getSchema();
+
+        if (typeof this.facades.model.guessInverseRelation !== 'function') {
+            throw new NotReducibleException('ModelFacade');
+        }
 
         const inverses: { [key: string]: string[] } = {
             'HasOne': ['BelongsTo'],
@@ -35,7 +45,7 @@ export default class Relation {
         const currentRelation = this.getName();
 
         if (!(currentRelation in inverses)) {
-            throw new Error(`Relation type '${currentRelation}' not supported`);
+            throw new UnsupportedRelationException(currentRelation);
         }
 
         for (const relationName in relations) {
@@ -46,13 +56,13 @@ export default class Relation {
             }
         }
 
-        throw new Error(`Inverse relation for '${currentRelation}' not found. Expected ${this.related.getSchemaName()} to have ${inverses[currentRelation].join(' or ')} for ${this.parent.getType()} model.`);
+        throw new NoInverseRelationException(this.parent.getType(), currentRelation, this.related.getSchemaName(), inverses[currentRelation].join(' or '));
     }
 
     set(items: Model | Collection<Model> | null)
     {
         if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
-            throw new Error(`Relation '${this.getName()}' expects null, Model or Collection of models instance. Got ${typeof items} instead.`);
+            throw new NotModelException('Relation.set()', 'Model, Collection<Model> or null');
         }
 
         if (!this.items || isModel(this.items)) {
@@ -71,7 +81,7 @@ export default class Relation {
         const relation = Object.entries(this.parent.relations).find(([, relation]) => relation === this);
 
         if (!relation) {
-            throw new Error('Relation not found in parent model');
+            throw new RelationNotFoundException(this.parent.getType());
         }
 
         return relation[0];

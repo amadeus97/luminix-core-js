@@ -6,6 +6,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { Reducible } from '../mixins/Reducible';
 import { ErrorFacade } from '../types/Error';
 import { isValidationError } from './Error';
+import NotReducibleException from '../exceptions/NotReducibleException';
+import RouteNotFoundException from '../exceptions/RouteNotFoundException';
 
 class Route {
 
@@ -51,7 +53,7 @@ class Route {
 
     get(name: string): RouteTuple {
         if (!this.exists(name)) {
-            throw new Error(`Route data for '${name}' was not found.`);
+            throw new RouteNotFoundException(name);
         }
         return _.get(this.routes, name) as RouteTuple;
     }
@@ -65,7 +67,7 @@ class Route {
 
         if (replace === false) {
             if (typeof this.replaceRouteParams !== 'function') {
-                throw new Error('Expect `Route` to be Reducible');
+                throw new NotReducibleException('RouteFacade');
             }
             // !Reducer `replaceRouteParams`
             return this.replaceRouteParams(`/${url}`);
@@ -102,7 +104,7 @@ class Route {
 
     async call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
         if (typeof this.axiosOptions !== 'function') {
-            throw new Error('Expect `Route` to be Reducible');
+            throw new NotReducibleException('RouteFacade');
         }
         const [name, replace] = this.extractGenerator(generator);
         
@@ -133,7 +135,7 @@ class Route {
                 }, {} as Record<string,string>));
             } else if (axios.isAxiosError(error)) {
                 if (typeof this.axiosError !== 'function') {
-                    throw new Error('Expect `Route` to be Reducible');
+                    throw new NotReducibleException('RouteFacade');
                 }
                 this.error.set(this.axiosError({ axios: error.message }, { 
                     error, name, replace, config

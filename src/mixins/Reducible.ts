@@ -3,6 +3,7 @@
 import { isDraftable, produce } from 'immer';
 import { ReducerCallback, Reducer } from '../types/Reducer';
 import CollectionWithEvents, { Collection } from '../contracts/Collection';
+import ReducerOverrideException from '../exceptions/ReducerOverrideException';
 
 type Constructor = new (...args: any[]) => {};
 
@@ -37,7 +38,7 @@ export function Reducible<T extends Constructor>(Base: T) {
   
         reducer(name: string, callback: ReducerCallback, priority: number = 10) {
             if (name in this) {
-                throw new Error(`Cannot create reducer '${name}' on '${this}' as it is a reserved property`);
+                throw new ReducerOverrideException(name, this);
             }
             if (!this.reducers[name]) {
                 this.reducers[name] = new CollectionWithEvents<Reducer>();

@@ -5,6 +5,8 @@ import { isModel } from '../../mixins/BaseModel';
 import MorphOneOrMany from './MorphOneOrMany';
 
 import CollectionWithEvents, { Collection } from '../Collection';
+import NotModelException from '../../exceptions/NotModelException';
+import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 
 
 export default class MorphMany extends MorphOneOrMany
@@ -17,7 +19,7 @@ export default class MorphMany extends MorphOneOrMany
         protected foreignKey: string | null = null,
     ) {
         if (items !== null && !(items instanceof CollectionWithEvents && items.every(isModel))) {
-            throw new Error('HasMany expects null or Collection of models instance');
+            throw new NotModelException('MorphMany.constructor()', 'Collection<Model> or null');
         }
         super(facades, parent, related, items, foreignKey);
     }
@@ -45,11 +47,11 @@ export default class MorphMany extends MorphOneOrMany
     async saveManyQuietly(models: Model[])
     {
         if (!Array.isArray(models) || !models.every(isModel)) {
-            throw new Error('saveManyQuietly expects an array of models');
+            throw new NotModelException('MorphMany.saveManyQuietly()');
         }
 
         if (!models.every((model) => model.getType() === this.related.getSchemaName())) {
-            throw new Error('saveManyQuietly expects an array of models of the same type');
+            throw new ModelInvalidRelatedTypeException('MorphMany.saveManyQuietly()', this.related.getSchemaName(), models.map((model) => model.getType()).join(', '));
         }
 
         await Promise.all(models.map((model) => {

@@ -1,7 +1,8 @@
+import NoEmbedException from '../exceptions/NoEmbedException';
 
 const reader = (name: string, type: 'data' | 'error' = 'data') => {
     if (!document.querySelector('#luminix-embed')) {
-        throw new Error('[Luminix] Embed element not found. Make sure to include the `@luminixEmbed()` directive in your Blade template.');
+        throw new NoEmbedException();
     }
 
     const element: HTMLElement | null = document.getElementById(`luminix-${type}::` + name);

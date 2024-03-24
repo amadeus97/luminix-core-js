@@ -1,6 +1,7 @@
 import { Unsubscribe } from 'nanoevents';
 import { HasEvents } from '../mixins/HasEvents';
 import { CollectionEvents, Operator } from '../types/Collection';
+import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 
 
 export class Collection<T = unknown> extends Array<T> {
@@ -658,17 +659,17 @@ export class Collection<T = unknown> extends Array<T> {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public on<K extends keyof CollectionEvents>(_: K, __: CollectionEvents[K]): Unsubscribe {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public once<K extends keyof CollectionEvents>(_: K, __: CollectionEvents[K]): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public emit<K extends keyof CollectionEvents>(_: K, __?: Omit<Parameters<CollectionEvents[K]>[0], 'source'>): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
 }

@@ -9,6 +9,9 @@ import _ from 'lodash';
 import { Unsubscribe } from 'nanoevents';
 import { Reducer, ReducerCallback, Unsubscribe as UnsubscribeReducer } from '../types/Reducer';
 import { Collection } from '../contracts/Collection';
+import NotReducibleException from '../exceptions/NotReducibleException';
+import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
+import ModelNotFoundException from '../exceptions/ModelNotFoundException';
 
 
 class ModelFacade implements ModelFacadeInterface {
@@ -31,7 +34,7 @@ class ModelFacade implements ModelFacadeInterface {
         Object.keys(this._schema).forEach((abstract) => {
             const modelReducer = this[`model${_.upperFirst(_.camelCase(abstract))}`];
             if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
-                throw new Error('Expect `ModelFacade` to be Reducible');
+                throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model`
@@ -51,7 +54,7 @@ class ModelFacade implements ModelFacadeInterface {
     schema(abstract: string): ModelSchemaAttributes
     schema(abstract?: string) {
         if (!this._schema || (abstract && !this._schema[abstract])) {
-            throw new Error(`Schema for class '${abstract}' not found.`);
+            throw new ModelNotFoundException(abstract || 'undefined');
         }
 
         if (abstract) {
@@ -67,7 +70,7 @@ class ModelFacade implements ModelFacadeInterface {
     make(abstract: string): typeof Model
     make(abstract?: string) {
         if (abstract && !this._models[abstract]) {
-            throw new Error(`Model class '${abstract}' not found.`);
+            throw new ModelNotFoundException(abstract);
         }
 
         if (!abstract) {
@@ -84,48 +87,48 @@ class ModelFacade implements ModelFacadeInterface {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public on<K extends keyof GlobalModelEvents>(_: K, __: GlobalModelEvents[K]): Unsubscribe {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public once<K extends keyof GlobalModelEvents>(_: K, __: GlobalModelEvents[K]): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public emit<K extends keyof GlobalModelEvents>(_: K, __?: Omit<Parameters<GlobalModelEvents[K]>[0], 'source'>): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public reducer(_: string, __: ReducerCallback): UnsubscribeReducer {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public removeReducer(_: string): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public getReducer(_: string): Collection<Reducer> {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public hasReducer(_: string): boolean {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public clearReducer(_: string): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public flushReducers(): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     [reducer: string]: unknown;

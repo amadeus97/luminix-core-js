@@ -413,12 +413,12 @@ describe('testing models', () => {
 
         const Attachment = app.make('model').make('attachment');
 
-        expect(() => Attachment.create({})).rejects.toThrow('Route data for \'luminix.attachment.store\' was not found.');
-        expect(() => Attachment.update(1, {})).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');
-        expect(() => Attachment.delete(1)).rejects.toThrow('Route data for \'luminix.attachment.destroy\' was not found.');
-        expect(() => Attachment.find(1)).rejects.toThrow('Route data for \'luminix.attachment.index\' was not found.');
-        expect(() => Attachment.restore(1)).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');
-        expect(() => Attachment.forceDelete(1)).rejects.toThrow('Route data for \'luminix.attachment.destroy\' was not found.');
+        expect(() => Attachment.create({})).rejects.toThrow('Route "luminix.attachment.store" not found');
+        expect(() => Attachment.update(1, {})).rejects.toThrow('Route "luminix.attachment.update" not found');
+        expect(() => Attachment.delete(1)).rejects.toThrow('Route "luminix.attachment.destroy" not found');
+        expect(() => Attachment.find(1)).rejects.toThrow('Route "luminix.attachment.index" not found');
+        expect(() => Attachment.restore(1)).rejects.toThrow('Route "luminix.attachment.update" not found');
+        expect(() => Attachment.forceDelete(1)).rejects.toThrow('Route "luminix.attachment.destroy" not found');
 
     });
 

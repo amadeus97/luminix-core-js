@@ -1,3 +1,5 @@
+import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
+import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../mixins/BaseModel';
 import { BuilderInterface } from '../../types/Builder';
 import { Model } from '../../types/Model';
@@ -21,11 +23,11 @@ export default class HasOneOrMany extends Relation {
     
     async saveQuietly(item: Model) {
         if (!isModel(item)) {
-            throw new Error('HasOneOrMany save method expects a Model instance');
+            throw new NotModelException('HasOneOrMany.saveQuietly()');
         }
 
         if (item.getType() !== this.related.getSchemaName()) {
-            throw new Error(`HasOneOrMany save method expects a '${this.related.getSchemaName()}' instance`);
+            throw new ModelInvalidRelatedTypeException('HasOneOrMany.saveQuietly()', this.related.getSchemaName(), item.getType());
         }
 
         item.setAttribute(this.foreignKey as string, this.parent.getKey());

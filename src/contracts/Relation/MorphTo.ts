@@ -3,6 +3,7 @@ import { isModel } from '../../mixins/BaseModel';
 import { BuilderInterface } from '../../types/Builder';
 
 import BelongsTo from './BelongsTo';
+import NotModelException from '../../exceptions/NotModelException';
 
 export default class MorphTo extends BelongsTo
 {
@@ -19,7 +20,7 @@ export default class MorphTo extends BelongsTo
     
     async associate(item: Model): Promise<void> {
         if (!isModel(item)) {
-            throw new Error('MorphTo associate method expects a Model instance');
+            throw new NotModelException('MorphTo.associate()');
         }
 
         if (!item.exists) {

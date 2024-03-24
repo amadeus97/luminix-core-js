@@ -1,3 +1,4 @@
+import FacadeNotFoundException from '../exceptions/FacadeNotFoundException';
 import App from '../facades/App';
 import { AppExternal, AppFacade, AppFacades } from '../types/App';
 
@@ -20,7 +21,7 @@ function app(facade = undefined) {
     }
 
     if (!appInstance.has(facade)) {
-        throw new Error(`[Luminix] Facade not found: ${facade}`);
+        throw new FacadeNotFoundException(facade);
     }
 
     return appInstance.make(facade);

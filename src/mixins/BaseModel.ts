@@ -21,6 +21,10 @@ import BelongsToMany from '../contracts/Relation/BelongsToMany';
 import Relation from '../contracts/Relation';
 import HasOne from '../contracts/Relation/HasOne';
 import HasMany from '../contracts/Relation/HasMany';
+import NotReducibleException from '../exceptions/NotReducibleException';
+import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
+import AttributeNotFillableException from '../exceptions/AttributeNotFillableException';
+import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -326,7 +330,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }
             const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `ModelFacade` to be Reducible');
+                throw new NotReducibleException('ModelFacade');
             }
             // !Reducer `model${ClassName}Get${Key}Attribute`
             return reducer.bind(facades.model)(value, this);
@@ -335,7 +339,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         setAttribute(key: string, value: unknown) {
             if (!this.fillable.includes(key)) {
                 if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new Error(`[Luminix] Attribute "${key}" in model "${abstract}" is not fillable`);
+                    throw new AttributeNotFillableException(abstract, key);
                 } else {
                     facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${abstract}".
                     This will throw an error in production.`);
@@ -345,7 +349,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
             const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `ModelFacade` to be Reducible');
+                throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model${ClassName}Set${Key}Attribute`
@@ -387,7 +391,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
                 const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
                 if (typeof reducer !== 'function') {
-                    throw new Error('Expect `ModelFacade` to be Reducible');
+                    throw new NotReducibleException('ModelFacade');
                 }
                 // !Reducer `model${ClassName}Set${Key}Attribute`
                 acc[key] = reducer.bind(facades.model)(
@@ -433,7 +437,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Json`];
 
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `ModelFacade` to be Reducible');
+                throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model${ClassName}Json`
@@ -460,7 +464,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
         async refresh() {
             if (!this.exists) {
-                throw new Error('[Luminix] Cannot refresh a model that does not exist');
+                throw new ModelNotPersistedException(abstract, 'refresh');
             }
             const { data } = await facades.route.call([
                 `luminix.${abstract}.show`,
@@ -522,7 +526,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         async push(): Promise<AxiosResponse> {
-            throw new Error('Method not implemented.');
+            throw new MethodNotImplementedException();
         }
     
         async delete(): Promise<AxiosResponse> {
@@ -720,17 +724,17 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): Unsubscribe {
-            throw new Error('Method not implemented.');
+            throw new MethodNotImplementedException();
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         once<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {
-            throw new Error('Method not implemented.');
+            throw new MethodNotImplementedException();
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         emit<E extends keyof ModelEvents>(_: E, __?: Omit<Parameters<ModelEvents[E]>[0], 'source'>): void {
-            throw new Error('Method not implemented.');
+            throw new MethodNotImplementedException();
         }
     }
 
@@ -785,7 +789,7 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                     if (facades.model.hasReducer(`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
                         const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
                         if (typeof reducer !== 'function') {
-                            throw new Error('Expect `ModelFacade` to be Reducible');
+                            throw new NotReducibleException('ModelFacade');
                         }
                         // !Reducer `model${ClassName}Get${Key}Attribute`
                         return reducer.bind(facades.model)(undefined, target);
@@ -813,7 +817,7 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                     }
 
                     
-                    throw new Error(`Cannot set attribute '${prop}' on model '${abstract}'`);
+                    throw new AttributeNotFillableException(abstract, lookupKey);
                 },
             });
         }

@@ -1,3 +1,5 @@
+import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
+import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../mixins/BaseModel';
 import { AppFacades } from '../../types/App';
 import { Model } from '../../types/Model';
@@ -16,7 +18,7 @@ export default class HasMany extends HasOneOrMany
         protected foreignKey: string | null = null,
     ) {
         if (items !== null && !(items instanceof CollectionWithEvents && items.every(isModel))) {
-            throw new Error('HasMany expects null or Collection of models instance');
+            throw new NotModelException('HasMany.constructor()', 'Collection<Model> or null');
         }
         super(facades, parent, related, items, foreignKey);
     }
@@ -44,11 +46,11 @@ export default class HasMany extends HasOneOrMany
     async saveManyQuietly(models: Model[])
     {
         if (!Array.isArray(models) || !models.every(isModel)) {
-            throw new Error('saveManyQuietly expects an array of models');
+            throw new NotModelException('HasMany.saveManyQuietly()', 'Model[]');
         }
 
         if (!models.every((model) => model.getType() === this.related.getSchemaName())) {
-            throw new Error('saveManyQuietly expects an array of models of the same type');
+            throw new ModelInvalidRelatedTypeException('HasMany.saveManyQuietly()', this.related.getSchemaName(), models.map((model) => model.getType()).join(', '));
         }
 
         await Promise.all(models.map((model) => {

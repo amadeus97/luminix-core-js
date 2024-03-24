@@ -13,6 +13,8 @@ import {
     JsonObject, JsonValue, Model, ModelPaginatedLink,
     ModelPaginatedResponse, ModelQuery
 } from '../types/Model';
+import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
+import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 
 class Builder implements BuilderInterface {
 
@@ -33,17 +35,17 @@ class Builder implements BuilderInterface {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     on<T extends keyof BuilderEventMap>(_: T, __: BuilderEventMap[T]): Unsubscribe {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     once<T extends keyof BuilderEventMap>(_: T, __: BuilderEventMap[T]): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     emit<T extends keyof BuilderEventMap>(_: T, __: EventData<BuilderEventMap, T>): void {
-        throw new Error('Method not implemented.');
+        throw new MethodNotImplementedException();
     }
 
     lock(path: string): void {
@@ -169,7 +171,7 @@ class Builder implements BuilderInterface {
     async find(id: string | number): Promise<Model | null> {
         const pk = this.facades.model.schema(this.abstract).primaryKey;
         if (!pk) {
-            throw new Error(`Cannot call 'Builder.find()' without a primaryKey. '${this.abstract}' must have a primary key`);
+            throw new ModelWithoutPrimaryKeyException(this.abstract);
         }
 
         const result = await this.where(pk, id).exec(1, 1);

@@ -4,6 +4,8 @@ import { isModel } from '../../mixins/BaseModel';
 
 import { AppFacades } from '../../types/App';
 import { BuilderInterface } from '../../types/Builder';
+import NotModelException from '../../exceptions/NotModelException';
+import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 
 
 export default class BelongsTo extends Relation {
@@ -16,7 +18,7 @@ export default class BelongsTo extends Relation {
         protected foreignKey: string,
     ) {
         if (!isModel(items) && items !== null) {
-            throw new Error('BelongsTo expects a Model instance or null');
+            throw new NotModelException('BelongsTo.constructor()', 'Model or null');
         }
         super(facades, parent, related, items, foreignKey);
     }
@@ -39,11 +41,11 @@ export default class BelongsTo extends Relation {
 
     async associate(item: Model) {
         if (!isModel(item)) {
-            throw new Error('BelongsTo associate method expects a Model instance');
+            throw new NotModelException('BelongsTo.associate()');
         }
 
         if (item.getType() !== this.related.getSchemaName()) {
-            throw new Error(`BelongsTo associate method expects a '${this.related.getSchemaName()}' instance`);
+            throw new ModelInvalidRelatedTypeException('BelongsTo.associate()', this.related.getSchemaName(), item.getType());
         }
 
         if (!item.exists) {
