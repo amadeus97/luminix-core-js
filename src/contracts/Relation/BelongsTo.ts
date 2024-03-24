@@ -18,7 +18,7 @@ export default class BelongsTo extends Relation {
         if (!isModel(items) && items !== null) {
             throw new Error('BelongsTo expects a Model instance or null');
         }
-        super(facades, parent, related, items);
+        super(facades, parent, related, items, foreignKey);
     }
 
     private guessInverseRelation(): string {
@@ -50,9 +50,6 @@ export default class BelongsTo extends Relation {
         return this.query().first();
     }
 
-    getForeignKey(): string {
-        return this.foreignKey;
-    }
 
     async associate(item: Model) {
         if (!isModel(item)) {

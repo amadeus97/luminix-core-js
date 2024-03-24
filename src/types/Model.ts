@@ -98,6 +98,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
     restore(): Promise<AxiosResponse<unknown, unknown>>;
     refresh(): Promise<void>;
+    relation(relationName: string): Relation;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;

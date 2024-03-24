@@ -20,7 +20,7 @@ export default class BelongsToMany extends Relation {
         super(facades, parent, related, items);
     }
 
-    private findInverseRelation(): string {
+    private guessInverseRelation(): string {
         const { relations } = this.related.getSchema();
 
         for (const relationName in relations) {
@@ -37,7 +37,10 @@ export default class BelongsToMany extends Relation {
     query(): BuilderInterface {
         const query = super.query();
 
-        query.where(this.findInverseRelation(), this.parent.getKey());
+        const relation = this.guessInverseRelation();
+
+        query.where(relation, this.parent.getKey());
+        query.lock(relation);
 
         return query;
     }
@@ -58,7 +61,7 @@ export default class BelongsToMany extends Relation {
         return this.query().find(id);
     }
 
-    async attachWithoutFetch(id: string | number, pivot: JsonObject = {}) {
+    async attachQuietly(id: string | number, pivot: JsonObject = {}) {
         await this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:attach`,
             {
@@ -71,7 +74,7 @@ export default class BelongsToMany extends Relation {
     }
 
     async attach(id: string | number, pivot: JsonObject = {}) {
-        await this.attachWithoutFetch(id, pivot);
+        await this.attachQuietly(id, pivot);
 
         if (this.items) {
             const currentIndex = this.items.findIndex((item) => item.getKey() === id);
@@ -86,7 +89,7 @@ export default class BelongsToMany extends Relation {
         }
     }
 
-    async detachWithoutFetch(id: string | number) {
+    async detachQuietly(id: string | number) {
         await this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:detach`,
             {
@@ -97,7 +100,7 @@ export default class BelongsToMany extends Relation {
     }
 
     async detach(id: string | number) {
-        await this.detachWithoutFetch(id);
+        await this.detachQuietly(id);
 
         if (this.items) {
             const currentIndex = this.items.findIndex((item) => item.getKey() === id);
@@ -107,7 +110,7 @@ export default class BelongsToMany extends Relation {
         }
     }
 
-    async syncWithoutFetch(ids: (string | number | JsonObject)[]) {
+    async syncQuietly(ids: (string | number | JsonObject)[]) {
         await this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:sync`,
             {
@@ -119,7 +122,7 @@ export default class BelongsToMany extends Relation {
     }
 
     async sync(ids: (string | number | JsonObject)[]) {
-        await this.syncWithoutFetch(ids);
+        await this.syncQuietly(ids);
 
         const newItems = await this.all();
 

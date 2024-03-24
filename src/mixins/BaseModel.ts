@@ -148,7 +148,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     );
     
                     const relationData = attributes[key];
-                    const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo'].includes(type);
+                    const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo', 'HasOne'].includes(type);
     
                     if (isSingle && typeof relationData === 'object' && relationData !== null) {
                         this.relation(key).set(new Model(relationData as JsonObject));

@@ -1,13 +1,18 @@
 import { Unsubscribe } from 'nanoevents';
+
 import PropertyBag from './PropertyBag';
-import { JsonObject, JsonValue, Model, ModelPaginatedLink, ModelPaginatedResponse, ModelQuery } from '../types/Model';
+import CollectionWithEvents, { Collection } from './Collection';
+
+import { HasEvents } from '../mixins/HasEvents';
+import { createMergedSearchParams } from '../support/searchParams';
 
 import { AppFacades } from '../types/App';
-import CollectionWithEvents, { Collection } from './Collection';
-import { createMergedSearchParams } from '../support/searchParams';
-import { HasEvents } from '..';
 import { BuilderEventMap, BuilderInterface } from '../types/Builder';
 import { EventData } from '../types/Event';
+import {
+    JsonObject, JsonValue, Model, ModelPaginatedLink,
+    ModelPaginatedResponse, ModelQuery
+} from '../types/Model';
 
 class Builder implements BuilderInterface {
 
@@ -19,6 +24,11 @@ class Builder implements BuilderInterface {
         protected query: ModelQuery = {},
     ) {
         this.bag = new PropertyBag(query);
+        this.bag.on('change', () => {
+            this.emit('change', {
+                data: this.bag,
+            });
+        });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -67,61 +77,72 @@ class Builder implements BuilderInterface {
     }
 
     private async exec(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
-        this.bag.set('page', page);
-        this.bag.set('per_page', perPage);
-
-        // const params = (() => {
-        //     if (typeof this.bag.get('filters') === 'object') {
-        //         return {
-        //             ...this.bag.all(),
-        //             filters: JSON.stringify(this.bag.get('filters')),
-        //         };
-        //     }
-        //     return this.bag.all();
-        // })();
-
-        const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, { params: this.bag.all() });
-
-        const Model = this.facades.repository.make(this.abstract);
-
-        const models: Model[] = new CollectionWithEvents(
-            ...data.data.map((item: JsonObject) => {
-                const value = new Model(item);
-                this.facades.repository.emit('fetch', {
-                    class: this.abstract,
-                    model: value,
-                });
-                value.exists = true;
-                return value;
-            })
-        );
-
-        if (replaceLinksWith) {
-            const [base] = replaceLinksWith.split('?');
+        try {
+            this.bag.set('page', page);
+            this.bag.set('per_page', perPage);
+    
+            // const params = (() => {
+            //     if (typeof this.bag.get('filters') === 'object') {
+            //         return {
+            //             ...this.bag.all(),
+            //             filters: JSON.stringify(this.bag.get('filters')),
+            //         };
+            //     }
+            //     return this.bag.all();
+            // })();
+    
+            this.emit('submit', {
+                data: this.bag,
+            });
+    
+            const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, { params: this.bag.all() });
+    
+            const Model = this.facades.repository.make(this.abstract);
+    
+            const models: Model[] = new CollectionWithEvents(
+                ...data.data.map((item: JsonObject) => {
+                    const value = new Model(item);
+                    this.facades.repository.emit('fetch', {
+                        class: this.abstract,
+                        model: value,
+                    });
+                    value.exists = true;
+                    return value;
+                })
+            );
+    
+            if (replaceLinksWith) {
+                const [base] = replaceLinksWith.split('?');
+                return {
+                    ...data,
+                    data: models,
+                    links: {
+                        first: `${base}?${createMergedSearchParams(replaceLinksWith, data.links.first).toString()}`,
+                        last: `${base}?${createMergedSearchParams(replaceLinksWith, data.links.last).toString()}`,
+                        next: data.links.next && `${base}?${createMergedSearchParams(replaceLinksWith, data.links.next).toString()}`,
+                        prev: data.links.prev && `${base}?${createMergedSearchParams(replaceLinksWith, data.links.prev).toString()}`
+                            
+                    },
+                    meta: {
+                        ...data.meta,
+                        links: data.meta.links.map((link: ModelPaginatedLink) => ({
+                            ...link,
+                            url: link.url && `${base}?${createMergedSearchParams(replaceLinksWith, link.url).toString()}`,
+                        })),
+                    }
+                };
+            }
+    
             return {
                 ...data,
                 data: models,
-                links: {
-                    first: `${base}?${createMergedSearchParams(replaceLinksWith, data.links.first).toString()}`,
-                    last: `${base}?${createMergedSearchParams(replaceLinksWith, data.links.last).toString()}`,
-                    next: data.links.next && `${base}?${createMergedSearchParams(replaceLinksWith, data.links.next).toString()}`,
-                    prev: data.links.prev && `${base}?${createMergedSearchParams(replaceLinksWith, data.links.prev).toString()}`
-                        
-                },
-                meta: {
-                    ...data.meta,
-                    links: data.meta.links.map((link: ModelPaginatedLink) => ({
-                        ...link,
-                        url: link.url && `${base}?${createMergedSearchParams(replaceLinksWith, link.url).toString()}`,
-                    })),
-                }
             };
+        } catch (error) {
+            this.emit('error', {
+                error,
+            });
+            throw error;
         }
-
-        return {
-            ...data,
-            data: models,
-        };
     }
 
     async get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {

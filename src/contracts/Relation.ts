@@ -21,10 +21,6 @@ export default class Relation {
     set(items: Model | Collection<Model> | null)
     {
         if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
-            console.trace('instance of collection', (items as unknown) instanceof Collection);
-            console.trace('every is model', (items as Collection<Model>).every(isModel));
-            console.trace('items', items);
-            console.trace('item body', (items[0] as Model).body);
             throw new Error(`Relation '${this.getName()}' expects null, Model or Collection of models instance. Got ${typeof items} instead.`);
         }
 
@@ -33,6 +29,10 @@ export default class Relation {
         } else if (items instanceof Collection) {
             this.items.flush().push(...items);
         }
+    }
+
+    getForeignKey() {
+        return this.foreignKey;
     }
 
     getName()
