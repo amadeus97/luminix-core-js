@@ -19,6 +19,8 @@ import Builder from '../contracts/Builder';
 import BelongsTo from '../contracts/Relation/BelongsTo';
 import BelongsToMany from '../contracts/Relation/BelongsToMany';
 import Relation from '../contracts/Relation';
+import HasOne from '../contracts/Relation/HasOne';
+import HasMany from '../contracts/Relation/HasMany';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -93,6 +95,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             } = {
                 'BelongsTo': BelongsTo,
                 'BelongsToMany': BelongsToMany,
+                'HasOne': HasOne,
+                'HasMany': HasMany,
+                
             };
     
             Object.entries(relations).forEach(([key, relation]) => {

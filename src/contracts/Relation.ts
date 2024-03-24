@@ -18,6 +18,37 @@ export default class Relation {
         }
     }
 
+    guessInverseRelation(): string {
+        const { relations } = this.related.getSchema();
+
+        const inverses: { [key: string]: string[] } = {
+            'HasOne': ['BelongsTo'],
+            'HasMany': ['BelongsTo'],
+            'BelongsTo': ['HasOne', 'HasMany'],
+            'BelongsToMany': ['BelongsToMany'],
+            'MorphTo': ['MorphMany', 'MorphOne'],
+            'MorphOne': ['MorphTo'],
+            'MorphMany': ['MorphTo'],
+            'MorphToMany': ['MorphToMany'],
+        };
+
+        const currentRelation = this.getName();
+
+        if (!(currentRelation in inverses)) {
+            throw new Error(`Relation type '${currentRelation}' not supported`);
+        }
+
+        for (const relationName in relations) {
+            const relation = relations[relationName];
+
+            if ((relation.model === this.parent.getType() || ['MorphOne', 'MorphMany'].includes(currentRelation)) && inverses[currentRelation].includes(relation.type)) {
+                return relationName;
+            }
+        }
+
+        throw new Error(`Inverse relation for '${currentRelation}' not found. Expected ${this.related.getSchemaName()} to have ${inverses[currentRelation].join(' or ')} for ${this.parent.getType()} model.`);
+    }
+
     set(items: Model | Collection<Model> | null)
     {
         if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {

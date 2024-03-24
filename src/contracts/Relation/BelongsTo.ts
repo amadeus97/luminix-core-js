@@ -21,20 +21,6 @@ export default class BelongsTo extends Relation {
         super(facades, parent, related, items, foreignKey);
     }
 
-    private guessInverseRelation(): string {
-        const { relations } = this.related.getSchema();
-
-        for (const relationName in relations) {
-            const relation = relations[relationName];
-
-            if (relation.model === this.parent.getType() && ['HasOne', 'HasMany'].includes(relation.type)) {
-                return relationName;
-            }
-        }
-
-        throw new Error('To query a BelongsTo relation, the related model must have a HasOne or HasMany relation to the parent model');
-    }
-
     query(): BuilderInterface {
         const query = super.query();
 

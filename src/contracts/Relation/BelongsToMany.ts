@@ -20,20 +20,6 @@ export default class BelongsToMany extends Relation {
         super(facades, parent, related, items);
     }
 
-    private guessInverseRelation(): string {
-        const { relations } = this.related.getSchema();
-
-        for (const relationName in relations) {
-            const relation = relations[relationName];
-
-            if (relation.model === this.parent.getType() && relation.type === 'BelongsToMany') {
-                return relationName;
-            }
-        }
-
-        throw new Error('BelongsToMany relation expects an inverse BelongsToMany relation');
-    }
-
     query(): BuilderInterface {
         const query = super.query();
 
