@@ -8,7 +8,7 @@ export default class MorphTo extends BelongsTo
 {
     
     private of(abstract: string): this {
-        this.related = this.facades.repository.make(abstract);
+        this.related = this.facades.model.make(abstract);
         return this;
     }
 

@@ -4,7 +4,7 @@ import mockAxios from 'axios';
 import App from '../src/facades/App';
 import Auth from '../src/facades/Auth';
 import Log from '../src/facades/Log';
-import Repository from '../src/facades/Repository';
+import ModelFacade from '../src/facades/Model';
 import { AppFacade } from '../src/types/App';
 import { AuthFacade } from '../src/types/Auth';
 
@@ -21,7 +21,7 @@ describe('testing application', () => {
         expect(app.make('auth')).toBeInstanceOf(Auth);
         expect(app.make('config')).toBeInstanceOf(PropertyBag);
         expect(app.make('log')).toBeInstanceOf(Log);
-        expect(app.make('repository')).toBeInstanceOf(Repository);
+        expect(app.make('model')).toBeInstanceOf(ModelFacade);
 
         expect(mockAxios.get).toHaveBeenCalledWith('/luminix-api/init');
 

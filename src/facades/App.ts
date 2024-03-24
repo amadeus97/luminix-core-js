@@ -2,7 +2,7 @@ import { AppFacades, AppFacade, AppEvents } from '../types/App';
 
 import Auth from './Auth';
 import Log from './Log';
-import Repository from './Repository';
+import Model from './Model';
 import Route from './Route';
 
 import Plugin from '../contracts/Plugin';
@@ -101,7 +101,7 @@ class App implements AppFacade {
         
         this.bind('error', new Error());
         this.bind('route', new Route(routes, this.facades.error));
-        this.bind('repository', new Repository(models));
+        this.bind('model', new Model(models));
         this.bind('auth', new Auth(this));
 
         this.emit('booting');

@@ -12,7 +12,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         (mockAxios as any).post.mockImplementationOnce(() => Promise.resolve({ data: { id: 1, name: 'John Doe', email: 'johndoe@example.com' }, status: 200 }));
 
@@ -35,7 +35,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ data: { id: 1, name: 'John Doe', email: 'johndoe@example.com' }, status: 200 }));
 
@@ -54,7 +54,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 204 }));
 
@@ -69,7 +69,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({
             data: {
@@ -113,7 +113,7 @@ describe('testing models', () => {
         expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', { name: 'Jane Doe' }, {});
 
 
-        const PostComment = app.make('repository').make('post_comment');
+        const PostComment = app.make('model').make('post_comment');
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({
             data: {
@@ -165,7 +165,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         (mockAxios as any).put.mockImplementationOnce(() => Promise.resolve({ status: 200 }));
 
@@ -186,7 +186,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         (mockAxios as any).delete.mockImplementationOnce(() => Promise.resolve({ status: 204 }));
         await User.delete([1, 2, 3]);
@@ -207,7 +207,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         const user = new User({
             id: 1,
@@ -260,7 +260,7 @@ describe('testing models', () => {
 
         const {
             attachment: Attachment, user: User, post: Post, post_comment: Comment
-        } = app.make('repository').make();
+        } = app.make('model').make();
     
         const user = new User({
             id: 1,
@@ -350,7 +350,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const Post = app.make('repository').make('post');
+        const Post = app.make('model').make('post');
 
         const post = new Post({
             id: 1,
@@ -392,7 +392,7 @@ describe('testing models', () => {
 
         expect(post.published).toBe(false);
 
-        const Attachment = app.make('repository').make('attachment');
+        const Attachment = app.make('model').make('attachment');
 
         const attachment = new Attachment({
             id: 1,
@@ -411,7 +411,7 @@ describe('testing models', () => {
 
         await app.boot(makeConfig());
 
-        const Attachment = app.make('repository').make('attachment');
+        const Attachment = app.make('model').make('attachment');
 
         expect(() => Attachment.create({})).rejects.toThrow('Route data for \'luminix.attachment.store\' was not found.');
         expect(() => Attachment.update(1, {})).rejects.toThrow('Route data for \'luminix.attachment.update\' was not found.');

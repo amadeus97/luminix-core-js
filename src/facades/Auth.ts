@@ -96,9 +96,9 @@ export default class Auth implements AuthFacade {
 
     user(): Model | null {
         if (!this._user) {
-            const { repository, config } = this.app.make();
+            const { model, config } = this.app.make();
 
-            const User = repository.make('user');
+            const User = model.make('user');
             const userData = config.get('auth.user');
 
             if (!userData) {

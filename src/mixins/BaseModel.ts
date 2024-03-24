@@ -82,7 +82,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         private makeRelations() {
-            const { relations } = facades.repository.schema(abstract);
+            const { relations } = facades.model.schema(abstract);
     
             this._relations = {};
 
@@ -103,7 +103,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             Object.entries(relations).forEach(([key, relation]) => {
                 const { type, model, foreignKey } = relation;
 
-                const Related = facades.repository.make(model);
+                const Related = facades.model.make(model);
 
                 // const items = key in attributes 
                 //     ? (Array.isArray(attributes[key])
@@ -127,7 +127,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         private makeAttributes(attributes: JsonObject)
         {
-            const { relations } = facades.repository.schema(abstract);
+            const { relations } = facades.model.schema(abstract);
     
             // remove relations from attributes
             const excludedKeys = Object.keys(relations || {});
@@ -146,7 +146,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                         return;
                     }
     
-                    const Model = facades.repository.make(
+                    const Model = facades.model.make(
                         type === 'MorphTo'
                             ? attributes[`${key}_type`] as string
                             : model
@@ -200,7 +200,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: attributes,
             });
     
-            facades.repository.emit('create', {
+            facades.model.emit('create', {
                 class: abstract,
                 model: this,
             });
@@ -211,7 +211,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: attributes,
             });
     
-            facades.repository.emit('update', {
+            facades.model.emit('update', {
                 class: abstract,
                 model: this,
             });
@@ -222,7 +222,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: this.diff(),
             });
     
-            facades.repository.emit('save', {
+            facades.model.emit('save', {
                 class: abstract,
                 model: this,
             });
@@ -234,7 +234,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 [this.getKeyName()]: this.getKey(),
             });
     
-            facades.repository.emit('delete', {
+            facades.model.emit('delete', {
                 class: abstract,
                 model: this,
                 force,
@@ -246,7 +246,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: this.attributes,
             });
     
-            facades.repository.emit('restore', {
+            facades.model.emit('restore', {
                 class: abstract,
                 model: this,
             });
@@ -258,7 +258,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 operation,
             });
     
-            facades.repository.emit('error', {
+            facades.model.emit('error', {
                 class: abstract,
                 model: this,
                 error,
@@ -277,43 +277,6 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     || (Array.isArray(value) && value.every((item) => this.validateJsonObject(item)));
             });
         }
-
-        // private createQueryForRelation(relation: string): Builder {
-        //     const { relations } = facades.repository.schema(abstract);
-        //     const { model, type } = relations[relation];
-    
-        //     const { relations: relatedRelations } = facades.repository.schema(model);
-
-        //     const query = new Builder(facades, model);
-
-        //     const findRelatedRelation = (relationType: string) => {
-        //         const relatedRelation = Object.entries(relatedRelations).find(([, value]) => {
-        //             return value.model === abstract && value.type === relationType;
-        //         });
-        //         if (!relatedRelation) {
-        //             throw new Error(`[Luminix] Cannot find relation for model "${abstract}" in model "${model}"`);
-        //         }
-        //         return relatedRelation[0];
-        //     };
-
-        //     if (type === 'BelongsTo') {
-        //         const relatedKey = findRelatedRelation('HasOne') || findRelatedRelation('HasMany');
-        //         query.where(relatedKey, this.getKey());
-        //         query.lock(relatedKey);
-        //     } else if (type === 'BelongsToMany') {
-        //         const relatedKey = findRelatedRelation('BelongsToMany');
-        //         query.where(relatedKey, this.getKey());
-        //         query.lock(relatedKey);
-        //     } else if (['HasOne', 'HasMany'].includes(type)) {
-        //         const relatedKey = findRelatedRelation('BelongsTo');
-        //         query.where(relatedKey, this.getKey());
-        //         query.lock(relatedKey);
-        //     } else if (type === 'MorphTo') {
-
-        //     }
-        
-        //     return query;
-        // }
     
         get attributes() {
             return this._attributes.all();
@@ -328,24 +291,24 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         get fillable() {
-            return facades.repository.schema(abstract).fillable;
+            return facades.model.schema(abstract).fillable;
         }
     
         get primaryKey() {
-            return facades.repository.schema(abstract).primaryKey;
+            return facades.model.schema(abstract).primaryKey;
         }
     
         get timestamps() {
-            return facades.repository.schema(abstract).timestamps;
+            return facades.model.schema(abstract).timestamps;
         }
     
         get softDeletes() {
-            return facades.repository.schema(abstract).softDeletes;
+            return facades.model.schema(abstract).softDeletes;
         }
     
         get casts(): ModelSchemaAttributes['casts'] {
             return {
-                ...facades.repository.schema(abstract).casts,
+                ...facades.model.schema(abstract).casts,
                 ...this.timestamps ? { created_at: 'datetime', updated_at: 'datetime' } : {},
                 ...this.softDeletes ? { deleted_at: 'datetime' } : {},
             };
@@ -361,12 +324,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reducible');
+                throw new Error('Expect `ModelFacade` to be Reducible');
             }
             // !Reducer `model${ClassName}Get${Key}Attribute`
-            return reducer.bind(facades.repository)(value, this);
+            return reducer.bind(facades.model)(value, this);
         }
     
         setAttribute(key: string, value: unknown) {
@@ -380,13 +343,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return;
             }
 
-            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reducible');
+                throw new Error('Expect `ModelFacade` to be Reducible');
             }
 
             // !Reducer `model${ClassName}Set${Key}Attribute`
-            const mutated = reducer.bind(facades.repository)(
+            const mutated = reducer.bind(facades.model)(
                 this.mutate(value, this.casts[key]),
                 this
             );
@@ -422,12 +385,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const validAttributes = _.pick(attributes, this.fillable);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
-                const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+                const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
                 if (typeof reducer !== 'function') {
-                    throw new Error('Expect `Repository` to be Reducible');
+                    throw new Error('Expect `ModelFacade` to be Reducible');
                 }
                 // !Reducer `model${ClassName}Set${Key}Attribute`
-                acc[key] = reducer.bind(facades.repository)(
+                acc[key] = reducer.bind(facades.model)(
                     this.mutate(value, this.casts[key]),
                     this
                 );
@@ -454,7 +417,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         json() {
-            const modelRelations = facades.repository.schema(abstract).relations;
+            const modelRelations = facades.model.schema(abstract).relations;
     
             const relations = Object.entries(this.relations).reduce((acc, [key, relation]) => {
                 const { type } = modelRelations[key];
@@ -467,14 +430,14 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return acc;
             }, {} as JsonObject);
 
-            const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Json`];
+            const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Json`];
 
             if (typeof reducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reducible');
+                throw new Error('Expect `ModelFacade` to be Reducible');
             }
 
             // !Reducer `model${ClassName}Json`
-            return reducer.bind(facades.repository)({
+            return reducer.bind(facades.model)({
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -655,7 +618,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         static getSchema() {
-            return facades.repository.schema(abstract);
+            return facades.model.schema(abstract);
         }
 
         static query() {
@@ -691,7 +654,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         static async create(attributes: JsonObject) {
-            const Model = facades.repository.make(abstract);
+            const Model = facades.model.make(abstract);
             const model = new Model();
     
             model.fill(attributes);
@@ -702,7 +665,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         static async update(id: number | string, attributes: JsonObject) {
-            const Model = facades.repository.make(abstract);
+            const Model = facades.model.make(abstract);
             const model = new Model({ id });
     
             model.fill(attributes);
@@ -720,7 +683,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return facades.route.call(`luminix.${abstract}.destroyMany`, { params: { ids: id } });
             }
     
-            const Model = facades.repository.make(abstract);
+            const Model = facades.model.make(abstract);
             const model = new Model({ id });
     
             return model.delete();
@@ -733,7 +696,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return facades.route.call(`luminix.${abstract}.restoreMany`, { data: { ids: id } });
             }
     
-            const Model = facades.repository.make(abstract);
+            const Model = facades.model.make(abstract);
     
             const model = new Model({ id });
     
@@ -747,7 +710,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return facades.route.call(`luminix.${abstract}.destroyMany`, { params: { ids: id, force: true } });
             }
     
-            const Model = facades.repository.make(abstract);
+            const Model = facades.model.make(abstract);
     
             const model = new Model({ id });
     
@@ -819,13 +782,13 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                     }
 
                     // If there is a reducer to handle a property, return it.
-                    if (facades.repository.hasReducer(`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
-                        const reducer = facades.repository[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
+                    if (facades.model.hasReducer(`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
+                        const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
                         if (typeof reducer !== 'function') {
-                            throw new Error('Expect `Repository` to be Reducible');
+                            throw new Error('Expect `ModelFacade` to be Reducible');
                         }
                         // !Reducer `model${ClassName}Get${Key}Attribute`
-                        return reducer.bind(facades.repository)(undefined, target);
+                        return reducer.bind(facades.model)(undefined, target);
                     }
 
                     return Reflect.get(target, prop);

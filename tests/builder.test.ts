@@ -45,7 +45,7 @@ describe('testing builder', () => {
 
         await app.boot(makeConfig());
 
-        const User = app.make('repository').make('user');
+        const User = app.make('model').make('user');
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (mockAxios as any).get.mockImplementationOnce(mockedResponse);

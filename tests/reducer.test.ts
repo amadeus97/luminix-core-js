@@ -8,36 +8,36 @@ describe('testing macros', () => {
 
 
         app.on('booted', () => {
-            const repository = app.make('repository');
+            const model = app.make('model');
 
-            repository.reducer('modelUserGetNameAttribute', (name: string) => {
+            model.reducer('modelUserGetNameAttribute', (name: string) => {
                 return `${name} (macro2)`;
             }, 20);
 
-            repository.reducer('modelUserGetNameAttribute', (name: string) => {
+            model.reducer('modelUserGetNameAttribute', (name: string) => {
                 return `${name} (macro)`;
             });
 
         });
 
-        app.boot(makeConfig()).then(({ repository }) => {
+        app.boot(makeConfig()).then(({ model }) => {
 
-            expect(repository.getReducer('modelUserGetNameAttribute')).toHaveLength(2);
+            expect(model.getReducer('modelUserGetNameAttribute')).toHaveLength(2);
 
-            const User = repository.make('user');
+            const User = model.make('user');
             const user = new User({ id: 1, name: 'John Doe' });
 
             expect(user.name).toBe('John Doe (macro) (macro2)');
 
-            const [filter1, filter2] = repository.getReducer('modelUserGetNameAttribute');
+            const [filter1, filter2] = model.getReducer('modelUserGetNameAttribute');
 
-            repository.removeReducer('modelUserGetNameAttribute', filter1.callback);
+            model.removeReducer('modelUserGetNameAttribute', filter1.callback);
 
-            expect(repository.getReducer('modelUserGetNameAttribute')).toHaveLength(1);
-            expect(repository.hasReducer('modelUserGetNameAttribute')).toBe(true);
-            expect(repository.getReducer('modelUserGetNameAttribute')).toEqual([filter2]);
+            expect(model.getReducer('modelUserGetNameAttribute')).toHaveLength(1);
+            expect(model.hasReducer('modelUserGetNameAttribute')).toBe(true);
+            expect(model.getReducer('modelUserGetNameAttribute')).toEqual([filter2]);
 
-            repository.clearReducer('modelUserGetNameAttribute');
+            model.clearReducer('modelUserGetNameAttribute');
 
             expect(user.name).toBe('John Doe');
         });

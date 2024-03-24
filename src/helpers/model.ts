@@ -1,17 +1,17 @@
-import { Model, RepositoryFacade } from '../types/Model';
+import { Model, ModelFacade } from '../types/Model';
 
 import app from './app';
 
-function model(): RepositoryFacade;
+function model(): ModelFacade;
 function model(abstract: string): typeof Model;
 
 function model(abstract?: string) {
-    const repository = app('repository');
+    const modelFacade = app('model');
     if (!abstract) {
-        return repository;
+        return modelFacade;
     }
 
-    return repository.make(abstract);
+    return modelFacade.make(abstract);
 }
 
 export default model;

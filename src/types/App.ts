@@ -3,7 +3,7 @@ import { AppConfiguration, ConfigFacade } from './Config';
 import Plugin from '../contracts/Plugin';
 import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
-import { RepositoryFacade } from './Model';
+import { ModelFacade } from './Model';
 import { RouteFacade } from './Route';
 import { EventSource, Event } from './Event';
 import { ErrorFacade } from './Error';
@@ -39,7 +39,7 @@ export type AppFacades = {
     config: ConfigFacade;
     error: ErrorFacade;
     log: LogFacade;
-    repository: RepositoryFacade;
+    model: ModelFacade;
     route: RouteFacade;
     [key: string]: unknown;
 };

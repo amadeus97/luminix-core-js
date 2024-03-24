@@ -53,7 +53,7 @@ export type ModelErrorEvent = Event<BaseModel> & {
     operation: 'save' | 'delete' | 'restore' | 'forceDelete',
 }
 
-export type ModelGlobalEvent = Event<RepositoryFacade> & {
+export type ModelGlobalEvent = Event<ModelFacade> & {
     class: string,
     model: BaseModel,
     force?: boolean,
@@ -220,7 +220,7 @@ export type ModelPaginatedResponse = {
     }
 }
 
-export type RepositoryFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
+export type ModelFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
     schema(): ModelSchema;
     schema(abstract: string): ModelSchemaAttributes;
     make(): {

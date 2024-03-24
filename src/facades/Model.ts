@@ -1,4 +1,4 @@
-import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model, RepositoryFacade } from '../types/Model';
+import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model, ModelFacade as ModelFacadeInterface } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
@@ -11,11 +11,11 @@ import { Reducer, ReducerCallback, Unsubscribe as UnsubscribeReducer } from '../
 import { Collection } from '../contracts/Collection';
 
 
-class Repository implements RepositoryFacade {
+class ModelFacade implements ModelFacadeInterface {
 
     private _models: { [abstract: string]: typeof Model } = {};
 
-    static name = 'Repository';
+    static name = 'ModelFacade';
 
     constructor(
         private readonly _schema: ModelSchema,
@@ -31,7 +31,7 @@ class Repository implements RepositoryFacade {
         Object.keys(this._schema).forEach((abstract) => {
             const modelReducer = this[`model${_.upperFirst(_.camelCase(abstract))}`];
             if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
-                throw new Error('Expect `Repository` to be Reducible');
+                throw new Error('Expect `ModelFacade` to be Reducible');
             }
 
             // !Reducer `model`
@@ -79,7 +79,7 @@ class Repository implements RepositoryFacade {
 
     toString()
     {
-        return 'repository';
+        return 'model';
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -132,5 +132,5 @@ class Repository implements RepositoryFacade {
 }
 
 
-export default HasEvents<GlobalModelEvents, typeof Repository>(Reducible(Repository));
+export default HasEvents<GlobalModelEvents, typeof ModelFacade>(Reducible(ModelFacade));
 

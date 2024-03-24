@@ -97,12 +97,12 @@ class Builder implements BuilderInterface {
     
             const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, { params: this.bag.all() });
     
-            const Model = this.facades.repository.make(this.abstract);
+            const Model = this.facades.model.make(this.abstract);
     
             const models: Model[] = new CollectionWithEvents(
                 ...data.data.map((item: JsonObject) => {
                     const value = new Model(item);
-                    this.facades.repository.emit('fetch', {
+                    this.facades.model.emit('fetch', {
                         class: this.abstract,
                         model: value,
                     });
@@ -167,7 +167,7 @@ class Builder implements BuilderInterface {
     }
 
     async find(id: string | number): Promise<Model | null> {
-        const pk = this.facades.repository.schema(this.abstract).primaryKey;
+        const pk = this.facades.model.schema(this.abstract).primaryKey;
         if (!pk) {
             throw new Error(`Cannot call 'Builder.find()' without a primaryKey. '${this.abstract}' must have a primary key`);
         }
