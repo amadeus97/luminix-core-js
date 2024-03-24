@@ -1,3 +1,4 @@
+import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
 import { Event, EventSource } from './Event';
 
 export type ErrorEventMap = {
@@ -9,13 +10,16 @@ export type ErrorChangeEvent = Event<ErrorFacade> & {
     key: string;
 };
 
-export type ErrorFacade = EventSource<ErrorEventMap> & {
+export type ErrorBag = EventSource<PropertyBagEventMap> & PropertyBag<Record<string, string>>;
 
-    add(key: string, value: string): void;
-    set(errors: Record<string, string>): void;
-    get(key: string): string | null;
-    all(): Record<string, string>;
-    clear(): void;
+export type ErrorFacade = {
+
+    add(key: string, value: string, bag?: string): void;
+    set(errors: Record<string, string>, bag?: string): void;
+    get(key: string, bag?: string): string | null;
+    all(bag?: string): Record<string, string>;
+    clear(bag?: string): void;
+    bag(name?: string): ErrorBag;
 };
 
 export type ValidationError = Error & {

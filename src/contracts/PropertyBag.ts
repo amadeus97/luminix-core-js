@@ -37,6 +37,24 @@ class PropertyBag<T extends object> {
             }
         }
 
+        if (path === '.') {
+            if (this.locked.length) {
+                throw new Error('Cannot set the root path when there are locked paths');
+            }
+
+            if (typeof value !== 'object' || value === null) {
+                throw new TypeError('Value must be an object');
+            }
+
+            this.bag = produce(this.bag, () => value);
+            this.emit('change', {
+                path,
+                value,
+                type: 'set',
+            });
+            return;
+        }
+
         this.bag = produce(this.bag, (draft) => {
             _.set(draft, path, value);
         });

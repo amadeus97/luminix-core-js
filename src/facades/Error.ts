@@ -1,7 +1,6 @@
-import { Unsubscribe } from 'nanoevents';
 import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
 import { HasEvents } from '../mixins/HasEvents';
-import { ErrorEventMap, ErrorFacade, ValidationError } from '../types/Error';
+import { ErrorFacade, ValidationError } from '../types/Error';
 import reader from '../support/reader';
 import { isAxiosError } from 'axios';
 
@@ -22,8 +21,7 @@ export const isValidationError = (error: unknown): error is ValidationError => {
 
 class Error implements ErrorFacade {
 
-    private bag: PropertyBag<Record<string, string>>;
-    private subscriptions: Unsubscribe[] = [];
+    private bags: Record<string, PropertyBag<Record<string, string>>>;
 
     constructor()
     {
@@ -38,81 +36,41 @@ class Error implements ErrorFacade {
             startBag[key] = reader(key, 'error');
         });
 
-        this.bag = new ErrorBag(startBag);
-        this.setUpEvents();
-    }
-
-    private setUpEvents()
-    {
-        this.subscriptions.forEach((unsubscribe) => {
-            unsubscribe();
-        });
-
-        this.subscriptions = [];
-
-        this.subscriptions.push(
-            this.bag.on('change', (e) => {
-                if (e.type === 'delete') {
-                    this.emit('change', {
-                        key: e.path,
-                        value: null,
-                    });
-                    return;
-                }
-                this.emit('change', {
-                    key: e.path,
-                    value: e.value as string,
-                });
-            })
-        );
+        this.bags = {
+            default: new ErrorBag(startBag)
+        };
     }
 
 
-    add(key: string, value: string): void {
-        this.bag.set(key, value);
+    bag(name = 'default'): PropertyBag<Record<string, string>> {
+        if (!this.bags[name]) {
+            this.bags[name] = new ErrorBag({});
+        }
+
+        return this.bags[name];
     }
 
-    set(errors: Record<string, string>): void {
-        this.bag = new ErrorBag(errors);
-        this.setUpEvents();
-        this.emit('change', {
-            key: '.',
-            value: null,
-        });
+    add(key: string, value: string, bag = 'default'): void {
+        this.bag(bag).set(key, value);
     }
 
-    all(): Record<string, string> {
-        return this.bag.all();
+    set(errors: Record<string, string>, bag = 'default'): void {
+        this.bag(bag).set('.', errors);
     }
 
-    get(key: string): string | null {
-        return this.bag.get(key, null) as string | null;
+    all(bag = 'default'): Record<string, string> {
+        return this.bag(bag).all();
     }
 
-    clear(): void {
-        this.bag = new ErrorBag({});
-        this.setUpEvents();
-        this.emit('change', {
-            key: '.',
-            value: null,
-        });
+    get(key: string, bag = 'default'): string | null {
+        return this.bag(bag).get(key, null) as string | null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    on<E extends 'change'>(_: E, __: ErrorEventMap[E]): Unsubscribe {
-        throw new window.Error('Method not implemented.');
+    clear(bag = 'default'): void {
+        this.bag(bag).set('.', {});
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    once<E extends 'change'>(_: E, __: ErrorEventMap[E]): void {
-        throw new window.Error('Method not implemented.');
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    emit<E extends 'change'>(_: E, __?: Omit<Parameters<ErrorEventMap[E]>[0], 'source'> | undefined): void {
-        throw new window.Error('Method not implemented.');
-    }
 }
 
-export default HasEvents<ErrorEventMap, typeof Error>(Error);
+export default Error;
 
