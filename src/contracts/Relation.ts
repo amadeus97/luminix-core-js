@@ -31,7 +31,10 @@ export default class Relation {
             throw new NotReducibleException('ModelFacade');
         }
 
-        const inverses: { [key: string]: string[] } = {
+        const currentRelation = this.getName();
+
+        // !Reducer `guessInverseRelation`
+        const inverses: { [key: string]: string[] } = this.facades.model.guessInverseRelation({
             'HasOne': ['BelongsTo'],
             'HasMany': ['BelongsTo'],
             'BelongsTo': ['HasOne', 'HasMany'],
@@ -40,9 +43,7 @@ export default class Relation {
             'MorphOne': ['MorphTo'],
             'MorphMany': ['MorphTo'],
             'MorphToMany': ['MorphToMany'],
-        };
-
-        const currentRelation = this.getName();
+        }, this.parent, currentRelation, this.related);
 
         if (!(currentRelation in inverses)) {
             throw new UnsupportedRelationException(currentRelation);

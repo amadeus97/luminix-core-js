@@ -25,6 +25,10 @@ import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import AttributeNotFillableException from '../exceptions/AttributeNotFillableException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
+import MorphMany from '../contracts/Relation/MorphMany';
+import MorphOne from '../contracts/Relation/MorphOne';
+import MorphTo from '../contracts/Relation/MorphTo';
+import MorphToMany from '../contracts/Relation/MorphToMany';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -94,26 +98,26 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return;
             }
 
-            const relationMap: {
-                [name: string]: typeof Relation
-            } = {
+            if (typeof facades.model.relationMap !== 'function') {
+                throw new NotReducibleException('ModelFacade');
+            }
+
+            // !Reducer `relationMap`
+            const relationMap: Record<string, typeof Relation> = facades.model.relationMap({
                 'BelongsTo': BelongsTo,
                 'BelongsToMany': BelongsToMany,
                 'HasOne': HasOne,
                 'HasMany': HasMany,
-                
-            };
+                'MorphMany': MorphMany,
+                'MorphOne': MorphOne,
+                'MorphTo': MorphTo,
+                'MorphToMany': MorphToMany,
+            }, abstract);
     
             Object.entries(relations).forEach(([key, relation]) => {
                 const { type, model, foreignKey } = relation;
 
                 const Related = facades.model.make(model);
-
-                // const items = key in attributes 
-                //     ? (Array.isArray(attributes[key])
-                //         ? new CollectionWithEvents(...(attributes[key] as JsonObject[]).map((item) => new Related(item)))
-                //         : new Related(attributes[key] as JsonObject))
-                //     : null;
 
                 const RelationClass = type in relationMap
                     ? relationMap[type]
