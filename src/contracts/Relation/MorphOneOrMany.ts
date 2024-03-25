@@ -11,7 +11,7 @@ export default class MorphOneOrMany extends HasOneOrMany
 {
 
     query(): BuilderInterface {
-        const query = this.related.query();
+        const query = this.getRelated().query();
 
         query.once('success', (e) => {
             this.items = e.items;
@@ -20,9 +20,9 @@ export default class MorphOneOrMany extends HasOneOrMany
         const relation = this.guessInverseRelation();
 
         query.where(relation + '_id', this.parent.getKey());
-        query.where(relation + '_type', this.related.getSchemaName());
-        query.lock(relation + '_id');
-        query.lock(relation + '_type');
+        query.where(relation + '_type', this.getRelated().getSchemaName());
+        query.lock(`filters.${relation}_id`);
+        query.lock(`filters.${relation}_type`);
 
         return query;
     }
@@ -32,8 +32,8 @@ export default class MorphOneOrMany extends HasOneOrMany
             throw new NotModelException('MorphOneOrMany.saveQuietly()');
         }
 
-        if (item.getType() !== this.related.getSchemaName()) {
-            throw new ModelInvalidRelatedTypeException('MorphOneOrMany.saveQuietly()', this.related.getSchemaName(), item.getType());
+        if (item.getType() !== this.getRelated().getSchemaName()) {
+            throw new ModelInvalidRelatedTypeException('MorphOneOrMany.saveQuietly()', this.getRelated().getSchemaName(), item.getType());
         }
 
         const relation = this.guessInverseRelation();

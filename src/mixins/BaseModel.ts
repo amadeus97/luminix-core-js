@@ -116,20 +116,17 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }, abstract);
     
             Object.entries(relations).forEach(([key, relation]) => {
-                const { type, model, foreignKey } = relation;
-
-                const Related = facades.model.make(model);
+                const { type } = relation;
 
                 const RelationClass = type in relationMap
                     ? relationMap[type]
                     : Relation;
 
                 this._relations[key] = new RelationClass(
+                    { name: key, ...relation },
                     facades,
                     this,
-                    Related,
                     null,
-                    foreignKey
                 );
             });
         }
@@ -782,9 +779,6 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return target.relations[prop].getLoadedItems();
                     }
                     // If is calling the relation method, return it.
-                    console.log('checking for relation call', prop, target.relations, {
-                        [prop]: prop.endsWith('Relation') && Object.keys(target.relations).includes(prop.slice(0, -8))
-                    });
                     if (prop.endsWith('Relation') && Object.keys(target.relations).includes(prop.slice(0, -8))) {
                         return () => target.relations[prop.slice(0, -8)];
                     }

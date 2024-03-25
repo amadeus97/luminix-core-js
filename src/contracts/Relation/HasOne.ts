@@ -1,4 +1,4 @@
-import { Model } from '../../types/Model';
+import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 import { AppFacades } from '../../types/App';
 
@@ -9,16 +9,15 @@ export default class HasOne extends HasOneOrMany
 {
 
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected related: typeof Model,
         protected items: Model | null = null,
-        protected foreignKey: string | null = null,
     ) {
         if (!isModel(items) && items !== null) {
             throw new NotModelException('HasOne.constructor()', 'Model or null');
         }
-        super(facades, parent, related, items, foreignKey);
+        super(meta, facades, parent, items);
     }
 
     get()

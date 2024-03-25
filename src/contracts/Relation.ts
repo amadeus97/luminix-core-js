@@ -1,23 +1,25 @@
 import { isModel } from '..';
 import { AppFacades } from '../types/App';
-import { BaseModel, JsonValue, Model } from '../types/Model';
+import { BaseModel, JsonValue, Model, RelationMetaData } from '../types/Model';
 
 import { Collection } from './Collection';
 
 import NotReducibleException from '../exceptions/NotReducibleException';
-import RelationNotFoundException from '../exceptions/RelationNotFoundException';
+
 import NotModelException from '../exceptions/NotModelException';
 import NoInverseRelationException from '../exceptions/NoInverseRelationException';
 import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
+import { Unsubscribe } from 'nanoevents';
 
 export default class Relation {
 
+    private unsubscribeQuery: Unsubscribe | null = null;
+
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: BaseModel,
-        protected related: typeof Model,
         protected items: Model | Collection<Model> | null = null,
-        protected foreignKey: string | null = null,
     ) {
         if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
@@ -25,13 +27,13 @@ export default class Relation {
     }
 
     guessInverseRelation(): string {
-        const { relations } = this.related.getSchema();
+        const { relations } = this.getRelated().getSchema();
 
         if (typeof this.facades.model.guessInverseRelation !== 'function') {
             throw new NotReducibleException('ModelFacade');
         }
 
-        const currentRelation = this.getName();
+        const currentRelationType = this.getType();
 
         // !Reducer `guessInverseRelation`
         const inverses: { [key: string]: string[] } = this.facades.model.guessInverseRelation({
@@ -43,21 +45,21 @@ export default class Relation {
             'MorphOne': ['MorphTo'],
             'MorphMany': ['MorphTo'],
             'MorphToMany': ['MorphToMany'],
-        }, this.parent, currentRelation, this.related);
+        }, this.parent, currentRelationType, this.getRelated());
 
-        if (!(currentRelation in inverses)) {
-            throw new UnsupportedRelationException(currentRelation);
+        if (!(currentRelationType in inverses)) {
+            throw new UnsupportedRelationException(currentRelationType);
         }
 
         for (const relationName in relations) {
             const relation = relations[relationName];
 
-            if ((relation.model === this.parent.getType() || ['MorphOne', 'MorphMany'].includes(currentRelation)) && inverses[currentRelation].includes(relation.type)) {
+            if ((relation.model === this.parent.getType() || ['MorphOne', 'MorphMany'].includes(currentRelationType)) && inverses[currentRelationType].includes(relation.type)) {
                 return relationName;
             }
         }
 
-        throw new NoInverseRelationException(this.parent.getType(), currentRelation, this.related.getSchemaName(), inverses[currentRelation].join(' or '));
+        throw new NoInverseRelationException(this.parent.getType(), currentRelationType, this.getRelated().getSchemaName(), inverses[currentRelationType].join(' or '));
     }
 
     set(items: Model | Collection<Model> | null)
@@ -74,25 +76,38 @@ export default class Relation {
     }
 
     getForeignKey() {
-        return this.foreignKey;
+        return this.meta.foreignKey;
     }
 
     getName()
     {
-        const relation = Object.entries(this.parent.relations).find(([, relation]) => relation === this);
+        return this.meta.name;
+    }
 
-        if (!relation) {
-            throw new RelationNotFoundException(this.parent.getType());
-        }
+    getType()
+    {
+        return this.meta.type;
+    }
 
-        return relation[0];
+    getModel()
+    {
+        return this.meta.model;
+    }
+
+    getRelated()
+    {
+        return this.facades.model.make(this.meta.model);
     }
 
     query()
     {
-        const query = this.related.query();
+        const query = this.getRelated().query();
 
-        query.once('success', (e) => {
+        if (this.unsubscribeQuery) {
+            this.unsubscribeQuery();
+        }
+
+        this.unsubscribeQuery = query.on('success', (e) => {
             this.items = e.items;
         });
 

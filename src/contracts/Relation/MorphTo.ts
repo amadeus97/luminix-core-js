@@ -7,9 +7,8 @@ import NotModelException from '../../exceptions/NotModelException';
 
 export default class MorphTo extends BelongsTo
 {
-    
-    private of(abstract: string): this {
-        this.related = this.facades.model.make(abstract);
+    of(abstract: string): this {
+        this.meta.model = abstract;
         return this;
     }
 

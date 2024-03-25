@@ -86,10 +86,9 @@ class Builder implements BuilderInterface {
         return this;
     }
 
-    copy(): BuilderInterface {
-        const BuilderWithEvents = HasEvents<BuilderEventMap, typeof Builder>(Builder);
-
-        return new BuilderWithEvents(this.facades, this.abstract, this.bag.all());
+    unset(key: string): this {
+        this.bag.delete(key);
+        return this;
     }
 
     private async exec(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
@@ -118,11 +117,13 @@ class Builder implements BuilderInterface {
             const models: Model[] = new CollectionWithEvents(
                 ...data.data.map((item: JsonObject) => {
                     const value = new Model(item);
+                    value.exists = true;
+
                     this.facades.model.emit('fetch', {
                         class: this.abstract,
                         model: value,
                     });
-                    value.exists = true;
+
                     return value;
                 })
             );

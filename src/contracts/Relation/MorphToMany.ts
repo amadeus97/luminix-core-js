@@ -1,6 +1,6 @@
 import { AppFacades } from '../../types/App';
 import { BuilderInterface } from '../../types/Builder';
-import { Model } from '../../types/Model';
+import { Model, RelationMetaData } from '../../types/Model';
 
 import { Collection } from '../Collection';
 
@@ -9,12 +9,12 @@ import BelongsToMany from './BelongsToMany';
 export default class MorphToMany extends BelongsToMany
 {
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected related: typeof Model,
         protected items: Collection<Model> | null = null,
     ) {
-        super(facades, parent, related, items);
+        super(meta, facades, parent, items);
     }
     
 
@@ -25,8 +25,8 @@ export default class MorphToMany extends BelongsToMany
 
         query.where(relation + '_id', this.parent.getKey());
         query.where(relation + '_type', this.parent.getType());
-        query.lock(relation + '_id');
-        query.lock(relation + '_type');
+        query.lock(`filters.${relation}_id`);
+        query.lock(`filters.${relation}_type`);
 
         return query;
     }

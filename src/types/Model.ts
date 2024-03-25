@@ -162,12 +162,7 @@ export interface ModelTableColumnDefinition {
 export interface ModelSchemaAttributes {
     fillable: string[],
     relations: {
-        [relationName: string]: {
-            model: string,
-            type: 'HasOne' | 'HasMany' | 'BelongsTo' | 'BelongsToMany' | 'MorphOne' | 'MorphMany' | 'MorphTo' | 'MorphToMany' | 'MorphedByMany',
-            foreignKey: string | null,
-            localKey: string | null,
-        }
+        [relationName: string]: Omit<RelationMetaData, 'name'>,
     },
     casts: {
         [field: string]: string,
@@ -178,6 +173,14 @@ export interface ModelSchemaAttributes {
     importable?: boolean,
     exportable?: boolean,
 }
+
+export interface RelationMetaData {
+    model: string,
+    type: 'HasOne' | 'HasMany' | 'BelongsTo' | 'BelongsToMany' | 'MorphOne' | 'MorphMany' | 'MorphTo' | 'MorphToMany' | 'MorphedByMany',
+    foreignKey: string | null,
+    name: string,
+}
+
 
 export interface ModelSchema {
     [abstract: string]: ModelSchemaAttributes;

@@ -2,7 +2,7 @@ import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelat
 import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../mixins/BaseModel';
 import { AppFacades } from '../../types/App';
-import { Model } from '../../types/Model';
+import { Model, RelationMetaData } from '../../types/Model';
 import CollectionWithEvents, { Collection } from '../Collection';
 import HasOneOrMany from './HasOneOrMany';
 
@@ -11,16 +11,15 @@ export default class HasMany extends HasOneOrMany
 {
 
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected related: typeof Model,
         protected items: Collection<Model> | null = null,
-        protected foreignKey: string | null = null,
     ) {
         if (items !== null && !(items instanceof CollectionWithEvents && items.every(isModel))) {
             throw new NotModelException('HasMany.constructor()', 'Collection<Model> or null');
         }
-        super(facades, parent, related, items, foreignKey);
+        super(meta, facades, parent, items);
     }
 
     get(page = 1, perPage = 15, replaceLinksWith?: string)
@@ -49,12 +48,12 @@ export default class HasMany extends HasOneOrMany
             throw new NotModelException('HasMany.saveManyQuietly()', 'Model[]');
         }
 
-        if (!models.every((model) => model.getType() === this.related.getSchemaName())) {
-            throw new ModelInvalidRelatedTypeException('HasMany.saveManyQuietly()', this.related.getSchemaName(), models.map((model) => model.getType()).join(', '));
+        if (!models.every((model) => model.getType() === this.getRelated().getSchemaName())) {
+            throw new ModelInvalidRelatedTypeException('HasMany.saveManyQuietly()', this.getRelated().getSchemaName(), models.map((model) => model.getType()).join(', '));
         }
 
         await Promise.all(models.map((model) => {
-            model.setAttribute(this.foreignKey as string, this.parent.getKey());
+            model.setAttribute(this.getForeignKey() as string, this.parent.getKey());
             return model.save();
         }));
     }

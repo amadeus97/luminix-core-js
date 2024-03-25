@@ -15,7 +15,7 @@ export default class HasOneOrMany extends Relation {
         const relation = this.guessInverseRelation();
 
         query.where(relation, this.parent.getKey());
-        query.lock(relation);
+        query.lock(`filters.${relation}`);
 
         return query;
     }
@@ -26,11 +26,11 @@ export default class HasOneOrMany extends Relation {
             throw new NotModelException('HasOneOrMany.saveQuietly()');
         }
 
-        if (item.getType() !== this.related.getSchemaName()) {
-            throw new ModelInvalidRelatedTypeException('HasOneOrMany.saveQuietly()', this.related.getSchemaName(), item.getType());
+        if (item.getType() !== this.getRelated().getSchemaName()) {
+            throw new ModelInvalidRelatedTypeException('HasOneOrMany.saveQuietly()', this.getRelated().getSchemaName(), item.getType());
         }
 
-        item.setAttribute(this.foreignKey as string, this.parent.getKey());
+        item.setAttribute(this.getForeignKey() as string, this.parent.getKey());
 
         await item.save();
     }

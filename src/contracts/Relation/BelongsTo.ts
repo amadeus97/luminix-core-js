@@ -1,5 +1,5 @@
 import Relation from '../Relation';
-import { Model } from '../../types/Model';
+import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 
 import { AppFacades } from '../../types/App';
@@ -11,16 +11,15 @@ import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelat
 export default class BelongsTo extends Relation {
 
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected related: typeof Model,
         protected items: Model | null = null,
-        protected foreignKey: string,
     ) {
         if (!isModel(items) && items !== null) {
             throw new NotModelException('BelongsTo.constructor()', 'Model or null');
         }
-        super(facades, parent, related, items, foreignKey);
+        super(meta, facades, parent, items);
     }
 
     query(): BuilderInterface {
@@ -29,7 +28,7 @@ export default class BelongsTo extends Relation {
         const relation = this.guessInverseRelation();
 
         query.where(relation, this.parent.getKey());
-        query.lock(relation);
+        query.lock(`filters.${relation}`);
 
         return query;
     }
@@ -44,8 +43,8 @@ export default class BelongsTo extends Relation {
             throw new NotModelException('BelongsTo.associate()');
         }
 
-        if (item.getType() !== this.related.getSchemaName()) {
-            throw new ModelInvalidRelatedTypeException('BelongsTo.associate()', this.related.getSchemaName(), item.getType());
+        if (item.getType() !== this.getRelated().getSchemaName()) {
+            throw new ModelInvalidRelatedTypeException('BelongsTo.associate()', this.getRelated().getSchemaName(), item.getType());
         }
 
         if (!item.exists) {
@@ -53,13 +52,13 @@ export default class BelongsTo extends Relation {
         }
 
         return this.parent.update({
-            [this.foreignKey]: item.getKey(),
+            [this.getForeignKey() as string]: item.getKey(),
         });
     }
 
     dissociate() {
         return this.parent.update({
-            [this.foreignKey]: null,
+            [this.getForeignKey() as string]: null,
         });
     }
 

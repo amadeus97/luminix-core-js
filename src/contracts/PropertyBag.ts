@@ -126,9 +126,6 @@ class PropertyBag<T extends object> {
         if (!this.has(path)) {
             throw new Error(`Cannot lock a non-existing path "${path}"`);
         }
-        if (typeof this.get(path) !== 'object') {
-            throw new Error(`Cannot lock a non-object path "${path}"`);
-        }
         this.locked.push(path);
     }
 

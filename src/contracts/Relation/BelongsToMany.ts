@@ -1,5 +1,5 @@
 import Relation from '../Relation';
-import { JsonObject, Model } from '../../types/Model';
+import { JsonObject, Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 
 import { AppFacades } from '../../types/App';
@@ -10,15 +10,15 @@ import NotModelException from '../../exceptions/NotModelException';
 export default class BelongsToMany extends Relation {
 
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected related: typeof Model,
         protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
         }
-        super(facades, parent, related, items);
+        super(meta, facades, parent, items);
     }
 
     query(): BuilderInterface {
@@ -27,7 +27,7 @@ export default class BelongsToMany extends Relation {
         const relation = this.guessInverseRelation();
 
         query.where(relation, this.parent.getKey());
-        query.lock(relation);
+        query.lock(`filters.${relation}`);
 
         return query;
     }
@@ -65,7 +65,7 @@ export default class BelongsToMany extends Relation {
 
         if (this.items) {
             const currentIndex = this.items.findIndex((item) => item.getKey() === id);
-            const freshItem = await this.related.find(id) as Model;
+            const freshItem = await this.getRelated().find(id) as Model;
             if (currentIndex >= 0) {
                 this.items.replace(currentIndex, freshItem);
             } else {
@@ -116,7 +116,7 @@ export default class BelongsToMany extends Relation {
             }
         ], {
             data: ids.map((id) => ({
-                [this.related.getSchema().primaryKey]: id,
+                [this.getRelated().getSchema().primaryKey]: id,
                 ...pivot,
             })),
         });

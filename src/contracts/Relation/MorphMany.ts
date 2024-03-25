@@ -1,5 +1,5 @@
 import { AppFacades } from '../../types/App';
-import { Model } from '../../types/Model';
+import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 
 import MorphOneOrMany from './MorphOneOrMany';
@@ -12,16 +12,15 @@ import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelat
 export default class MorphMany extends MorphOneOrMany
 {
     constructor(
+        protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected related: typeof Model,
         protected items: Collection<Model> | null = null,
-        protected foreignKey: string | null = null,
     ) {
         if (items !== null && !(items instanceof CollectionWithEvents && items.every(isModel))) {
             throw new NotModelException('MorphMany.constructor()', 'Collection<Model> or null');
         }
-        super(facades, parent, related, items, foreignKey);
+        super(meta, facades, parent, items);
     }
 
     get(page = 1, perPage = 15, replaceLinksWith?: string)
@@ -50,8 +49,8 @@ export default class MorphMany extends MorphOneOrMany
             throw new NotModelException('MorphMany.saveManyQuietly()');
         }
 
-        if (!models.every((model) => model.getType() === this.related.getSchemaName())) {
-            throw new ModelInvalidRelatedTypeException('MorphMany.saveManyQuietly()', this.related.getSchemaName(), models.map((model) => model.getType()).join(', '));
+        if (!models.every((model) => model.getType() === this.getRelated().getSchemaName())) {
+            throw new ModelInvalidRelatedTypeException('MorphMany.saveManyQuietly()', this.getRelated().getSchemaName(), models.map((model) => model.getType()).join(', '));
         }
 
         await Promise.all(models.map((model) => {

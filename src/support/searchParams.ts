@@ -10,8 +10,6 @@ export const createMergedSearchParams = (...urls: string[]): URLSearchParams => 
         });
     });
 
-    console.log('merged search params:', searchParams.toString());
-
     return searchParams;
 };
 
