@@ -3,16 +3,20 @@ import { Event, EventSource } from './Event';
 import { JsonObject, Model, ModelPaginatedResponse } from './Model';
 import { Collection } from '../contracts/Collection';
 
+export type Scope = (builder: BuilderInterface) => BuilderInterface | void;
+
 export type BuilderInterface = EventSource<BuilderEventMap> & {
-    lock(path: string): void,
-    where(key: string, value: unknown): BuilderInterface,
-    orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface,
-    searchBy(term: string): BuilderInterface,
-    minified(): BuilderInterface,
-    get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>,
-    all(): Promise<Collection<Model>>,
-    first(): Promise<Model | null>,
-    find(id: string | number): Promise<Model | null>,
+    lock(path: string): void;
+    where(scope: Scope): BuilderInterface;
+    where(key: string, value: unknown): BuilderInterface;
+    where(key: string | Scope, value?: unknown): BuilderInterface;
+    orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
+    searchBy(term: string): BuilderInterface;
+    minified(): BuilderInterface;
+    get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
+    all(): Promise<Collection<Model>>;
+    first(): Promise<Model | null>;
+    find(id: string | number): Promise<Model | null>;
 
 }
 

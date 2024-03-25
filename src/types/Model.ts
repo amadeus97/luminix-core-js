@@ -4,7 +4,7 @@ import { EventSource, Event } from './Event';
 import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Collection } from '../contracts/Collection';
-import { BuilderInterface } from './Builder';
+import { BuilderInterface, Scope } from './Builder';
 import Relation from '../contracts/Relation';
 
 export type RelationRepository = {
@@ -107,7 +107,11 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     static get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model | null>;
     static first(): Promise<Model | null>;
+
+    static where(scope: Scope): BuilderInterface;
     static where(key: string, value: JsonValue): BuilderInterface;
+    static where(key: string | Scope, value?: unknown): BuilderInterface;
+
     static orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
     static searchBy(term: string): BuilderInterface;
     static minified(): BuilderInterface;

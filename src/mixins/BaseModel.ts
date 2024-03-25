@@ -29,6 +29,7 @@ import MorphMany from '../contracts/Relation/MorphMany';
 import MorphOne from '../contracts/Relation/MorphOne';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
+import { BuilderInterface, Scope } from '../types/Builder';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -633,8 +634,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return new Builder(facades, abstract);
         }
 
-        static where(key: string, value: JsonValue) {
-            return this.query().where(key, value);
+        static where(scope: Scope): BuilderInterface
+        static where(key: string, value: JsonValue): BuilderInterface
+        static where(key: string | Scope, value?: JsonValue) {
+            if (typeof key === 'function') {
+                return this.query().where(key);
+            }
+            return this.query().where(key, value as JsonValue);
         }
 
         static orderBy(key: string, direction: 'asc' | 'desc' = 'asc') {

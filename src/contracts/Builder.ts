@@ -7,7 +7,7 @@ import { HasEvents } from '../mixins/HasEvents';
 import { createMergedSearchParams } from '../support/searchParams';
 
 import { AppFacades } from '../types/App';
-import { BuilderEventMap, BuilderInterface } from '../types/Builder';
+import { BuilderEventMap, BuilderInterface, Scope } from '../types/Builder';
 import { EventData } from '../types/Event';
 import {
     JsonObject, JsonValue, Model, ModelPaginatedLink,
@@ -54,10 +54,16 @@ class Builder implements BuilderInterface {
         this.bag.lock(path);
     }
 
-
-    where(key: string, value: JsonValue): this {
+    where(scope: (builder: BuilderInterface) => BuilderInterface | void): this;
+    where(key: string, value: JsonValue): this;
+    where(key: string | Scope, value?: JsonValue): BuilderInterface {
         if (!this.bag.has('filters')) {
             this.bag.set('filters', {});
+        }
+        
+        if (typeof key === 'function') {
+            const query = key(this);
+            return query || this as BuilderInterface;
         }
 
         this.bag.set(`filters.${key}`, value);
