@@ -782,6 +782,9 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return target.relations[prop].getLoadedItems();
                     }
                     // If is calling the relation method, return it.
+                    console.log('checking for relation call', prop, target.relations, {
+                        [prop]: prop.endsWith('Relation') && Object.keys(target.relations).includes(prop.slice(0, -8))
+                    });
                     if (prop.endsWith('Relation') && Object.keys(target.relations).includes(prop.slice(0, -8))) {
                         return () => target.relations[prop.slice(0, -8)];
                     }

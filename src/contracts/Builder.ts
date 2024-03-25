@@ -86,6 +86,12 @@ class Builder implements BuilderInterface {
         return this;
     }
 
+    copy(): BuilderInterface {
+        const BuilderWithEvents = HasEvents<BuilderEventMap, typeof Builder>(Builder);
+
+        return new BuilderWithEvents(this.facades, this.abstract, this.bag.all());
+    }
+
     private async exec(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
         try {
             this.bag.set('page', page);
