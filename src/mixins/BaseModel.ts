@@ -472,7 +472,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const { data } = await facades.route.call([
                 `luminix.${abstract}.show`,
                 this.makePrimaryKeyReplacer()
-            ]);
+            ], {
+                errorBag: `${abstract}[${this.getKey()}].fetch`,
+            });
             this.makeAttributes(data);
         }
     
@@ -504,6 +506,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                             ),
                             ...additionalPayload,
                         },
+                        errorBag: exists
+                            ? `${abstract}[${this.getKey()}].update`
+                            : `${abstract}.store`,
                     }
                 );
     
@@ -537,7 +542,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 const response = await facades.route.call([
                     `luminix.${abstract}.destroy`,
                     this.makePrimaryKeyReplacer(),
-                ]);
+                ], {
+                    errorBag: `${abstract}[${this.getKey()}].delete`,
+                });
     
                 if (response.status === 204) {
                     this.dispatchDeleteEvent();
@@ -557,7 +564,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 const response = await facades.route.call([
                     `luminix.${abstract}.update`,
                     this.makePrimaryKeyReplacer()
-                ], { data });
+                ], {
+                    data,
+                    errorBag: `${abstract}[${this.getKey()}].update`,
+                });
 
                 if (response.status === 200) {
                     this.makeAttributes(response.data);
@@ -581,7 +591,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                         `luminix.${abstract}.destroy`,
                         this.makePrimaryKeyReplacer(),
                     ],
-                    { params: { force: true } }
+                    {
+                        params: { force: true },
+                        errorBag: `${abstract}[${this.getKey()}].forceDelete`,
+                    }
                 );
     
                 if (response.status === 204) {
@@ -604,7 +617,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                         `luminix.${abstract}.update`,
                         this.makePrimaryKeyReplacer()
                     ],
-                    { params: { restore: true } }
+                    {
+                        params: { restore: true },
+                        errorBag: `${abstract}[${this.getKey()}].restore`,
+                    }
                 );
     
                 if (response.status === 200) {
@@ -710,7 +726,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static delete(id: Array<number | string>): Promise<AxiosResponse>;
         static delete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${abstract}.destroyMany`, { params: { ids: id } });
+                return facades.route.call(`luminix.${abstract}.destroyMany`, {
+                    params: { ids: id },
+                    errorBag: `${abstract}.deleteMany`,
+                });
             }
     
             const Model = facades.model.make(abstract);
@@ -723,7 +742,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static async restore(id: Array<number | string>): Promise<AxiosResponse>;
         static async restore(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${abstract}.restoreMany`, { data: { ids: id } });
+                return facades.route.call(`luminix.${abstract}.restoreMany`, {
+                    data: { ids: id },
+                    errorBag: `${abstract}.restoreMany`,
+                });
             }
     
             const Model = facades.model.make(abstract);
@@ -737,7 +759,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static forceDelete(id: Array<number | string>): Promise<AxiosResponse>;
         static forceDelete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${abstract}.destroyMany`, { params: { ids: id, force: true } });
+                return facades.route.call(`luminix.${abstract}.destroyMany`, {
+                    params: { ids: id, force: true },
+                    errorBag: `${abstract}.forceDeleteMany`,
+                });
             }
     
             const Model = facades.model.make(abstract);

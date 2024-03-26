@@ -169,7 +169,10 @@ class Builder implements BuilderInterface {
                 data: this.bag,
             });
     
-            const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, { params: this.bag.all() });
+            const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, {
+                params: this.bag.all(),
+                errorBag: `${this.abstract}.fetch`,
+            });
     
             const Model = this.facades.model.make(this.abstract);
     

@@ -57,6 +57,7 @@ export default class BelongsToMany extends Relation {
             }
         ], {
             data: pivot,
+            errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:attach`
         });
     }
 
@@ -77,13 +78,18 @@ export default class BelongsToMany extends Relation {
     }
 
     async detachQuietly(id: string | number) {
-        await this.facades.route.call([
-            `luminix.${this.parent.getType()}.${this.getName()}:detach`,
+        await this.facades.route.call(
+            [
+                `luminix.${this.parent.getType()}.${this.getName()}:detach`,
+                {
+                    [this.parent.getKeyName()]: this.parent.getKey(),
+                    itemId: id,
+                }
+            ],
             {
-                [this.parent.getKeyName()]: this.parent.getKey(),
-                itemId: id,
+                errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:detach`
             }
-        ]);
+        );
     }
 
     async detach(id: string | number) {
@@ -105,6 +111,7 @@ export default class BelongsToMany extends Relation {
             }
         ], {
             data: ids,
+            errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:sync`
         });
     }
 
@@ -119,6 +126,7 @@ export default class BelongsToMany extends Relation {
                 [this.getRelated().getSchema().primaryKey]: id,
                 ...pivot,
             })),
+            errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:sync`
         });
     }
 
