@@ -134,6 +134,26 @@ export default class Relation {
         return this.query().where(key, value);
     }
 
+    whereNull(key: string)
+    {
+        return this.query().whereNull(key);
+    }
+
+    whereNotNull(key: string)
+    {
+        return this.query().whereNotNull(key);
+    }
+
+    whereBetween(key: string, value: [JsonValue, JsonValue])
+    {
+        return this.query().whereBetween(key, value);
+    }
+
+    whereNotBetween(key: string, value: [JsonValue, JsonValue])
+    {
+        return this.query().whereNotBetween(key, value);
+    }
+
     orderBy(column: string, direction: 'asc' | 'desc' = 'asc')
     {
         return this.query().orderBy(column, direction);

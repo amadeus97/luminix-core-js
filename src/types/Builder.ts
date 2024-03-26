@@ -7,9 +7,15 @@ export type Scope = (builder: BuilderInterface) => BuilderInterface | void;
 
 export type BuilderInterface = EventSource<BuilderEventMap> & {
     lock(path: string): void;
+
     where(scope: Scope): BuilderInterface;
     where(key: string, value: unknown): BuilderInterface;
     where(key: string | Scope, value?: unknown): BuilderInterface;
+    whereNull(key: string): BuilderInterface;
+    whereNotNull(key: string): BuilderInterface;
+    whereBetween(key: string, value: [unknown, unknown]): BuilderInterface;
+    whereNotBetween(key: string, value: [unknown, unknown]): BuilderInterface;
+
     orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
     searchBy(term: string): BuilderInterface;
     minified(): BuilderInterface;

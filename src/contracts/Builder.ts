@@ -15,6 +15,8 @@ import {
 } from '../types/Model';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
+import _ from 'lodash';
+import { Operator } from '../types/Collection';
 
 const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
 
@@ -54,9 +56,42 @@ class Builder implements BuilderInterface {
         this.bag.lock(path);
     }
 
+    whereBetween(key: string, value: [JsonValue, JsonValue]): this {
+        if (!this.bag.has('filters')) {
+            this.bag.set('filters', {});
+        }
+        this.bag.set(`filters.${_.camelCase(key)}Between`, value);
+        return this;
+    }
+
+    whereNotBetween(key: string, value: [JsonValue, JsonValue]): this {
+        if (!this.bag.has('filters')) {
+            this.bag.set('filters', {});
+        }
+        this.bag.set(`filters.${_.camelCase(key)}NotBetween`, value);
+        return this;
+    }
+
+    whereNull(key: string): this {
+        if (!this.bag.has('filters')) {
+            this.bag.set('filters', {});
+        }
+        this.bag.set(`filters.${_.camelCase(key)}Null`, true);
+        return this;
+    }
+
+    whereNotNull(key: string): this {
+        if (!this.bag.has('filters')) {
+            this.bag.set('filters', {});
+        }
+        this.bag.set(`filters.${_.camelCase(key)}NotNull`, true);
+        return this;
+    }
+
     where(scope: (builder: BuilderInterface) => BuilderInterface | void): this;
     where(key: string, value: JsonValue): this;
-    where(key: string | Scope, value?: JsonValue): BuilderInterface {
+    where(key: string, operator: Operator, value: JsonValue): this;
+    where(key: string | Scope, operatorOrValue?: Operator | JsonValue, value?: JsonValue): BuilderInterface {
         if (!this.bag.has('filters')) {
             this.bag.set('filters', {});
         }
@@ -66,7 +101,28 @@ class Builder implements BuilderInterface {
             return query || this as BuilderInterface;
         }
 
-        this.bag.set(`filters.${key}`, value);
+        if (typeof value === 'undefined') {
+            this.bag.set(`filters.${_.camelCase(key)}`, operatorOrValue);
+            return this;
+        }
+
+        const operatorSuffixMap: Record<Operator & 'like', string> = {
+            '=': '',
+            '!=': 'NotEquals',
+            '>': 'GreaterThan',
+            '>=': 'GreaterThanOrEquals',
+            '<': 'LessThan',
+            '<=': 'LessThanOrEquals',
+            'like': 'Like',
+        };
+
+        if (typeof operatorOrValue !== 'string' || !(operatorOrValue in operatorSuffixMap)) {
+            throw new Error(`Invalid operator: ${operatorOrValue}`);
+        }
+
+        const suffix: string = operatorSuffixMap[operatorOrValue as Operator & 'like'];
+
+        this.bag.set(`filters.${_.camelCase(key)}${suffix}`, value);
 
         return this;
     }
