@@ -19,7 +19,9 @@ export type BuilderInterface = EventSource<BuilderEventMap> & {
     orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
     searchBy(term: string): BuilderInterface;
     minified(): BuilderInterface;
-    get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
+    limit(value: number): BuilderInterface;
+
+    get(page?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
     all(): Promise<Collection<Model>>;
     first(): Promise<Model | null>;
     find(id: string | number): Promise<Model | null>;

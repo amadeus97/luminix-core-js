@@ -169,6 +169,11 @@ export default class Relation {
         return this.query().minified();
     }
 
+    limit(value: number)
+    {
+        return this.query().limit(value);
+    }
+
     // get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse>
     // {
     //     return this.query().get(page, perPage, replaceLinksWith);

@@ -88,6 +88,11 @@ class Builder implements BuilderInterface {
         return this;
     }
 
+    limit(value: number): this {
+        this.bag.set('per_page', value);
+        return this;
+    }
+
     where(scope: (builder: BuilderInterface) => BuilderInterface | void): this;
     where(key: string, value: JsonValue): this;
     where(key: string, operator: Operator, value: JsonValue): this;
@@ -147,10 +152,9 @@ class Builder implements BuilderInterface {
         return this;
     }
 
-    private async exec(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+    private async exec(page = 1, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
         try {
-            this.bag.set('page', page);
-            this.bag.set('per_page', perPage);
+            this.bag.set('page', page);            
     
             // const params = (() => {
             //     if (typeof this.bag.get('filters') === 'object') {
@@ -218,8 +222,8 @@ class Builder implements BuilderInterface {
         }
     }
 
-    async get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
-        const result = await this.exec(page, perPage, replaceLinksWith);
+    async get(page = 1, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+        const result = await this.exec(page, replaceLinksWith);
         this.emit('success', {
             response: result,
             items: result.data,
@@ -229,7 +233,7 @@ class Builder implements BuilderInterface {
 
 
     async first(): Promise<Model | null> {
-        const result = await this.exec(1, 1);
+        const result = await this.limit(1).exec(1);
 
         this.emit('success', {
             response: result,
@@ -245,7 +249,7 @@ class Builder implements BuilderInterface {
             throw new ModelWithoutPrimaryKeyException(this.abstract);
         }
 
-        const result = await this.where(pk, id).exec(1, 1);
+        const result = await this.where(pk, id).limit(1).exec(1);
 
         this.emit('success', {
             response: result,
@@ -256,7 +260,8 @@ class Builder implements BuilderInterface {
     }
 
     async all(): Promise<Collection<Model>> {
-        const firstPage = await this.exec(1, this.facades.config.get('luminix.backend.api.max_per_page', 150) as number);
+        const limit = this.facades.config.get('luminix.backend.api.max_per_page', 150) as number;
+        const firstPage = await this.limit(limit).exec(1);
 
         const pages = firstPage.meta.last_page;
 
@@ -264,10 +269,11 @@ class Builder implements BuilderInterface {
             return firstPage.data;
         }
 
+        // [2, 3, 4, ..., N]
         const pagesToFetch = Array.from({ length: pages - 1 }, (_, i) => i + 2);
 
         const results = await Promise.all(
-            pagesToFetch.map((page) => this.exec(page, this.facades.config.get('luminix.backend.api.max_per_page', 150) as number))
+            pagesToFetch.map((page) => this.limit(limit).exec(page))
         );
 
         const all = new CollectionWithEvents(

@@ -104,7 +104,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     static getSchema(): ModelSchemaAttributes;
 
     static query(): BuilderInterface;
-    static get(page?: number, perPage?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
+    static get(page?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model | null>;
     static first(): Promise<Model | null>;
 
@@ -119,6 +119,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     static orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
     static searchBy(term: string): BuilderInterface;
     static minified(): BuilderInterface;
+    static limit(value: number): BuilderInterface;
 
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;

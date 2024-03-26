@@ -668,8 +668,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return this.query().minified();
         }
 
-        static get(page = 1, perPage = 15, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
-            return this.query().get(page, perPage, replaceLinksWith);
+        static limit(value: number) {
+            return this.query().limit(value);
+        }
+
+        static get(page = 1, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+            return this.query().get(page, replaceLinksWith);
         }
     
         static find(id: number | string) {
