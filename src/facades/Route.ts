@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import {
-    RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator
+    RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator, RouteCallConfig
 } from '../types/Route';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import { Reducible } from '../mixins/Reducible';
 import { ErrorFacade } from '../types/Error';
 import { isValidationError } from './Error';
@@ -102,8 +102,8 @@ class Route {
             && this.isRouteTuple(_.get(this.routes, name));
     }
 
-    async call(generator: RouteGenerator, config: AxiosRequestConfig = {}) {
-        if (typeof this.axiosOptions !== 'function') {
+    async call(generator: RouteGenerator, config: RouteCallConfig = {}) {
+        if (typeof this.axiosOptions !== 'function' || typeof this.axiosError !== 'function') {
             throw new NotReducibleException('RouteFacade');
         }
         const [name, replace] = this.extractGenerator(generator);
@@ -114,10 +114,10 @@ class Route {
         // !Reducer `axiosOptions`
         const axiosOptions = this.axiosOptions(config, name);
         
-        const { method = methods[0], ...rest } = axiosOptions;
+        const { method = methods[0], errorBag = 'route.call', ...rest } = axiosOptions;
         const { data, ...restOfRest } = rest;
 
-        this.error.clear();
+        this.error.clear(errorBag);
 
         try {
             const response = ['get', 'delete'].includes(method)
@@ -134,12 +134,12 @@ class Route {
                     return acc;
                 }, {} as Record<string,string>));
             } else if (axios.isAxiosError(error)) {
-                if (typeof this.axiosError !== 'function') {
-                    throw new NotReducibleException('RouteFacade');
-                }
-                this.error.set(this.axiosError({ axios: error.message }, { 
-                    error, name, replace, config
-                }));
+                this.error.set(
+                    this.axiosError({ axios: error.message }, { 
+                        error, name, replace, config
+                    }),
+                    errorBag
+                );
             }
             throw error;
         }
