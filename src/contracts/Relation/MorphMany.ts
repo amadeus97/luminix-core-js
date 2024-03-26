@@ -23,9 +23,9 @@ export default class MorphMany extends MorphOneOrMany
         super(meta, facades, parent, items);
     }
 
-    get(page = 1, perPage = 15, replaceLinksWith?: string)
+    get(page = 1, replaceLinksWith?: string)
     {
-        return this.query().get(page, perPage, replaceLinksWith);
+        return this.query().get(page, replaceLinksWith);
     }
 
     all()

@@ -32,8 +32,8 @@ export default class BelongsToMany extends Relation {
         return query;
     }
 
-    get(page = 1, perPage = 15, replaceLinksWith?: string) {
-        return this.query().get(page, perPage, replaceLinksWith);
+    get(page = 1, replaceLinksWith?: string) {
+        return this.query().get(page, replaceLinksWith);
     }
 
     all() {
