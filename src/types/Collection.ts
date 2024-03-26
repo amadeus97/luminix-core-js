@@ -7,6 +7,8 @@ export type CollectionEvents = {
 
 export type Operator = '=' | '!=' | '>' | '>=' | '<' | '<=';
 
+export type ExtendedOperator = Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'isNull' | 'isNotNull';
+
 // export type Collection<T = unknown> = EventSource<CollectionEvents> & CollectionClass<T>;
 
 

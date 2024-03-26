@@ -16,7 +16,7 @@ import {
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 import _ from 'lodash';
-import { Operator } from '../types/Collection';
+import { ExtendedOperator } from '../types/Collection';
 
 const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
 
@@ -95,8 +95,8 @@ class Builder implements BuilderInterface {
 
     where(scope: (builder: BuilderInterface) => BuilderInterface | void): this;
     where(key: string, value: JsonValue): this;
-    where(key: string, operator: Operator, value: JsonValue): this;
-    where(key: string | Scope, operatorOrValue?: Operator | JsonValue, value?: JsonValue): BuilderInterface {
+    where(key: string, operator: ExtendedOperator, value: JsonValue): this;
+    where(key: string | Scope, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface {
         if (!this.bag.has('filters')) {
             this.bag.set('filters', {});
         }
@@ -111,21 +111,20 @@ class Builder implements BuilderInterface {
             return this;
         }
 
-        const operatorSuffixMap: Record<Operator & 'like', string> = {
+        if (typeof operatorOrValue !== 'string') {
+            throw new Error(`Invalid operator ${operatorOrValue} provided for where clause.`);
+        }
+
+        const operatorSuffixMap: Record<string, string> = {
             '=': '',
             '!=': 'NotEquals',
             '>': 'GreaterThan',
             '>=': 'GreaterThanOrEquals',
             '<': 'LessThan',
             '<=': 'LessThanOrEquals',
-            'like': 'Like',
         };
 
-        if (typeof operatorOrValue !== 'string' || !(operatorOrValue in operatorSuffixMap)) {
-            throw new Error(`Invalid operator: ${operatorOrValue}`);
-        }
-
-        const suffix: string = operatorSuffixMap[operatorOrValue as Operator & 'like'];
+        const suffix: string = operatorSuffixMap[operatorOrValue] || _.upperFirst(_.camelCase(operatorOrValue as string));
 
         this.bag.set(`filters.${_.camelCase(key)}${suffix}`, value);
 

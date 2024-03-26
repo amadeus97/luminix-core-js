@@ -74,15 +74,17 @@ describe('testing authentication', () => {
 
         const auth = app.make('auth');
 
+        const onSubmit = jest.fn((e) => e.preventDefault());
         auth.attempt({
             email: 'test@foo.com',
             password: 'password'
-        }, true, jest.fn((e) => e.preventDefault()));
+        }, true, onSubmit);
 
         // a form should exist with the login route in the DOM
         const form = document.querySelector('form');
         expect(form).toBeInstanceOf(HTMLFormElement);
         expect(form?.getAttribute('action')).toBe('/login');
+        expect(onSubmit).toHaveBeenCalled();
 
         form?.remove();
     });

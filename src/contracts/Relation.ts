@@ -10,6 +10,8 @@ import NotModelException from '../exceptions/NotModelException';
 import NoInverseRelationException from '../exceptions/NoInverseRelationException';
 import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
 import { Unsubscribe } from 'nanoevents';
+import { BuilderInterface, Scope } from '../types/Builder';
+import { ExtendedOperator } from '../types/Collection';
 
 export default class Relation {
 
@@ -129,9 +131,12 @@ export default class Relation {
         return this.parent;
     }
 
-    where(key: string, value: JsonValue)
+    where(scope: Scope): BuilderInterface
+    where(key: string, value: JsonValue): BuilderInterface
+    where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface
+    where(...args: unknown[])
     {
-        return this.query().where(key, value);
+        return this.query().where(...args as [string, ExtendedOperator, JsonValue]);
     }
 
     whereNull(key: string)

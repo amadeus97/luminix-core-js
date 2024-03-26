@@ -30,6 +30,7 @@ import MorphOne from '../contracts/Relation/MorphOne';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
 import { BuilderInterface, Scope } from '../types/Builder';
+import { ExtendedOperator } from '../types/Collection';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -633,11 +634,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
         static where(scope: Scope): BuilderInterface
         static where(key: string, value: JsonValue): BuilderInterface
-        static where(key: string | Scope, value?: JsonValue) {
-            if (typeof key === 'function') {
-                return this.query().where(key);
-            }
-            return this.query().where(key, value as JsonValue);
+        static where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface
+        static where(...args: unknown[]): BuilderInterface {
+            return this.query().where(...args as [string, ExtendedOperator, JsonValue]);
         }
 
         static whereNull(key: string) {

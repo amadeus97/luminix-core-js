@@ -6,6 +6,7 @@ import { AppFacade } from './App';
 import { Collection } from '../contracts/Collection';
 import { BuilderInterface, Scope } from './Builder';
 import Relation from '../contracts/Relation';
+import { ExtendedOperator } from './Collection';
 
 export type RelationRepository = {
     // [relationName: string]: Model | Collection<Model>,
@@ -110,7 +111,9 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 
     static where(scope: Scope): BuilderInterface;
     static where(key: string, value: JsonValue): BuilderInterface;
-    static where(key: string | Scope, value?: unknown): BuilderInterface;
+    static where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface;
+    static where(key: string | Scope, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface;
+
     static whereNull(key: string): BuilderInterface;
     static whereNotNull(key: string): BuilderInterface;
     static whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface;

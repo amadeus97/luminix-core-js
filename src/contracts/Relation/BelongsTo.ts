@@ -6,6 +6,7 @@ import { AppFacades } from '../../types/App';
 import { BuilderInterface } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
+import ModelNotPersistedException from '../../exceptions/ModelNotPersistedException';
 
 
 export default class BelongsTo extends Relation {
@@ -48,7 +49,7 @@ export default class BelongsTo extends Relation {
         }
 
         if (!item.exists) {
-            await item.save();
+            throw new ModelNotPersistedException(this.getRelated().getSchemaName(), 'save');
         }
 
         return this.parent.update({
