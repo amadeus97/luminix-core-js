@@ -111,6 +111,10 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     static where(scope: Scope): BuilderInterface;
     static where(key: string, value: JsonValue): BuilderInterface;
     static where(key: string | Scope, value?: unknown): BuilderInterface;
+    static whereNull(key: string): BuilderInterface;
+    static whereNotNull(key: string): BuilderInterface;
+    static whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface;
+    static whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface;
 
     static orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
     static searchBy(term: string): BuilderInterface;

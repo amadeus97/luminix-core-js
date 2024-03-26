@@ -640,6 +640,22 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return this.query().where(key, value as JsonValue);
         }
 
+        static whereNull(key: string) {
+            return this.query().whereNull(key);
+        }
+
+        static whereNotNull(key: string) {
+            return this.query().whereNotNull(key);
+        }
+
+        static whereBetween(key: string, value: [JsonValue, JsonValue]) {
+            return this.query().whereBetween(key, value);
+        }
+
+        static whereNotBetween(key: string, value: [JsonValue, JsonValue]) {
+            return this.query().whereNotBetween(key, value);
+        }
+
         static orderBy(key: string, direction: 'asc' | 'desc' = 'asc') {
             return this.query().orderBy(key, direction);
         }
