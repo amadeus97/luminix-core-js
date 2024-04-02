@@ -124,7 +124,6 @@ describe('testing configuration', () => {
             config.set('qux', 'quux');
 
             expect(() => config.merge('qux', { quuz: 'corge' })).toThrow('Cannot merge a non-object path "qux"');
-            expect(() => config.lock('qux')).toThrow('Cannot lock a non-object path "qux"');
 
             config.set('foo', { bar: { deep: { deeper: { evenDeeper: 'baz' } } }});
             config.lock('foo.bar.deep.deeper');

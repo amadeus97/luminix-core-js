@@ -50,19 +50,23 @@ describe('testing builder', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (mockAxios as any).get.mockImplementationOnce(mockedResponse);
 
-        const users = await User.where('branch_id', 1)
-            .where('role_id', [1, 2, 3])
+        
+
+        const users = await User.where('branchId', 1)
+            .where('roleId', [1, 2, 3])
+            .where('createdAt', '>=', '2021-01-01')
             .orderBy('name')
             .searchBy('doe')
             .minified()
-            .all();
+            .all(); // or .get(page) .first() .find() 
 
         expect(users.length).toBe(2);
         expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
             params: {
                 filters: {
-                    branch_id: 1,
-                    role_id: [1, 2, 3],
+                    branchId: 1,
+                    roleId: [1, 2, 3],
+                    createdAtGreaterThanOrEquals: '2021-01-01',
                 },
                 minified: true,
                 order_by: 'name:asc',
