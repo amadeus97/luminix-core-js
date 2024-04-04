@@ -1,17 +1,17 @@
-import { Collection, isCollection } from './ComposedCollection';
+import { Collection } from './Collection';
 
 import { Model } from '../types/Model';
-import { HasEvents } from '..';
-import { CollectionEvents } from '../types/Collection';
+// import { HasEvents } from '..';
+import { Collection as CollectionInterface } from '../types/Collection';
 
 
 class ModelCollection extends Collection<Model> {
 
     static name = 'Collection';
 
-    intersect(values: Collection<Model> | Model[]): Collection<Model> {
+    intersect(values: Collection<Model> | Model[]): CollectionInterface<Model> {
         return new ModelCollection(this.items.filter((item) => {
-            return isCollection(values)
+            return !Array.isArray(values)
                 ? values.contains((value) => value.getKey() === item.getKey())
                 : values.some((value) => value.getKey() === item.getKey());
         }));
@@ -19,4 +19,4 @@ class ModelCollection extends Collection<Model> {
 }
 
 
-export default HasEvents<CollectionEvents<Model>, typeof ModelCollection>(ModelCollection);
+export default ModelCollection;

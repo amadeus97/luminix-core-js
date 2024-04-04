@@ -1,22 +1,30 @@
 import { Unsubscribe } from 'nanoevents';
 
 import PropertyBag from './PropertyBag';
-import CollectionWithEvents, { Collection } from './Collection';
+
+
+import { collect } from './Collection';
+import Collection from './ModelCollection';
+
+
 
 import { HasEvents } from '../mixins/HasEvents';
 import { createMergedSearchParams } from '../support/searchParams';
 
 import { AppFacades } from '../types/App';
-import { BuilderEventMap, BuilderInterface, Scope } from '../types/Builder';
+import { BuilderEventMap, BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
 import { EventData } from '../types/Event';
 import {
     JsonObject, JsonValue, Model, ModelPaginatedLink,
     ModelPaginatedResponse, ModelQuery
 } from '../types/Model';
+
+import { Collection as CollectionInterface } from '../types/Collection';
+
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 import _ from 'lodash';
-import { ExtendedOperator } from '../types/Builder';
+
 
 const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
 
@@ -176,19 +184,31 @@ class Builder implements BuilderInterface {
     
             const Model = this.facades.model.make(this.abstract);
     
-            const models: Model[] = new CollectionWithEvents(
-                ...data.data.map((item: JsonObject) => {
-                    const value = new Model(item);
-                    value.exists = true;
+            // const models = new Collection(
+            //     ...data.data.map((item: JsonObject) => {
+            //         const value = new Model(item);
+            //         value.exists = true;
 
-                    this.facades.model.emit('fetch', {
-                        class: this.abstract,
-                        model: value,
-                    });
+            //         this.facades.model.emit('fetch', {
+            //             class: this.abstract,
+            //             model: value,
+            //         });
 
-                    return value;
-                })
-            );
+            //         return value;
+            //     })
+            // );
+            const models = collect(data.data.map((item: JsonObject) => {
+                const value = new Model(item);
+                value.exists = true;
+
+                this.facades.model.emit('fetch', {
+                    class: this.abstract,
+                    model: value,
+                });
+
+                return value;
+            }), Collection);
+
     
             if (replaceLinksWith) {
                 const [base] = replaceLinksWith.split('?');
@@ -239,7 +259,7 @@ class Builder implements BuilderInterface {
 
         this.emit('success', {
             response: result,
-            items: result.data.length ? result.data[0] : null,
+            items: result.data.count() ? result.data[0] : null,
         });
 
         return result.data.length ? result.data[0] : null;
@@ -261,7 +281,7 @@ class Builder implements BuilderInterface {
         return result.data.length ? result.data[0] : null;
     }
 
-    async all(): Promise<Collection<Model>> {
+    async all(): Promise<CollectionInterface<Model>> {
         const limit = this.facades.config.get('luminix.backend.api.max_per_page', 150) as number;
         const firstPage = await this.limit(limit).exec(1);
 
@@ -278,7 +298,7 @@ class Builder implements BuilderInterface {
             pagesToFetch.map((page) => this.limit(limit).exec(page))
         );
 
-        const all = new CollectionWithEvents(
+        const all = new Collection(
             ...results.reduce((acc, result) => {
                 acc.push(...result.data);
                 return acc;

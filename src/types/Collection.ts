@@ -49,7 +49,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      *
      */
     average(): number;
-    average<K extends keyof T>(key: K): T[K] extends number ? number : never;
+    average<K extends keyof T>(key: K): number;
     
     
     /**
@@ -64,7 +64,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      *
      */
     avg(): number;
-    avg<K extends keyof T>(key: K): T[K] extends number ? number : never;
+    avg<K extends keyof T>(key: K): number;
 
 
     /**
@@ -1807,7 +1807,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      * ```
      * 
      */
-    sortBy<K extends keyof T>(key: K, order?: 'asc' | 'desc'): T[K] extends number | Date ? Collection<T> : never;
+    sortBy<K extends keyof T>(key: K, order?: 'asc' | 'desc'): Collection<T>;
     sortBy<K extends keyof T>(columns: [K, 'asc' | 'desc'][]): Collection<T>;
     sortBy(callback: CollectionIteratorCallback<T, number>): Collection<T>;
     sortBy(stack: ((a: T, b: T) => number)[]): Collection<T>;
@@ -1889,7 +1889,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
     splitIn(groups: number): Collection<Collection<T>>;
 
     sum(): number;
-    sum<K extends keyof T>(key: K): T[K] extends number ? number : never;
+    sum<K extends keyof T>(key: K): number;
 
     take(amount: number): Collection<T>;
 
