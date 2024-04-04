@@ -33,7 +33,7 @@ export function collect<T = unknown>(items: T[] = []): Collection<T> {
 }
 
 
-class Collection<T> implements CollectionInterface<T> {
+export class Collection<T> implements CollectionInterface<T> {
 
     static name = 'Collection';
 
@@ -66,7 +66,7 @@ class Collection<T> implements CollectionInterface<T> {
     }
 
     average(): number
-    average(key: keyof T): number
+    average<K extends keyof T>(key: K): T[K] extends number ? number : never;
     average(key?: keyof T): number {
         if (typeof key === 'string') {
             return this.avg(key);
@@ -75,7 +75,7 @@ class Collection<T> implements CollectionInterface<T> {
     }
 
     avg(): number
-    avg(key: keyof T): number
+    avg<K extends keyof T>(key: K): T[K] extends number ? number : never;
     avg(key?: keyof T): number {
         
         if (typeof key === 'string') {
@@ -502,6 +502,231 @@ class Collection<T> implements CollectionInterface<T> {
     }
 
 
+    has(index: number): boolean {
+        return this.items.length > index;
+    }
+
+    hasAny(indexes: number[]): boolean {
+        return indexes.some((index) => this.has(index));
+    }
+
+    implode(glue: string): string;
+    implode(key: keyof T, glue: string): string;
+    implode(callback: CollectionIteratorCallback<T, string>, glue: string): string;
+    implode(keyOrGlueOrCallback: string | keyof T | CollectionIteratorCallback<T, string>, glue?: string): string {
+        if (typeof glue === 'undefined') {
+            if (typeof keyOrGlueOrCallback !== 'string') {
+                throw new TypeError('The glue must be a string');
+            }
+
+            if (!this.items.every((item) => ['string', 'number'].includes(typeof item))) {
+                throw new TypeError('The items must be strings or numbers');
+            }
+
+            return this.items.join(keyOrGlueOrCallback);
+        }
+        
+        if (typeof keyOrGlueOrCallback === 'function') {
+            return this.items.map((item, index) => {
+                return keyOrGlueOrCallback(item, index, this);
+            }).join(glue);
+        }
+
+        if (typeof keyOrGlueOrCallback !== 'string') {
+            throw new TypeError('The key must be a string');
+        }
+
+        if (!this.items.every((item) => typeof item === 'object')) {
+            throw new TypeError('The items must be objects');
+        }
+
+        return this.items.map((item) => {
+            return item[keyOrGlueOrCallback as keyof T];
+        }).join(glue);
+
+    }
+
+    intersect(values: Collection<T> | T[]): Collection<T> {
+        if (isCollection(values)) {
+            return collect(this.items.filter(item => values.contains(item)));
+        }
+        return collect(this.items.filter(item => values.includes(item)));
+    }
+
+    isEmpty(): boolean {
+        return this.items.length === 0;
+    }
+
+    isNotEmpty(): boolean {
+        return !this.isEmpty();
+    }
+
+    join(glue: string): string;
+    join(glue: string, final: string): string;
+    join(glue: string, final?: string): string {
+        if (typeof final === 'undefined') {
+            return this.items.join(glue);
+        }
+
+        return this.items.slice(0, -1).join(glue) + final + this.items[this.items.length - 1];
+    }
+
+    keyBy(key: keyof T): Record<string, T>;
+    keyBy(callback: CollectionIteratorCallback<T, string>): Record<string, T>;
+    keyBy(keyOrCallback: unknown): Record<string, T> {
+        if (typeof keyOrCallback === 'function') {
+            return this.items.reduce((carry, item, index) => {
+                carry[keyOrCallback(item, index, this)] = item;
+                return carry;
+            }, {} as Record<string, T>);
+        }
+
+        if (typeof keyOrCallback !== 'string') {
+            throw new TypeError('The key must be a string');
+        }
+
+        return this.items.reduce((carry, item) => {
+            carry[String(item[keyOrCallback as keyof T])] = item;
+            return carry;
+        }, {} as Record<string, T>);
+        
+    }
+
+    last(callback?: CollectionIteratorCallback<T, boolean> | undefined): T | null {
+        if (typeof callback === 'function') {
+            return this.items.toReversed().find((item, index) => {
+                return callback(item, index, this);
+            }) ?? null;
+        }
+        return this.items[this.items.length - 1] ?? null;
+    }
+
+    map<R>(callback: CollectionIteratorCallback<T, R>): Collection<R> {
+        return collect(this.items.map((item, index) => callback(item, index, this)));
+    }
+
+    mapInto<R extends Constructor<InstanceType<R>>>(constructor: R): Collection<InstanceType<R>> {
+        return collect(this.items.map((item) => new constructor(item)));
+    }
+
+    mapSpread<R>(callback: (...args: unknown[]) => R): Collection<R> {
+        return collect(this.items.map((item) => {
+            if (!Array.isArray(item) && !isCollection(item)) {
+                throw new TypeError('The items in the collection must be arrays or collections');
+            }
+
+            const args = Array.isArray(item)
+                ? item
+                : item.all();
+            
+            return callback(...args);
+        }));
+        
+    }
+
+    mapToGroups<R>(callback: CollectionIteratorCallback<T, Record<string, R>>): Record<string, R[]> {
+        return this.items.reduce((carry, item, index) => {
+            const groups = callback(item, index, this);
+
+            Object.entries(groups).forEach(([key, value]) => {
+                carry[key] = carry[key] ?? [];
+                carry[key].push(value);
+            });
+
+            return carry;
+        }, {} as Record<string, R[]>);
+    }
+
+    mapWithKeys<R>(callback: CollectionIteratorCallback<T, Record<string, R>>): Record<string, R> {
+        return this.items.reduce((carry, item, index) => {
+            const keys = callback(item, index, this);
+
+            Object.entries(keys).forEach(([key, value]) => {
+                carry[key] = value;
+            });
+
+            return carry;
+        }, {} as Record<string, R>);
+    }
+
+    max(): T | null;
+    max<K extends keyof T>(key: K): T[K] | null;
+    max<K extends keyof T>(key?: K): T | T[K] | null {
+        if (typeof key === 'string') {
+            return this.items.reduce((carry, item) => {
+                return item[key] > carry ? item[key] : carry;
+            }, this.items[0][key] as T[K]);
+        }
+
+        return this.items.reduce((carry, item) => {
+            return item > carry ? item : carry;
+        }, this.items[0] as T);
+    }
+
+    median(): T | null;
+    median<K extends keyof T>(key: K): T[K] | null;
+    median<K extends keyof T>(key?: K): T | T[K] | null {
+        if (typeof key === 'string') {
+            const sorted = this.pluck(key).sort();
+            const middle = Math.floor(sorted.length / 2);
+
+            if (sorted.length % 2 === 0) {
+                // return (sorted[middle - 1] + sorted[middle]) / 2;
+                return collect([sorted[middle - 1], sorted[middle]]).avg() as T[K];
+            }
+
+            return sorted[middle];
+        }
+
+        const sorted = this.items.toSorted();
+        const middle = Math.floor(sorted.length / 2);
+
+        if (sorted.length % 2 === 0) {
+            // return (sorted[middle - 1] + sorted[middle]) / 2;
+            return collect([sorted[middle - 1], sorted[middle]]).avg() as T;
+        }
+
+        return sorted[middle];
+
+
+        
+    }
+
+    merge(values: Collection<T> | T[]): Collection<T>;
+    merge<R>(values: Collection<R> | R[]): Collection<T | R>;
+    merge<R>(values: Collection<R> | R[]): Collection<T | R> {
+        if (isCollection(values)) {
+            return collect([...this.items, ...values.all()]);
+        }
+        return collect([...this.items, ...values]);
+    }
+
+
+    pluck<K extends keyof T>(key: K): T[K][] {
+        return this.items.map((item) => item[key]);
+    }
+
+    sum(): number;
+    sum<K extends keyof T>(key: K): T[K] extends number ? number : never;
+    sum<K extends keyof T>(key?: K): number | (T[K] extends number ? number : never) {
+        if (typeof key === 'string') {
+            return this.items.reduce((carry: number, item) => {
+                const value = item[key];
+                if (typeof value !== 'number') {
+                    throw new TypeError('The items must be numbers');
+                }
+                return carry + value;
+            }, 0);
+        }
+
+        return this.items.reduce((carry: number, item) => {
+            if (typeof item !== 'number') {
+                throw new TypeError('The items must be numbers');
+            }
+            return carry + item;
+        }, 0);
+    }
+
 
     // methods that mutates the collection
     fill(value: T, start: number = 0, end: number = this.items.length): this {
@@ -594,9 +819,6 @@ class Collection<T> implements CollectionInterface<T> {
     }
 
 
-    map<U>(callback: (value: T, index: number, array: T[]) => U): Collection<U> {
-        return collect(this.items.map(callback));
-    }
 
 
     reduce<U>(callback: (accumulator: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U {

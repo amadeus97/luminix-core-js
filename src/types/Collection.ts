@@ -41,7 +41,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      *
      */
     average(): number;
-    average(key: string): number;
+    average<K extends keyof T>(key: K): T[K] extends number ? number : never;
     
     
     /**
@@ -56,7 +56,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      *
      */
     avg(): number;
-    avg(key: string): number;
+    avg<K extends keyof T>(key: K): T[K] extends number ? number : never;
 
 
     /**
@@ -761,6 +761,322 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
     groupBy(key: keyof T): Record<string, T[]>;
     groupBy(callback: CollectionIteratorCallback<T, string | string[]>): Record<string, T[]>;
     groupBy(keys: (keyof T | CollectionIteratorCallback<T, string | string[]>)[]): Record<string, unknown>;
+
+
+    /**
+     * 
+     * The `has` method determines if a index exists in the collection:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4]).has(2);
+     * // true
+     * ```
+     * 
+     */
+    has(index: number): boolean;
+
+    /**
+     * 
+     * The `hasAny` method determines if any of the given indexes exist in the collection:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4]).hasAny([2, 4, 6]);
+     * // true
+     * ```
+     * 
+     */
+    hasAny(indexes: number[]): boolean;
+
+    /**
+     * 
+     * The `implode` method joins the items in a collection. Its arguments depend on the type
+     * of items in the collection. If the collection contains objects, you should pass the key
+     * of the attributes you wish to join, and the "glue" string you wish to place between the
+     * values:
+     *
+     * ```js
+     * const collection = collect([
+     *     { account_id: 1, product: 'Desk' },
+     *     { account_id: 2, product: 'Chair' }, 
+     * ]).implode('product', ', ');
+     * // 'Desk, Chair'
+     * ```
+     * 
+     * If the collection contains simple strings or numeric values, simply pass the "glue" as
+     * the only argument:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4, 5]).implode('-');
+     * // '1-2-3-4-5'
+     * ```
+     * 
+     * You may pass a callback to the `implode` method if you would like to format the values
+     * being imploded:
+     * 
+     * ```js
+     * collection.implode((item) => item.product.toUpperCase(), ', ');
+     * // 'DESK, CHAIR'
+     * ```
+     * 
+     */
+    implode(glue: string): string;
+    implode(key: keyof T, glue: string): string;
+    implode(callback: CollectionIteratorCallback<T, string>, glue: string): string;
+
+
+    /**
+     * 
+     * The `intersect` method compares the collection against another collection or a plain array
+     * based on its values, keeping only the values that are present in both collections:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4, 5]).intersect([2, 4, 6, 8]).all();
+     * // [2, 4]
+     * ```
+     * 
+     * > This method behavior is modified when using a ModelCollection.
+     * 
+     */
+    intersect(values: Collection<T> | T[]): Collection<T>;
+
+    /**
+     * 
+     * The `isEmpty` method returns `true` if the collection is empty; otherwise, `false` is returned:
+     * 
+     * ```js
+     * collect().isEmpty();
+     * // true
+     * ```
+     * 
+     */
+    isEmpty(): boolean;
+
+    /**
+     * 
+     * The `isNotEmpty` method returns `true` if the collection is not empty; otherwise, `false` is returned:
+     * 
+     * ```js
+     * collect().isNotEmpty();
+     * // false
+     * ```
+     * 
+     */
+    isNotEmpty(): boolean;
+
+    /**
+     * 
+     * The `join` method joins the collection's values with a string. Using this
+     * method's second argument, you may also specify how the final element should
+     * be appended to the string:
+     * 
+     * ```js
+     * collect(['a', 'b', 'c']).join(', '); // 'a, b, c'
+     * collect(['a', 'b', 'c']).join(', ', ' and '); // 'a, b and c'
+     * ```
+     * 
+     */
+    join(glue: string): string;
+    join(glue: string, finalGlue: string): string;
+
+
+    /**
+     * 
+     * The `keyBy` method keys the collection by the given key. If multiple items have the same key,
+     * only the last one will appear in the new collection:
+     * 
+     * ```js
+     * const collection = collect([
+     *    { product_id: 'prod-100', name: 'Desk' },
+     *    { product_id: 'prod-200', name: 'Chair' },
+     * ]);
+     * 
+     * collection.keyBy('product_id');
+     * // {
+     * //    'prod-100': { product_id: 'prod-100', name: 'Desk' },
+     * //    'prod-200': { product_id: 'prod-200', name: 'Chair' },
+     * // }
+     * ```
+     * 
+     * You may also pass a callback to the method. The callback should return the value to key
+     * the collection by:
+     * 
+     * ```js
+     * collection.keyBy((item) => item.product_id.toUpperCase());
+     * // {
+     * //    'PROD-100': { product_id: 'prod-100', name: 'Desk' },
+     * //    'PROD-200': { product_id: 'prod-200', name: 'Chair' },
+     * // }
+     * ```
+     * 
+     */
+    keyBy(key: keyof T): Record<string, T>;
+    keyBy(callback: CollectionIteratorCallback<T, string>): Record<string, T>;
+
+    /**
+     * 
+     * The `last` method returns the last item in the collection that passes a given truth test:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4, 5]).last(value => value < 3);
+     * // 2
+     * ```
+     * 
+     * If no callback is provided, the last item in the collection will be returned:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4, 5]).last();
+     * // 5
+     * ```
+     * 
+     */
+    last(callback?: CollectionIteratorCallback<T, boolean>): T | null;
+
+    /**
+     * 
+     * The `map` method iterates through the collection and passes each value to
+     * the given callback. The callback is free to modify the item and return it,
+     * thus forming a new collection of modified items:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4, 5]).map(value => value * 2).all();
+     * // [2, 4, 6, 8, 10]
+     * 
+     */
+    map<R>(callback: CollectionIteratorCallback<T, R>): Collection<R>;
+
+    /**
+     * 
+     * The `mapInto` method creates a new collection by passing each item in the collection
+     * to a given constructor:
+     * 
+     * ```js
+     * class User {
+     * 
+     *   constructor(attributes) {
+     *     this.attributes = attributes;
+     *   }
+     * }
+     * 
+     * const collection = collect([{ name: 'John' }, { name: 'Jane' }]);
+     * 
+     * collection.mapInto(User).all();
+     * // [User, User]
+     * ```
+     * 
+     */
+    mapInto<R extends Constructor<InstanceType<R>>>(constructor: R): Collection<InstanceType<R>>;
+
+    /**
+     * 
+     * The `mapSpread` method iterates through the collection and passes each nested item to
+     * the given callback. The callback is free to modify the item and return it, thus forming
+     * a new collection of modified items:
+     * 
+     * ```js
+     * const collection = collect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+     * 
+     * collection.chunk(2).mapSpread((even, odd) => even + odd).all();
+     * // [1, 5, 9, 13, 17]
+     * ```
+     * 
+     */
+    mapSpread<R>(callback: (...args: unknown[]) => R): Collection<R>;
+
+    /**
+     * 
+     * The `mapToGroups` method groups the collection's items by a given callback.
+     * The callback should return an object containing the a single key / value pair,
+     * thus forming a new object of grouped values:
+     * 
+     * ```js
+     * const collection = collect([
+     *     { name: 'John Doe', department: 'Sales' },
+     *     { name: 'Jane Doe', department: 'Sales' },
+     *     { name: 'Johnny Doe', department: 'Marketing' },
+     * ]);
+     * 
+     * collection.mapToGroups((item) => ({ [item.department]: item.name }));
+     * // {
+     * //    'Sales': ['John Doe', 'Jane Doe'],
+     * //    'Marketing': ['Johnny Doe'],
+     * // }
+     * ```
+     * 
+     */
+    mapToGroups<R>(callback: CollectionIteratorCallback<T, Record<string, R>>): Record<string, R[]>;
+
+    /**
+     * 
+     * The `mapWithKeys` method iterates through the collection and passes each value to the given callback.
+     * The callback should return an object containing a single key / value pair:
+     * 
+     * ```js
+     * const collection = collect([
+     *     { product_id: 'prod-100', name: 'Desk' },
+     *     { product_id: 'prod-200', name: 'Chair' },
+     * ]);
+     * 
+     * collection.mapWithKeys((item) => ({ [item.product_id]: item.name }));
+     * // {
+     * //    'prod-100': 'Desk',
+     * //    'prod-200': 'Chair',
+     * // }
+     * ```
+     * 
+     */
+    mapWithKeys<R>(callback: CollectionIteratorCallback<T, Record<string, R>>): Record<string, R>;
+
+    /**
+     * 
+     * The `max` method returns the maximum value of a given key:
+     * 
+     * ```js
+     * const collection = collect([{ foo: 10 }, { foo: 20 }]);
+     * 
+     * collection.max('foo');
+     * // 20
+     * 
+     * collect([1, 2, 3, 4, 5]).max();
+     * // 5
+     * 
+     * ```
+     *
+     * If the collection is empty, `null` will be returned.
+     * 
+     */
+    max(): T | null;
+    max<K extends keyof T>(key: K): T[K] | null;
+
+    /**
+     * 
+     * The `median` method returns the median value of a given key:
+     * 
+     * ```js
+     * const collection = collect([1, 2, 2, 4]);
+     * 
+     * collection.median();
+     * // 2
+     * ```
+     * 
+     * If the collection is empty, `null` will be returned.
+     * 
+     */
+    median(): T | null;
+    median<K extends keyof T>(key: K): T[K] | null;
+
+    /**
+     * 
+     * The `merge` method creates a new collection by merging the items
+     * of the collection with the items of another array or collection:
+     * 
+     * ```js
+     * collect([1, 2, 3]).merge([4, 5, 6]);
+     * // [1, 2, 3, 4, 5, 6]
+     * ```
+     * 
+     */
+    merge(values: Collection<T> | T[]): Collection<T>;
+    merge<R>(values: Collection<R> | R[]): Collection<T | R>;
 
 
 
