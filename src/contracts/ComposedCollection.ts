@@ -196,9 +196,7 @@ export class Collection<T> implements CollectionInterface<T> {
         return this.items.length;
     }
 
-    countBy(): Record<string, number>;
-    countBy(callback: CollectionIteratorCallback<T, string>): Record<string, number>;
-    countBy(callback?: CollectionIteratorCallback<T, string>): Record<string, number> {
+    countBy(callback?: CollectionIteratorCallback<T, string | number>): Record<string | number, number> {
         if (typeof callback === 'function') {
             return this.items.reduce((carry, item, index) => {
                 const key = callback(item, index, this);
@@ -668,9 +666,9 @@ export class Collection<T> implements CollectionInterface<T> {
     median<K extends keyof T>(key?: K): T | T[K] | null {
         if (typeof key === 'string') {
             const sorted = this.pluck(key).sort();
-            const middle = Math.floor(sorted.length / 2);
+            const middle = Math.floor(sorted.count() / 2);
 
-            if (sorted.length % 2 === 0) {
+            if (sorted.count() % 2 === 0) {
                 // return (sorted[middle - 1] + sorted[middle]) / 2;
                 return collect([sorted[middle - 1], sorted[middle]]).avg() as T[K];
             }
@@ -687,8 +685,6 @@ export class Collection<T> implements CollectionInterface<T> {
         }
 
         return sorted[middle];
-
-
         
     }
 
@@ -701,14 +697,45 @@ export class Collection<T> implements CollectionInterface<T> {
         return collect([...this.items, ...values]);
     }
 
+    min(): T | null;
+    min<K extends keyof T>(key: K): T[K] | null;
+    min<K extends keyof T>(key?: K): T | T[K] | null {
+        if (typeof key === 'string') {
+            return this.items.reduce((carry, item) => {
+                return item[key] < carry ? item[key] : carry;
+            }, this.items[0][key] as T[K]);
+        }
 
-    pluck<K extends keyof T>(key: K): T[K][] {
-        return this.items.map((item) => item[key]);
+        return this.items.reduce((carry, item) => {
+            return item < carry ? item : carry;
+        }, this.items[0] as T);
+    }
+
+    mode(): T[];
+    mode<K extends keyof T>(key: K): T[K][];
+    mode<K extends keyof T>(key?: K): T[] | T[K][] {
+
+        const counts = typeof key === 'string'
+            ? this.filter((item) => ['number', 'string'].includes(typeof item[key]))
+                .countBy((item) => item[key] as string | number)
+            : this.countBy();
+
+        const max = Math.max(...Object.values(counts));
+
+        return Object.entries(counts)
+            .filter(([, count]) => count === max)
+            .map(([value]) => value) as T[K][];
+
+    }
+
+
+    pluck<K extends keyof T>(key: K): Collection<T[K]> {
+        return this.map((item) => item[key]);
     }
 
     sum(): number;
     sum<K extends keyof T>(key: K): T[K] extends number ? number : never;
-    sum<K extends keyof T>(key?: K): number | (T[K] extends number ? number : never) {
+    sum<K extends keyof T>(key?: K): number {
         if (typeof key === 'string') {
             return this.items.reduce((carry: number, item) => {
                 const value = item[key];

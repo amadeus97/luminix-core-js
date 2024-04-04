@@ -255,7 +255,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      * ```
      *
      */
-    countBy(callback?: CollectionIteratorCallback<T, string>): Record<string, number>;
+    countBy(callback?: CollectionIteratorCallback<T, string | number>): Record<string | number, number>;
 
 
     /**
@@ -1078,7 +1078,47 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
     merge(values: Collection<T> | T[]): Collection<T>;
     merge<R>(values: Collection<R> | R[]): Collection<T | R>;
 
+    /**
+     * 
+     * The `min` method returns the minimum value of a given key:
+     * 
+     * ```js
+     * let min = collect([{ foo: 10 }, { foo: 20 }]).min('foo');
+     * // 10
+     * 
+     * min = collect([1, 2, 3, 4, 5]).min();
+     * // 1
+     * 
+     */
+    min(): T | null;
+    min<K extends keyof T>(key: K): T[K] | null;
 
+    /**
+     * 
+     * The `mode` method returns the mode value of a given key:
+     * 
+     * ```js
+     * let mode = collect([
+     *     { foo: 10 },
+     *     { foo: 10 },
+     *     { foo: 20 },
+     *     { foo: 40 },
+     * ]).mode('foo');
+     * // [10]
+     * 
+     * mode = collect([1, 2, 2, 4]).mode();
+     * // [2]
+     * 
+     * mode = collect([1, 1, 2, 2]).mode();
+     * // [1, 2]
+     * 
+     * ```
+     * 
+     * @link https://en.wikipedia.org/wiki/Mode_(statistics)
+     * 
+     */
+    mode(): T[];
+    mode<K extends keyof T>(key: K): T[K][];
 
 };
 
