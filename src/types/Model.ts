@@ -4,14 +4,11 @@ import { EventSource, Event } from './Event';
 import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Collection } from '../contracts/Collection';
-import { BuilderInterface, Scope } from './Builder';
+import { BuilderInterface, Scope, ExtendedOperator } from './Builder';
 import Relation from '../contracts/Relation';
-import { ExtendedOperator } from './Collection';
 
-export type RelationRepository = {
-    // [relationName: string]: Model | Collection<Model>,
-    [relationName: string]: Relation,
-}
+
+export type RelationRepository = Record<string, Relation>;
 
 export type ModelEvents = {
     'change': (e: ModelChangeEvent) => void,
@@ -169,12 +166,8 @@ export interface ModelTableColumnDefinition {
 
 export interface ModelSchemaAttributes {
     fillable: string[],
-    relations: {
-        [relationName: string]: Omit<RelationMetaData, 'name'>,
-    },
-    casts: {
-        [field: string]: string,
-    },
+    relations: Record<string, Omit<RelationMetaData, 'name'>>,
+    casts: Record<string, string>,
     primaryKey: string,
     timestamps: boolean,
     softDeletes: boolean,
@@ -238,9 +231,7 @@ export type ModelPaginatedResponse = {
 export type ModelFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
     schema(): ModelSchema;
     schema(abstract: string): ModelSchemaAttributes;
-    make(): {
-        [abstract: string]: typeof Model;
-    };
+    make(): Record<string, typeof Model>;
     make(abstract: string): typeof Model;
     boot(app: AppFacade): void;
     

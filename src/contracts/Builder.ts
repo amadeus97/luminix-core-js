@@ -16,7 +16,7 @@ import {
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 import _ from 'lodash';
-import { ExtendedOperator } from '../types/Collection';
+import { ExtendedOperator } from '../types/Builder';
 
 const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
 

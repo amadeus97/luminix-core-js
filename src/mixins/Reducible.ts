@@ -4,8 +4,8 @@ import { isDraftable, produce } from 'immer';
 import { ReducerCallback, Reducer } from '../types/Reducer';
 import CollectionWithEvents, { Collection } from '../contracts/Collection';
 import ReducerOverrideException from '../exceptions/ReducerOverrideException';
+import { Constructor } from '../types/Support';
 
-type Constructor = new (...args: any[]) => {};
 
 export function Reducible<T extends Constructor>(Base: T) {
     return class extends Base {

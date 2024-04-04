@@ -2,9 +2,11 @@ import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
 import { Event, EventSource } from './Event';
 import { JsonObject, JsonValue, Model, ModelPaginatedResponse } from './Model';
 import { Collection } from '../contracts/Collection';
-import { ExtendedOperator } from './Collection';
+import { Operator } from './Collection';
 
 export type Scope = (builder: BuilderInterface) => BuilderInterface | void;
+
+export type ExtendedOperator = Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'isNull' | 'isNotNull';
 
 export type BuilderInterface = EventSource<BuilderEventMap> & {
     lock(path: string): void;

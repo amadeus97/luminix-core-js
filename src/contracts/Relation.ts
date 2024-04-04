@@ -10,8 +10,8 @@ import NotModelException from '../exceptions/NotModelException';
 import NoInverseRelationException from '../exceptions/NoInverseRelationException';
 import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
 import { Unsubscribe } from 'nanoevents';
-import { BuilderInterface, Scope } from '../types/Builder';
-import { ExtendedOperator } from '../types/Collection';
+import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
+
 
 export default class Relation {
 

@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Emitter } from 'nanoevents';
 import { EventSourceEvents, EventSource } from '../types/Event';
-
-type Constructor = new (...args: any[]) => {};
+import { Constructor } from '../types/Support';
 
 export function isEventSource<T>(value: T): value is T & EventSource<any> {
     return typeof value === 'object' 

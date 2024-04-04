@@ -29,8 +29,7 @@ import MorphMany from '../contracts/Relation/MorphMany';
 import MorphOne from '../contracts/Relation/MorphOne';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
-import { BuilderInterface, Scope } from '../types/Builder';
-import { ExtendedOperator } from '../types/Collection';
+import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
