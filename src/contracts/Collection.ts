@@ -5,25 +5,10 @@ import { CollectionEvents , Operator, Collection as CollectionInterface, Collect
 import { JsonValue } from '../types/Model';
 import { Constructor, TypeOf } from '../types/Support';
 import _ from 'lodash';
-import { cartesian } from '../support/collection';
+import { cartesian, isCollection } from '../support/collection';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import { Unsubscribe } from 'nanoevents';
 
-export function isCollection(instance: unknown): instance is CollectionInterface<unknown> {
-    if (typeof instance !== 'object' || instance === null) {
-        return false;
-    }
-
-    if (!Reflect.has(instance, 'constructor')) {
-        return false;
-    }
-
-    if (Reflect.get(instance.constructor, 'name') !== 'Collection') {
-        return false;
-    }
-
-    return true;
-}
 
 
 export function collect<T = unknown, C extends typeof Collection<T> = typeof Collection<T>>(items: T[] = [], constructor: C = Collection as C): CollectionInterface<T> {
@@ -144,7 +129,7 @@ export class Collection<T> implements CollectionInterface<T> {
 
 
     concat(collection: CollectionInterface<unknown> | unknown[]): CollectionInterface<unknown> {
-        if (isCollection(collection)) {
+        if (!Array.isArray(collection)) {
             return collect([...this.items, ...collection.all()]);
         }
         return collect([...this.items, ...collection]);
@@ -1362,7 +1347,7 @@ export class Collection<T> implements CollectionInterface<T> {
     }
 
     zip<R>(items: CollectionInterface<R> | R[]): CollectionInterface<[T, R | null]> {
-        if (isCollection(items)) {
+        if (!Array.isArray(items)) {
             return collect<[T, R | null]>(
                 this.items.map((item, index) => [item, items.get(index)]) as [T, R | null][]
             );

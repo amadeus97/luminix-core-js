@@ -4,9 +4,11 @@ import { isModel } from '../../mixins/BaseModel';
 
 import MorphOneOrMany from './MorphOneOrMany';
 
-import CollectionWithEvents, { Collection } from '../Collection';
+import Collection from '../Collection';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
+
+import { Collection as CollectionInterface } from '../../types/Collection';
 
 
 export default class MorphMany extends MorphOneOrMany
@@ -15,9 +17,9 @@ export default class MorphMany extends MorphOneOrMany
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected items: Collection<Model> | null = null,
+        protected items: CollectionInterface<Model> | null = null,
     ) {
-        if (items !== null && !(items instanceof CollectionWithEvents && items.every(isModel))) {
+        if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('MorphMany.constructor()', 'Collection<Model> or null');
         }
         super(meta, facades, parent, items);
@@ -67,9 +69,7 @@ export default class MorphMany extends MorphOneOrMany
         if (this.items) {
             this.items.push(item);
         } else {
-            this.items = new CollectionWithEvents(
-                ...(await this.all())
-            );
+            this.items = await this.all();
         }
     }
 
@@ -80,11 +80,9 @@ export default class MorphMany extends MorphOneOrMany
         const newItems = await this.all();
 
         if (this.items) {
-            this.items.flush().push(...newItems);
+            this.items.splice(0, this.items.count(), ...newItems);
         } else {
-            this.items = new CollectionWithEvents(
-                ...newItems
-            );
+            this.items = newItems;
         }
     }
 

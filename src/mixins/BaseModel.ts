@@ -10,10 +10,13 @@ import {
 
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
+
 import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
-import CollectionWithEvents from '../contracts/Collection';
+
+import { collect, isCollection } from '../contracts/Collection';
+import ModelCollection from '../contracts/ModelCollection';
 
 import Builder from '../contracts/Builder';
 import BelongsTo from '../contracts/Relation/BelongsTo';
@@ -166,9 +169,16 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     }
     
                     if (!isSingle && Array.isArray(attributes[key])) {
-                        this.relation(key).set(new CollectionWithEvents(
-                            ...(relationData as JsonObject[]).map((item) => new Model(item))
-                        ));
+                        // this.relation(key).set(new CollectionWithEvents(
+                        //     ...(relationData as JsonObject[]).map((item) => new Model(item))
+                        // ));
+
+                        this.relation(key).set(
+                            collect(
+                                (relationData as JsonObject[]).map((item) => new Model(item)),
+                                ModelCollection
+                            )
+                        );
                     }
                 });
             }
@@ -427,11 +437,14 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
             const relations = Object.entries(this.relations).reduce((acc, [key, relation]) => {
                 const { type } = modelRelations[key];
-                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && relation.isLoaded() && !Array.isArray(relation.getLoadedItems())) {
-                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as ModelInterface).json();
+
+                const loadedItems = relation.getLoadedItems();
+
+                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && loadedItems && !isCollection(loadedItems)) {
+                    acc[_.snakeCase(key)] = loadedItems.json();
                 }
-                if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && relation.isLoaded() && Array.isArray(relation.getLoadedItems())) {
-                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as ModelInterface[]).map((item) => item.json());
+                if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && relation.isLoaded() && isCollection(loadedItems)) {
+                    acc[_.snakeCase(key)] = loadedItems.map((item) => item.json()).all();
                 }
                 return acc;
             }, {} as JsonObject);

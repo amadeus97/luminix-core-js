@@ -3,7 +3,7 @@ import { AxiosResponse } from 'axios';
 import { EventSource, Event } from './Event';
 import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
-import { Collection } from '../contracts/Collection';
+import { Collection } from './Collection';
 import { BuilderInterface, Scope, ExtendedOperator } from './Builder';
 import Relation from '../contracts/Relation';
 

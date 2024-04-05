@@ -1,4 +1,3 @@
-// import { Collection } from '../contracts/Collection';
 import { Event, EventSource } from './Event';
 import { JsonValue } from './Model';
 import { Constructor, TypeOf } from './Support';

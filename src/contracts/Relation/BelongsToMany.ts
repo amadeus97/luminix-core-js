@@ -3,9 +3,11 @@ import { JsonObject, Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 
 import { AppFacades } from '../../types/App';
-import { Collection } from '../Collection';
+import Collection from '../Collection';
 import { BuilderInterface } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
+
+import { Collection as CollectionInterface } from '../../types/Collection';
 
 export default class BelongsToMany extends Relation {
 
@@ -13,7 +15,7 @@ export default class BelongsToMany extends Relation {
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected items: Collection<Model> | null = null,
+        protected items: CollectionInterface<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
@@ -48,8 +50,8 @@ export default class BelongsToMany extends Relation {
         return this.query().find(id);
     }
 
-    async attachQuietly(id: string | number, pivot: JsonObject = {}) {
-        await this.facades.route.call([
+    attachQuietly(id: string | number, pivot: JsonObject = {}) {
+        return this.facades.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:attach`,
             {
                 [this.parent.getKeyName()]: this.parent.getKey(),
@@ -65,10 +67,15 @@ export default class BelongsToMany extends Relation {
         await this.attachQuietly(id, pivot);
 
         if (this.items) {
-            const currentIndex = this.items.findIndex((item) => item.getKey() === id);
-            const freshItem = await this.getRelated().find(id) as Model;
-            if (currentIndex >= 0) {
-                this.items.replace(currentIndex, freshItem);
+            const currentIndex = this.items.search((item) => item.getKey() === id);
+            const freshItem = await this.getRelated().find(id);
+
+            if (!freshItem) {
+                return;
+            }
+
+            if (false !== currentIndex) {
+                this.items.put(currentIndex, freshItem);
             } else {
                 this.items.push(freshItem);
             }
@@ -96,8 +103,8 @@ export default class BelongsToMany extends Relation {
         await this.detachQuietly(id);
 
         if (this.items) {
-            const currentIndex = this.items.findIndex((item) => item.getKey() === id);
-            if (currentIndex >= 0) {
+            const currentIndex = this.items.search((item) => item.getKey() === id);
+            if (false !== currentIndex) {
                 this.items.pull(currentIndex);
             }
         }
@@ -136,7 +143,7 @@ export default class BelongsToMany extends Relation {
         const newItems = await this.all();
 
         if (this.items) {
-            this.items.flush().push(...newItems);
+            this.items.splice(0, this.items.count(), ...newItems);
         } else {
             this.items = newItems;
         }
@@ -149,7 +156,7 @@ export default class BelongsToMany extends Relation {
         const newItems = await this.all();
 
         if (this.items) {
-            this.items.flush().push(...newItems);
+            this.items.splice(0, this.items.count(), ...newItems);
         } else {
             this.items = newItems;
         }

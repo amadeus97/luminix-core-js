@@ -3,8 +3,9 @@ import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../mixins/BaseModel';
 import { AppFacades } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
-import CollectionWithEvents, { Collection } from '../Collection';
+import Collection from '../Collection';
 import HasOneOrMany from './HasOneOrMany';
+import { Collection as CollectionInterface } from '../../types/Collection';
 
 
 export default class HasMany extends HasOneOrMany
@@ -14,9 +15,9 @@ export default class HasMany extends HasOneOrMany
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected items: Collection<Model> | null = null,
+        protected items: CollectionInterface<Model> | null = null,
     ) {
-        if (items !== null && !(items instanceof CollectionWithEvents && items.every(isModel))) {
+        if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('HasMany.constructor()', 'Collection<Model> or null');
         }
         super(meta, facades, parent, items);
@@ -65,7 +66,7 @@ export default class HasMany extends HasOneOrMany
         const newItems = await this.all();
 
         if (this.items) {
-            this.items.flush().push(...newItems);
+            this.items.splice(0, this.items.count(), ...newItems);
         } else {
             this.items = newItems;
         }
@@ -75,9 +76,7 @@ export default class HasMany extends HasOneOrMany
         await this.saveQuietly(item);
 
         if (this.items === null) {
-            this.items = new CollectionWithEvents(
-                ...(await this.query().all())
-            );
+            this.items = await this.all();
         } else {
             this.items.push(item);
         }

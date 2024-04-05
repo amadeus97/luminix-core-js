@@ -2,9 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isDraftable, produce } from 'immer';
 import { ReducerCallback, Reducer } from '../types/Reducer';
-import CollectionWithEvents, { Collection } from '../contracts/Collection';
+
+
+import { collect } from '../contracts/Collection';
+
 import ReducerOverrideException from '../exceptions/ReducerOverrideException';
+
 import { Constructor } from '../types/Support';
+
+import { Collection } from '../types/Collection';
 
 
 export function Reducible<T extends Constructor>(Base: T) {
@@ -41,7 +47,7 @@ export function Reducible<T extends Constructor>(Base: T) {
                 throw new ReducerOverrideException(name, this);
             }
             if (!this.reducers[name]) {
-                this.reducers[name] = new CollectionWithEvents<Reducer>();
+                this.reducers[name] = collect<Reducer>();
             }
 
             this.reducers[name].push({ callback, priority });
@@ -51,8 +57,8 @@ export function Reducible<T extends Constructor>(Base: T) {
         }
 
         removeReducer(name: string, callback: ReducerCallback) {
-            const index = this.reducers[name].findIndex((item) => item.callback === callback);
-            if (index === -1) {
+            const index = this.reducers[name].search(callback);
+            if (index === false) {
                 return;
             }
             this.reducers[name].pull(index);
@@ -63,15 +69,15 @@ export function Reducible<T extends Constructor>(Base: T) {
         }
 
         hasReducer(name: string): boolean {
-            return !!this.reducers[name] && this.reducers[name].length > 0;
+            return !!this.reducers[name] && this.reducers[name].count() > 0;
         }
 
         clearReducer(name: string) {
-            this.reducers[name].flush();
+            this.reducers[name].splice(0, this.reducers[name].count());
         }
 
         flushReducers() {
-            Object.values(this.reducers).forEach((collection) => collection.flush());
+            Object.values(this.reducers).forEach((collection) => collection.splice(0, collection.count()));
         }
     };
 }

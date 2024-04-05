@@ -1,4 +1,4 @@
-import { Collection } from '../contracts/Collection';
+import { Collection } from './Collection';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ReducerCallback = (value: any, ...params: any[]) => any;

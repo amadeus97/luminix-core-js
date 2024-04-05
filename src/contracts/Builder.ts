@@ -259,10 +259,14 @@ class Builder implements BuilderInterface {
 
         this.emit('success', {
             response: result,
-            items: result.data.count() ? result.data[0] : null,
+            items: result.data.count() 
+                ? result.data[0] as Model
+                : null,
         });
 
-        return result.data.length ? result.data[0] : null;
+        return result.data.count()
+            ? result.data[0] as Model
+            : null;
     }
 
     async find(id: string | number): Promise<Model | null> {
@@ -275,10 +279,14 @@ class Builder implements BuilderInterface {
 
         this.emit('success', {
             response: result,
-            items: result.data.length ? result.data[0] : null,
+            items: result.data.count()
+                ? result.data[0] as Model 
+                : null,
         });
 
-        return result.data.length ? result.data[0] : null;
+        return result.data.count()
+            ? result.data[0] as Model 
+            : null;
     }
 
     async all(): Promise<CollectionInterface<Model>> {
@@ -298,11 +306,19 @@ class Builder implements BuilderInterface {
             pagesToFetch.map((page) => this.limit(limit).exec(page))
         );
 
-        const all = new Collection(
-            ...results.reduce((acc, result) => {
+        // const all = new Collection(
+        //     ...results.reduce((acc, result) => {
+        //         acc.push(...result.data);
+        //         return acc;
+        //     }, firstPage.data).all()
+        // );
+
+        const all = collect(
+            results.reduce((acc, result) => {
                 acc.push(...result.data);
                 return acc;
-            }, firstPage.data)
+            }, firstPage.data).all(),
+            Collection
         );
 
         this.emit('success', {

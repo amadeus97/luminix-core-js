@@ -2,7 +2,7 @@ import { AppFacades } from '../../types/App';
 import { BuilderInterface } from '../../types/Builder';
 import { Model, RelationMetaData } from '../../types/Model';
 
-import { Collection } from '../Collection';
+import { Collection } from '../../types/Collection';
 
 import BelongsToMany from './BelongsToMany';
 

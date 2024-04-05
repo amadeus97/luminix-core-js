@@ -2,7 +2,6 @@ import { isModel } from '..';
 import { AppFacades } from '../types/App';
 import { BaseModel, JsonValue, Model, RelationMetaData } from '../types/Model';
 
-import { Collection } from './Collection';
 
 import NotReducibleException from '../exceptions/NotReducibleException';
 
@@ -11,6 +10,8 @@ import NoInverseRelationException from '../exceptions/NoInverseRelationException
 import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
 import { Unsubscribe } from 'nanoevents';
 import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
+import { Collection as CollectionInterface } from '../types/Collection';
+import { isCollection } from '../support/collection';
 
 
 export default class Relation {
@@ -21,9 +22,9 @@ export default class Relation {
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: BaseModel,
-        protected items: Model | Collection<Model> | null = null,
+        protected items: Model | CollectionInterface<Model> | null = null,
     ) {
-        if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !isModel(items) && !(isCollection(items) && items.every(isModel))) {
             throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
         }
     }
@@ -64,16 +65,16 @@ export default class Relation {
         throw new NoInverseRelationException(this.parent.getType(), currentRelationType, this.getRelated().getSchemaName(), inverses[currentRelationType].join(' or '));
     }
 
-    set(items: Model | Collection<Model> | null)
+    set(items: Model | CollectionInterface<Model> | null)
     {
-        if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !isModel(items) && !(isCollection(items) && items.every(isModel))) {
             throw new NotModelException('Relation.set()', 'Model, Collection<Model> or null');
         }
 
         if (!this.items || isModel(this.items)) {
             this.items = items;
-        } else if (items instanceof Collection) {
-            this.items.flush().push(...items);
+        } else if (isCollection(items)) {
+            this.items.splice(0, this.items.count(), ...items);
         }
     }
 
@@ -121,7 +122,7 @@ export default class Relation {
         return this.items !== null;
     }
     
-    getLoadedItems(): Model | Collection<Model> | null
+    getLoadedItems(): Model | CollectionInterface<Model> | null
     {
         return this.items;
     }
