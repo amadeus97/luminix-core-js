@@ -10,11 +10,9 @@ class ModelCollection extends Collection<Model> {
     static name = 'Collection';
 
     intersect(values: Collection<Model> | Model[]): CollectionInterface<Model> {
-        return new ModelCollection(this.items.filter((item) => {
-            return !Array.isArray(values)
-                ? values.contains((value) => value.getKey() === item.getKey())
-                : values.some((value) => value.getKey() === item.getKey());
-        }));
+        return this.filter((item) => {
+            return values.some((value) => value.getKey() === item.getKey());
+        });
     }
 }
 

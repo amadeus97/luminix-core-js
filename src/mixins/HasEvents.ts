@@ -27,6 +27,8 @@ export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Ba
             this.#emitter = this.#createNanoEvents();
         }
 
+        [Symbol.toStringTag] = Base.name;
+
         #createNanoEvents(): Emitter<EventSourceEvents> { 
             return {
                 emit(event, e) {

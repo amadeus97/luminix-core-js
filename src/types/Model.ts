@@ -68,6 +68,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     toJson(): JsonObject;
     diff(): JsonObject;
     getType(): string;
+    dump(): void;
     save(options?: ModelSaveOptions): Promise<AxiosResponse<unknown, unknown>>;
     update(attributes: JsonObject): Promise<void>;
     delete(): Promise<AxiosResponse<unknown, unknown>>;

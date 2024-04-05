@@ -68,13 +68,9 @@ class App implements AppFacade {
             }
         });
 
-        this.bind('log', new Log(!!configObject.app?.debug));
-        
-        const { log: logger } = this.facades;
-
         const bootUrl = configObject.app?.bootUrl ?? '/luminix-api/init';
         
-        if (typeof bootUrl === 'string' && !!bootUrl && !document.getElementById('luminix-data::config')) {
+        if (typeof bootUrl === 'string' && !document.getElementById('luminix-data::config')) {
             const { data } = await axios.get(bootUrl);
             if (data && typeof data === 'object') {
                 _.merge(configObject, data);
@@ -85,6 +81,11 @@ class App implements AppFacade {
                 _.merge(configObject, data);
             }
         }
+
+        this.bind('log', new Log(!!configObject.app?.debug));
+        
+        const { log: logger } = this.facades;
+
 
         const {
             manifest: { routes = {}, models = {} } = {},

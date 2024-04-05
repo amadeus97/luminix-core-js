@@ -46,6 +46,8 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         
         public exists = false;
 
+        static name = _.upperFirst(_.camelCase(abstract));
+
         constructor(attributes: JsonObject = {}) {
             this.makeRelations();
             this.makeAttributes(attributes);
@@ -421,6 +423,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             this._changedKeys.push(...Object.keys(mutatedAttributes));
     
             this.dispatchChangeEvent(mutatedAttributes);
+        }
+
+        dump() {
+            facades.log.info({
+                ...this.toJson(),
+                [Symbol.toStringTag]: _.upperFirst(_.camelCase(abstract)),
+            });
         }
     
         toJson() {

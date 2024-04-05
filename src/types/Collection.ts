@@ -26,6 +26,8 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
 
     [Symbol.iterator](): Iterator<T>;
 
+    get items(): T[];
+
     /**
      *
      * The `all` method returns the underlying array represented by the collection.
@@ -344,6 +346,25 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
     doesntContain(value: T): boolean;
     doesntContain(key: keyof T, value: T): boolean;
     doesntContain(callback: CollectionIteratorCallback<T, boolean>): boolean;
+
+    /**
+     * 
+     * The `dump` method dumps the collection's items:
+     * 
+     * ```js
+     * collect([1, 2, 3, 4, 5]).dump();
+     * // Collection [1, 2, 3, 4, 5]
+     * 
+     * collect([{ name: 'John Doe' }, { name: 'Jane Doe' }]).dump();
+     * 
+     * // Collection [
+     * //    { name: 'John Doe' },
+     * //    { name: 'Jane Doe' },
+     * // ]
+     * ```
+     * 
+     */
+    dump(): void;
 
 
     /**
@@ -1171,7 +1192,7 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      * ```
      * 
      */
-    pad(size: number, value: T): Collection<T>;
+    pad<R>(size: number, value?: T | R | null): Collection<T | R | null>;
 
     /**
      * 
@@ -1500,6 +1521,8 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      * 
      * collection.select(['name', 'price']).all();
      * // [{ name: 'Desk', price: 200 }, { name: 'Chair', price: 100 }]
+     * 
+     * ```
      * 
      */
     select<K extends Array<keyof T>>(keys: K): Collection<Pick<T, K[number]>>;
