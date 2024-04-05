@@ -15,24 +15,20 @@ import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
 
-import { collect, isCollection } from '../contracts/Collection';
+import { collect } from '../contracts/Collection';
 import ModelCollection from '../contracts/ModelCollection';
 
 import Builder from '../contracts/Builder';
-import BelongsTo from '../contracts/Relation/BelongsTo';
-import BelongsToMany from '../contracts/Relation/BelongsToMany';
 import Relation from '../contracts/Relation';
-import HasOne from '../contracts/Relation/HasOne';
-import HasMany from '../contracts/Relation/HasMany';
+
+
+
 import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import AttributeNotFillableException from '../exceptions/AttributeNotFillableException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
-import MorphMany from '../contracts/Relation/MorphMany';
-import MorphOne from '../contracts/Relation/MorphOne';
-import MorphTo from '../contracts/Relation/MorphTo';
-import MorphToMany from '../contracts/Relation/MorphToMany';
 import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
+import { isCollection } from '../support/collection';
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -107,16 +103,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }
 
             // !Reducer `relationMap`
-            const relationMap: Record<string, typeof Relation> = facades.model.relationMap({
-                'BelongsTo': BelongsTo,
-                'BelongsToMany': BelongsToMany,
-                'HasOne': HasOne,
-                'HasMany': HasMany,
-                'MorphMany': MorphMany,
-                'MorphOne': MorphOne,
-                'MorphTo': MorphTo,
-                'MorphToMany': MorphToMany,
-            }, abstract);
+            const relationMap: Record<string, typeof Relation> = facades.model.relationMap({}, abstract);
     
             Object.entries(relations).forEach(([key, relation]) => {
                 const { type } = relation;
@@ -440,7 +427,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
                 const loadedItems = relation.getLoadedItems();
 
-                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && loadedItems && !isCollection(loadedItems)) {
+                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && loadedItems && isModel(loadedItems)) {
                     acc[_.snakeCase(key)] = loadedItems.json();
                 }
                 if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && relation.isLoaded() && isCollection(loadedItems)) {

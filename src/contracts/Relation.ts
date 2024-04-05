@@ -12,9 +12,10 @@ import { Unsubscribe } from 'nanoevents';
 import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
 import { Collection as CollectionInterface } from '../types/Collection';
 import { isCollection } from '../support/collection';
+import { RelationInterface } from '../types/Relation';
 
 
-export default class Relation {
+export default class Relation implements RelationInterface {
 
     private unsubscribeQuery: Unsubscribe | null = null;
 

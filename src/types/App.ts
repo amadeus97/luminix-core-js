@@ -1,6 +1,6 @@
 import { AppConfiguration, ConfigFacade } from './Config';
 
-import Plugin from '../contracts/Plugin';
+import { PluginInterface } from './Plugin';
 import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
 import { ModelFacade } from './Model';
@@ -15,14 +15,14 @@ export type AppEvents = {
 }
 
 export type InitEvent = Event<AppFacade> & {
-    register(plugin: Plugin): void;
+    register(plugin: PluginInterface): void;
 }
 
 export type AppExternal = {
     boot: (config?: AppConfiguration) => Promise<AppFacades>;
     make(): AppFacades;
     make<T extends keyof AppFacades>(key: T): AppFacades[T];
-    plugins: () => Plugin[];
+    plugins: () => PluginInterface[];
     on: EventSource<AppEvents>['once'];
 };
 

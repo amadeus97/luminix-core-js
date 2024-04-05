@@ -5,10 +5,10 @@ import { ReducibleInterface } from './Reducer';
 import { AppFacade } from './App';
 import { Collection } from './Collection';
 import { BuilderInterface, Scope, ExtendedOperator } from './Builder';
-import Relation from '../contracts/Relation';
+import { RelationInterface } from './Relation';
 
 
-export type RelationRepository = Record<string, Relation>;
+export type RelationRepository = Record<string, RelationInterface>;
 
 export type ModelEvents = {
     'change': (e: ModelChangeEvent) => void,
@@ -96,7 +96,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
     restore(): Promise<AxiosResponse<unknown, unknown>>;
     refresh(): Promise<void>;
-    relation(relationName: string): Relation;
+    relation(relationName: string): RelationInterface;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;

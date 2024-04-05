@@ -13,6 +13,16 @@ import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelNotFoundException from '../exceptions/ModelNotFoundException';
 
+import BelongsTo from '../contracts/Relation/BelongsTo';
+import BelongsToMany from '../contracts/Relation/BelongsToMany';
+import HasOne from '../contracts/Relation/HasOne';
+import HasMany from '../contracts/Relation/HasMany';
+import MorphMany from '../contracts/Relation/MorphMany';
+import MorphOne from '../contracts/Relation/MorphOne';
+import MorphTo from '../contracts/Relation/MorphTo';
+import MorphToMany from '../contracts/Relation/MorphToMany';
+
+
 
 class ModelFacade implements ModelFacadeInterface {
 
@@ -48,6 +58,18 @@ class ModelFacade implements ModelFacadeInterface {
 
             this._models[abstract] = ModelFactory(app.make(), abstract, SpecificModel);
         });
+
+
+        this.reducer('relationMap', () => ({
+            'BelongsTo': BelongsTo,
+            'BelongsToMany': BelongsToMany,
+            'HasOne': HasOne,
+            'HasMany': HasMany,
+            'MorphMany': MorphMany,
+            'MorphOne': MorphOne,
+            'MorphTo': MorphTo,
+            'MorphToMany': MorphToMany,
+        }), 0);
     }
 
     schema(): ModelSchema
@@ -102,7 +124,7 @@ class ModelFacade implements ModelFacadeInterface {
 
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public reducer(_: string, __: ReducerCallback): UnsubscribeReducer {
+    public reducer(_: string, __: ReducerCallback, ___?: number): UnsubscribeReducer {
         throw new MethodNotImplementedException();
     }
 
