@@ -1165,12 +1165,27 @@ export class Collection<T> implements CollectionInterface<T> {
     }
 
     toArray(): T[] {
-        return this.#items.slice().map((item) => {
-            if (isCollection(item)) {
-                return item.toArray() as T;
+        const convertImmediateChildrenToArray = (item: unknown): unknown => {
+            if (typeof item !== 'object') {
+                return item;
             }
+
+            if (Array.isArray(item)) {
+                return item.map(convertImmediateChildrenToArray);
+            }
+
+            if (item && 'toArray' in item && typeof item.toArray === 'function') {
+                return item.toArray();
+            }
+
+            if (item && 'toJson' in item && typeof item.toJson === 'function') {
+                return item.toJson();
+            }
+
             return item;
-        });
+        };
+
+        return this.#items.map(convertImmediateChildrenToArray) as T[];
     }
 
     toJson(): string {
@@ -1178,7 +1193,10 @@ export class Collection<T> implements CollectionInterface<T> {
     }
 
     transform<R>(callback: CollectionIteratorCallback<T, R>): CollectionInterface<T|R> {
-        this.#items = this.#items.map((item, index) => callback(item, index, this)) as unknown as T[];
+        for (const [index, item] of this.#items.entries()) {
+            (this.#items as (T|R)[]).splice(index, 1, callback(item, index, this));
+        }
+
         emitChange(this);
         return this as unknown as CollectionInterface<T|R>;
         

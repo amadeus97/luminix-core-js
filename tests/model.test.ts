@@ -5,6 +5,8 @@ import { AppFacade } from '../src/types/App';
 
 import makeConfig from './config';
 import mockAxios from 'axios';
+import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
+import AttributeNotFillableException from '../src/exceptions/AttributeNotFillableException';
 
 
 describe('testing models', () => {
@@ -221,10 +223,11 @@ describe('testing models', () => {
             foo: 'bar'
         });
 
-        expect(() => user.foo = 'bar').toThrow();
-
+        
         expect(user.diff()).toEqual({});
-
+        
+        expect(() => user.foo = 'bar').toThrow(AttributeNotFillableException);
+        
         user.fill({
             name: 'Jane Doe',
             password: 'password',
@@ -414,13 +417,13 @@ describe('testing models', () => {
         await app.boot(makeConfig());
 
         const Attachment = app.make('model').make('attachment');
-
-        expect(() => Attachment.create({})).rejects.toThrow('Route "luminix.attachment.store" not found');
-        expect(() => Attachment.update(1, {})).rejects.toThrow('Route "luminix.attachment.update" not found');
-        expect(() => Attachment.delete(1)).rejects.toThrow('Route "luminix.attachment.destroy" not found');
-        expect(() => Attachment.find(1)).rejects.toThrow('Route "luminix.attachment.index" not found');
-        expect(() => Attachment.restore(1)).rejects.toThrow('Route "luminix.attachment.update" not found');
-        expect(() => Attachment.forceDelete(1)).rejects.toThrow('Route "luminix.attachment.destroy" not found');
+        
+        expect(() => Attachment.create({})).rejects.toThrow(RouteNotFoundException);
+        expect(() => Attachment.update(1, {})).rejects.toThrow(RouteNotFoundException);
+        expect(() => Attachment.delete(1)).rejects.toThrow(RouteNotFoundException);
+        expect(() => Attachment.find(1)).rejects.toThrow(RouteNotFoundException);
+        expect(() => Attachment.restore(1)).rejects.toThrow(RouteNotFoundException);
+        expect(() => Attachment.forceDelete(1)).rejects.toThrow(RouteNotFoundException);
 
     });
 

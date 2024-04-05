@@ -13,9 +13,11 @@ import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
 
 import { isModel } from './support/model';
+import { isCollection } from './support/collection';
 
 import { Reducible } from './mixins/Reducible';
 import { HasEvents } from './mixins/HasEvents';
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
@@ -30,6 +32,7 @@ export {
     model,
     route,
 
+    isCollection,
     isValidationError,
     isModel,
 
