@@ -1,9 +1,8 @@
-import { AppFacade, AppFacades } from './App';
 
 
-export type PluginInterface = {
-    register(app: AppFacade): void;
-    boot(facades: AppFacades): void;
+export type PluginInterface<A,F> = {
+    register(app: A): void;
+    boot(facades: F): void;
 
 
 }

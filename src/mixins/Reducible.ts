@@ -27,15 +27,19 @@ export function Reducible<T extends Constructor>(Base: T) {
                         return Reflect.get(target, prop, receiver);
                     }
                     return (value: unknown, ...args: unknown[]) => {
-                        const { [prop]: macros = [] } = target.reducers;
+                        const { [prop]: macros = collect<Reducer>() } = target.reducers;
 
                         if (isDraftable(value)) {
                             return produce(value, (draft: unknown) => {
-                                return macros.reduce((prevValue, item) => item.callback(prevValue, ...args), draft);
+                                return macros
+                                    .sortBy('priority')
+                                    .reduce((prevValue, item) => item.callback(prevValue, ...args), draft);
                             });
                         }
     
-                        return macros.reduce((prevValue, item) => item.callback(prevValue, ...args), value);
+                        return macros
+                            .sortBy('priority')
+                            .reduce((prevValue, item) => item.callback(prevValue, ...args), value);
                     };
                 },
 
@@ -51,7 +55,6 @@ export function Reducible<T extends Constructor>(Base: T) {
             }
 
             this.reducers[name].push({ callback, priority });
-            this.reducers[name].sort((a, b) => a.priority - b.priority);
 
             return () => this.removeReducer(name, callback);
         }

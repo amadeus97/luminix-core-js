@@ -1,10 +1,12 @@
 import { AppFacades } from '../../types/App';
-import { BuilderInterface } from '../../types/Builder';
-import { Model, RelationMetaData } from '../../types/Model';
+import { BuilderInterface as Builder } from '../../types/Builder';
+import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 
 import { Collection } from '../../types/Collection';
 
 import BelongsToMany from './BelongsToMany';
+
+type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
 export default class MorphToMany extends BelongsToMany
 {

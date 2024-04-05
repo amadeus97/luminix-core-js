@@ -27,8 +27,12 @@ import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import AttributeNotFillableException from '../exceptions/AttributeNotFillableException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
-import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
+import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
 import { isCollection } from '../support/collection';
+import { isModel } from '../support/model';
+
+type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
+type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
 
 
 export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
@@ -363,7 +367,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 } else {
                     facades.log.warning(`Invalid type for attribute "${key}" in model "${abstract}" after mutation.
                         This will throw an error in production.`, {
-                        key, value, mutated, cast: this.casts[key], item: this.json(),
+                        key, value, mutated, cast: this.casts[key], item: this.toJson(),
                     });
                 }
                 return;
@@ -406,7 +410,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 } else {
                     facades.log.warning(`Invalid attributes for model "${abstract}" after mutation.
                         This will throw an error in production.`, {
-                        attributes, mutatedAttributes, item: this.json(), casts: this.casts,
+                        attributes, mutatedAttributes, item: this.toJson(), casts: this.casts,
                     });
                 }
                 return;
@@ -419,7 +423,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             this.dispatchChangeEvent(mutatedAttributes);
         }
     
-        json() {
+        toJson() {
             const modelRelations = facades.model.schema(abstract).relations;
     
             const relations = Object.entries(this.relations).reduce((acc, [key, relation]) => {
@@ -428,10 +432,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 const loadedItems = relation.getLoadedItems();
 
                 if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && loadedItems && isModel(loadedItems)) {
-                    acc[_.snakeCase(key)] = loadedItems.json();
+                    acc[_.snakeCase(key)] = loadedItems.toJson();
                 }
                 if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && relation.isLoaded() && isCollection(loadedItems)) {
-                    acc[_.snakeCase(key)] = loadedItems.map((item) => item.json()).all();
+                    acc[_.snakeCase(key)] = loadedItems.map((item) => item.toJson()).all();
                 }
                 return acc;
             }, {} as JsonObject);
@@ -872,15 +876,9 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
             });
         }
 
-        [key: string]: unknown;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [key: string]: any;
 
     };
 
-}
-
-export function isModel(value: unknown): value is ModelInterface {
-    return typeof value === 'object' 
-        && value !== null
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        && (value as any).__isModel === true;
 }

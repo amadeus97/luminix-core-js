@@ -1,6 +1,6 @@
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
-import { isModel } from '../../mixins/BaseModel';
+import { isModel } from '../../support/model';
 import { AppFacades } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
 import Collection from '../Collection';

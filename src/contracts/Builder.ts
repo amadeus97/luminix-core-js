@@ -12,7 +12,11 @@ import { HasEvents } from '../mixins/HasEvents';
 import { createMergedSearchParams } from '../support/searchParams';
 
 import { AppFacades } from '../types/App';
-import { BuilderEventMap, BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
+
+import {
+    BuilderEventMap as BuilderEvents, BuilderInterface as BuilderBase, Scope as ScopeBase,
+    ExtendedOperator
+} from '../types/Builder';
 import { EventData } from '../types/Event';
 import {
     Model, ModelPaginatedLink,
@@ -26,6 +30,9 @@ import MethodNotImplementedException from '../exceptions/MethodNotImplementedExc
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 import _ from 'lodash';
 
+type BuilderInterface = BuilderBase<Model, ModelPaginatedResponse>;
+type BuilderEventMap = BuilderEvents<Model, ModelPaginatedResponse>;
+type Scope = ScopeBase<Model, ModelPaginatedResponse>;
 
 const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
 
@@ -260,14 +267,10 @@ class Builder implements BuilderInterface {
 
         this.emit('success', {
             response: result,
-            items: result.data.count() 
-                ? result.data[0] as Model
-                : null,
+            items: result.data.first(),
         });
 
-        return result.data.count()
-            ? result.data[0] as Model
-            : null;
+        return result.data.first();
     }
 
     async find(id: string | number): Promise<Model | null> {
@@ -280,14 +283,10 @@ class Builder implements BuilderInterface {
 
         this.emit('success', {
             response: result,
-            items: result.data.count()
-                ? result.data[0] as Model 
-                : null,
+            items: result.data.sole(),
         });
 
-        return result.data.count()
-            ? result.data[0] as Model 
-            : null;
+        return result.data.sole();
     }
 
     async all(): Promise<CollectionInterface<Model>> {

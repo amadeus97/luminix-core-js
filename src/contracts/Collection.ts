@@ -24,6 +24,14 @@ const emitChange = (collection: Collection<unknown>) => {
     });
 };
 
+const get = <T>(arrayOrCollection: T[] | CollectionInterface<T>, index: number): T | null => {
+    if (Array.isArray(arrayOrCollection)) {
+        return arrayOrCollection[index] ?? null;
+    }
+
+    return arrayOrCollection.get(index);
+};
+
 export class Collection<T> implements CollectionInterface<T> {
 
     static name = 'Collection';
@@ -31,18 +39,6 @@ export class Collection<T> implements CollectionInterface<T> {
     constructor(
         protected items: Array<T> = []
     ) {
-        return new Proxy(this, {
-            get(target, prop, receiver) {
-                if (typeof prop === 'number') {
-                    return Reflect.get(target.items, prop, receiver);
-                }
-                return Reflect.get(target, prop, receiver);
-            }
-        });
-    }
-
-    [Symbol.name]() {
-        return 'Collection';
     }
 
     [Symbol.iterator]() {
@@ -120,7 +116,7 @@ export class Collection<T> implements CollectionInterface<T> {
                 throw new TypeError('The `combine` method expects the keys to be strings');
             }
 
-            combined[key] = values[index] ?? null;
+            combined[key] = get(values, index);
         });
 
         return combined;
@@ -663,10 +659,10 @@ export class Collection<T> implements CollectionInterface<T> {
 
             if (sorted.count() % 2 === 0) {
                 // return (sorted[middle - 1] + sorted[middle]) / 2;
-                return collect([sorted[middle - 1], sorted[middle]]).avg() as T[K];
+                return collect([get(sorted, middle - 1), get(sorted, middle)]).avg() as T[K];
             }
 
-            return sorted[middle] ?? null;
+            return get(sorted, middle);
         }
 
         const sorted = this.items.toSorted();
@@ -1374,7 +1370,6 @@ export class Collection<T> implements CollectionInterface<T> {
         throw new MethodNotImplementedException();
     }
 
-    [index: number]: T | undefined;
 }
 
 

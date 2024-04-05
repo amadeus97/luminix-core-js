@@ -1,14 +1,16 @@
 import Relation from '../Relation';
-import { Model, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../mixins/BaseModel';
+import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
+import { isModel } from '../../support/model';
 
 import { AppFacades } from '../../types/App';
 import Collection from '../Collection';
-import { BuilderInterface } from '../../types/Builder';
+import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
 import { Collection as CollectionInterface } from '../../types/Collection';
 import { JsonObject } from '../../types/Support';
+
+type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
 export default class BelongsToMany extends Relation {
 

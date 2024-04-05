@@ -60,7 +60,7 @@ describe('testing builder', () => {
             .minified()
             .all(); // or .get(page) .first() .find() 
 
-        expect(users.length).toBe(2);
+        expect(users.count()).toBe(2);
         expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
             params: {
                 filters: {

@@ -12,7 +12,7 @@ import { isValidationError } from './facades/Error';
 import Plugin from './contracts/Plugin';
 import PropertyBag from './contracts/PropertyBag';
 
-import { isModel } from './mixins/BaseModel';
+import { isModel } from './support/model';
 
 import { Reducible } from './mixins/Reducible';
 import { HasEvents } from './mixins/HasEvents';

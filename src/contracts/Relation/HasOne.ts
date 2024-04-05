@@ -1,5 +1,5 @@
 import { Model, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../mixins/BaseModel';
+import { isModel } from '../../support/model';
 import { AppFacades } from '../../types/App';
 
 import HasOneOrMany from './HasOneOrMany';

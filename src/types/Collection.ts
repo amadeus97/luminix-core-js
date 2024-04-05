@@ -24,13 +24,7 @@ export type CollectionSortCallback<T = unknown> = (a: T, b: T) => number;
 
 export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
 
-
-
     [Symbol.iterator](): Iterator<T>;
-
-    [index: number]: T | undefined;
-
-    
 
     /**
      *

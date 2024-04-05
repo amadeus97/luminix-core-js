@@ -1,6 +1,5 @@
-import { isModel } from '..';
 import { AppFacades } from '../types/App';
-import { BaseModel, Model, RelationMetaData } from '../types/Model';
+import { BaseModel, Model, ModelPaginatedResponse, RelationMetaData } from '../types/Model';
 
 
 import NotReducibleException from '../exceptions/NotReducibleException';
@@ -9,14 +8,19 @@ import NotModelException from '../exceptions/NotModelException';
 import NoInverseRelationException from '../exceptions/NoInverseRelationException';
 import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
 import { Unsubscribe } from 'nanoevents';
-import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
+import { BuilderInterface as Builder, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
 import { Collection as CollectionInterface } from '../types/Collection';
 import { isCollection } from '../support/collection';
-import { RelationInterface } from '../types/Relation';
+import { RelationInterface as RelationBase } from '../types/Relation';
 import { JsonValue } from '../types/Support';
+import { isModel } from '../support/model';
+
+type RelationInterface = RelationBase<Model, ModelPaginatedResponse>;
+type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
+type Scope = ScopeBase<Model, ModelPaginatedResponse>;
 
 
-export default class Relation implements RelationInterface<Model> {
+export default class Relation implements RelationInterface {
 
     private unsubscribeQuery: Unsubscribe | null = null;
 

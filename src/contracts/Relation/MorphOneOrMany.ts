@@ -1,11 +1,12 @@
-import { BuilderInterface } from '../../types/Builder';
-import { Model } from '../../types/Model';
-import { isModel } from '../../mixins/BaseModel';
+import { BuilderInterface as Builder } from '../../types/Builder';
+import { Model, ModelPaginatedResponse } from '../../types/Model';
+import { isModel } from '../../support/model';
 
 import HasOneOrMany from './HasOneOrMany';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 
+type BuilderInterface = Builder<Model,ModelPaginatedResponse>;
 
 export default class MorphOneOrMany extends HasOneOrMany
 {

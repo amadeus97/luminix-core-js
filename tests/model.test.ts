@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isModel } from '../src/support/model';
 import App from '../src/facades/App';
 import { AppFacade } from '../src/types/App';
-import { Model } from '../src/types/Model';
+
 import makeConfig from './config';
 import mockAxios from 'axios';
+
 
 describe('testing models', () => {
 
@@ -232,7 +234,7 @@ describe('testing models', () => {
 
         expect(user.diff()).toEqual({ name: 'Jane Doe', password: 'password' });        
 
-        expect(user.json()).toEqual({
+        expect(user.toJson()).toEqual({
             id: 1,
             name: 'Jane Doe',
             email: 'johndoe@example.com',
@@ -259,7 +261,7 @@ describe('testing models', () => {
         await app.boot(makeConfig());
 
         const {
-            attachment: Attachment, user: User, post: Post, post_comment: Comment
+            attachment: Attachment, user: User, post: Post
         } = app.make('model').make();
     
         const user = new User({
@@ -294,14 +296,14 @@ describe('testing models', () => {
             
         });
 
-        expect((user.posts as Model[])[0]).toBeInstanceOf(Post);
-        expect(((user.posts as Model[])[0].comments as Model[])[0]).toBeInstanceOf(Comment);
+        expect(isModel(user.posts.get(0))).toBe(true);
+        expect(isModel(user.posts.get(0).comments.get(0))).toBe(true);
 
-        const userJson: any = user.json();
+        const userJson: any = user.toJson();
 
-        expect(userJson.posts).toHaveLength(1);
-        expect(userJson.posts[0].comments).toHaveLength(1);
-        expect(userJson.posts[0].attachments).toHaveLength(2);
+        expect(userJson.posts.length).toBe(1);
+        expect(userJson.posts[0].comments.length).toBe(1);
+        expect(userJson.posts[0].attachments.length).toBe(2);
 
 
 
@@ -339,7 +341,7 @@ describe('testing models', () => {
 
         expect(attachment2.attachable).toBeInstanceOf(Post);
 
-        const attachmentJson: any = attachment2.json();
+        const attachmentJson: any = attachment2.toJson();
 
         expect(attachmentJson.attachable).toBeInstanceOf(Object);
         expect(attachmentJson.attachable.id).toBe(1);

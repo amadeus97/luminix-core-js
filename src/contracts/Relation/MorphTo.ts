@@ -1,9 +1,11 @@
-import { Model } from '../../types/Model';
-import { isModel } from '../../mixins/BaseModel';
-import { BuilderInterface } from '../../types/Builder';
+import { Model, ModelPaginatedResponse } from '../../types/Model';
+import { isModel } from '../../support/model';
+import { BuilderInterface as Builder } from '../../types/Builder';
 
 import BelongsTo from './BelongsTo';
 import NotModelException from '../../exceptions/NotModelException';
+
+type BuilderInterface = Builder<Model,ModelPaginatedResponse>;
 
 export default class MorphTo extends BelongsTo
 {

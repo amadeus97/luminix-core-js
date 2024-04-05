@@ -9,6 +9,8 @@ import { EventSource, Event } from './Event';
 import { ErrorFacade } from './Error';
 import { ReducibleInterface } from './Reducer';
 
+type Plugin = PluginInterface<AppFacade, AppFacades>;
+
 
 export type GlobalModelEvents = {
     'save': (e: ModelGlobalEvent) => void,
@@ -52,14 +54,14 @@ export type AppEvents = {
 }
 
 export type InitEvent = Event<AppFacade> & {
-    register(plugin: PluginInterface): void;
+    register(plugin: Plugin): void;
 }
 
 export type AppExternal = {
     boot: (config?: AppConfiguration) => Promise<AppFacades>;
     make(): AppFacades;
     make<T extends keyof AppFacades>(key: T): AppFacades[T];
-    plugins: () => PluginInterface[];
+    plugins: () => Plugin[];
     on: EventSource<AppEvents>['once'];
 };
 

@@ -11,11 +11,11 @@ export type {
 };
 
 
-export type RelationInterface<T> = {
+export type RelationInterface<R,C> = {
 
     guessInverseRelation(): string;
 
-    set(items: T | Collection<T> | null): void;
+    set(items: R | Collection<R> | null): void;
 
     getForeignKey(): string | null;
 
@@ -25,31 +25,31 @@ export type RelationInterface<T> = {
 
     getModel(): string;
 
-    getRelated(): Constructor<T>;
+    getRelated(): Constructor<R>;
 
-    query(): BuilderInterface;
+    query(): BuilderInterface<R,C>;
 
     isLoaded(): boolean;
 
-    getLoadedItems(): T | Collection<T> | null;
+    getLoadedItems(): R | Collection<R> | null;
 
-    where(scope: Scope): BuilderInterface
-    where(key: string, value: JsonValue): BuilderInterface
-    where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface
+    where(scope: Scope<R,C>): BuilderInterface<R,C>
+    where(key: string, value: JsonValue): BuilderInterface<R,C>
+    where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface<R,C>
 
-    whereNull(key: string): BuilderInterface;
+    whereNull(key: string): BuilderInterface<R,C>;
 
-    whereNotNull(key: string): BuilderInterface;
+    whereNotNull(key: string): BuilderInterface<R,C>;
 
-    whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface;
+    whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<R,C>;
 
-    orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
+    orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface<R,C>;
 
-    searchBy(term: string): BuilderInterface;
+    searchBy(term: string): BuilderInterface<R,C>;
 
-    minified(): BuilderInterface;
+    minified(): BuilderInterface<R,C>;
 
-    limit(value: number): BuilderInterface;
+    limit(value: number): BuilderInterface<R,C>;
 
 
 

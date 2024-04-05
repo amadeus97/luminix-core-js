@@ -7,7 +7,7 @@ import { Collection } from './Collection';
 import { RelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
 import { JsonObject, JsonValue } from './Support';
 
-export type RelationRepository = Record<string, RelationInterface<Model>>;
+export type RelationRepository = Record<string, RelationInterface<Model, ModelPaginatedResponse>>;
 
 export type ModelEvents = {
     'change': (e: ModelChangeEvent) => void,
@@ -65,7 +65,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     getKey(): string | number;
     getKeyName(): string;
     fill(attributes: JsonObject): void;
-    json(): JsonObject;
+    toJson(): JsonObject;
     diff(): JsonObject;
     getType(): string;
     save(options?: ModelSaveOptions): Promise<AxiosResponse<unknown, unknown>>;
@@ -74,30 +74,30 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
     restore(): Promise<AxiosResponse<unknown, unknown>>;
     refresh(): Promise<void>;
-    relation(relationName: string): RelationInterface<Model>;
+    relation(relationName: string): RelationInterface<Model, ModelPaginatedResponse>;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
 
-    static query(): BuilderInterface;
+    static query(): BuilderInterface<Model, ModelPaginatedResponse>;
     static get(page?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model | null>;
     static first(): Promise<Model | null>;
 
-    static where(scope: Scope): BuilderInterface;
-    static where(key: string, value: JsonValue): BuilderInterface;
-    static where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface;
-    static where(key: string | Scope, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface;
+    static where(scope: Scope<Model, ModelPaginatedResponse>): BuilderInterface<Model, ModelPaginatedResponse>;
+    static where(key: string, value: JsonValue): BuilderInterface<Model, ModelPaginatedResponse>;
+    static where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface<Model, ModelPaginatedResponse>;
+    static where(key: string | Scope<Model, ModelPaginatedResponse>, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface<Model, ModelPaginatedResponse>;
 
-    static whereNull(key: string): BuilderInterface;
-    static whereNotNull(key: string): BuilderInterface;
-    static whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface;
-    static whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface;
+    static whereNull(key: string): BuilderInterface<Model, ModelPaginatedResponse>;
+    static whereNotNull(key: string): BuilderInterface<Model, ModelPaginatedResponse>;
+    static whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<Model, ModelPaginatedResponse>;
+    static whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<Model, ModelPaginatedResponse>;
 
-    static orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface;
-    static searchBy(term: string): BuilderInterface;
-    static minified(): BuilderInterface;
-    static limit(value: number): BuilderInterface;
+    static orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface<Model, ModelPaginatedResponse>;
+    static searchBy(term: string): BuilderInterface<Model, ModelPaginatedResponse>;
+    static minified(): BuilderInterface<Model, ModelPaginatedResponse>;
+    static limit(value: number): BuilderInterface<Model, ModelPaginatedResponse>;
 
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;
@@ -114,7 +114,8 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 }
 
 export declare class Model extends BaseModel {
-    [key: string]: unknown;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
 }
 
 export interface ModelSaveOptions {

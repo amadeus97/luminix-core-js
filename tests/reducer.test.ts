@@ -22,7 +22,7 @@ describe('testing macros', () => {
 
         app.boot(makeConfig()).then(({ model }) => {
 
-            expect(model.getReducer('modelUserGetNameAttribute')).toHaveLength(2);
+            expect(model.getReducer('modelUserGetNameAttribute').count()).toBe(2);
 
             const User = model.make('user');
             const user = new User({ id: 1, name: 'John Doe' });
@@ -33,9 +33,9 @@ describe('testing macros', () => {
 
             model.removeReducer('modelUserGetNameAttribute', filter1.callback);
 
-            expect(model.getReducer('modelUserGetNameAttribute')).toHaveLength(1);
+            expect(model.getReducer('modelUserGetNameAttribute').count()).toBe(1);
             expect(model.hasReducer('modelUserGetNameAttribute')).toBe(true);
-            expect(model.getReducer('modelUserGetNameAttribute')).toEqual([filter2]);
+            expect(model.getReducer('modelUserGetNameAttribute').all()).toEqual([filter2]);
 
             model.clearReducer('modelUserGetNameAttribute');
 

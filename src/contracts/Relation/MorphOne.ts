@@ -2,7 +2,7 @@
 import NotModelException from '../../exceptions/NotModelException';
 import { AppFacades } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../mixins/BaseModel';
+import { isModel } from '../../support/model';
 
 
 import MorphOneOrMany from './MorphOneOrMany';

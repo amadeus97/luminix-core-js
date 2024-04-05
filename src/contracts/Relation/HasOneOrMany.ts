@@ -1,11 +1,12 @@
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
-import { isModel } from '../../mixins/BaseModel';
-import { BuilderInterface } from '../../types/Builder';
-import { Model } from '../../types/Model';
+import { isModel } from '../../support/model';
+import { BuilderInterface as Builder } from '../../types/Builder';
+import { Model, ModelPaginatedResponse } from '../../types/Model';
 
 import Relation from '../Relation';
 
+type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
 export default class HasOneOrMany extends Relation {
 
