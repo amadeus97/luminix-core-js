@@ -1,4 +1,5 @@
-import { Model, ModelFacade } from '../types/Model';
+import { Model } from '../types/Model';
+import { ModelFacade } from '../types/App';
 
 import app from './app';
 

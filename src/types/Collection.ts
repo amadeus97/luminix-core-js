@@ -1,6 +1,5 @@
 import { Event, EventSource } from './Event';
-import { JsonValue } from './Model';
-import { Constructor, TypeOf } from './Support';
+import { Constructor, TypeOf, JsonValue } from './Support';
 
 export type CollectionEvents<T = unknown> = {
     'change': (e: CollectionChangeEvent<T>) => void,

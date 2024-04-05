@@ -1,9 +1,11 @@
-import { GlobalModelEvents, BaseModel, ModelSchema, ModelSchemaAttributes, Model, ModelFacade as ModelFacadeInterface } from '../types/Model';
+import { BaseModel, ModelSchema, ModelSchemaAttributes, Model } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
 import { Reducible } from '../mixins/Reducible';
-import { AppFacade } from '../types/App';
+
+import { AppFacade, GlobalModelEvents, ModelFacade as ModelFacadeInterface } from '../types/App';
+
 import { HasEvents } from '../mixins/HasEvents';
 import _ from 'lodash';
 import { Unsubscribe } from 'nanoevents';

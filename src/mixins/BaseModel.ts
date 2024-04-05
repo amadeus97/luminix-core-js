@@ -3,13 +3,13 @@ import _ from 'lodash';
 import PropertyBag from '../contracts/PropertyBag';
 
 import { 
-    BaseModel, JsonObject, ModelSaveOptions, ModelSchemaAttributes,
+    BaseModel, ModelSaveOptions, ModelSchemaAttributes,
     ModelPaginatedResponse, Model as ModelInterface, RelationRepository, ModelEvents,
-    JsonValue,
 } from '../types/Model';
 
 import { AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
+import { JsonObject, JsonValue } from '../types/Support';
 
 import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';

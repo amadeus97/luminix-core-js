@@ -1,6 +1,6 @@
 import { isModel } from '..';
 import { AppFacades } from '../types/App';
-import { BaseModel, JsonValue, Model, RelationMetaData } from '../types/Model';
+import { BaseModel, Model, RelationMetaData } from '../types/Model';
 
 
 import NotReducibleException from '../exceptions/NotReducibleException';
@@ -13,9 +13,10 @@ import { BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
 import { Collection as CollectionInterface } from '../types/Collection';
 import { isCollection } from '../support/collection';
 import { RelationInterface } from '../types/Relation';
+import { JsonValue } from '../types/Support';
 
 
-export default class Relation implements RelationInterface {
+export default class Relation implements RelationInterface<Model> {
 
     private unsubscribeQuery: Unsubscribe | null = null;
 
@@ -128,7 +129,7 @@ export default class Relation implements RelationInterface {
         return this.items;
     }
 
-    getParent(): BaseModel
+    getParent()
     {
         return this.parent;
     }

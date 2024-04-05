@@ -1,6 +1,7 @@
 import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
 import { Event, EventSource } from './Event';
-import { JsonObject, JsonValue, Model, ModelPaginatedResponse } from './Model';
+import { Model, ModelPaginatedResponse } from './Model';
+import { JsonObject, JsonValue } from './Support';
 
 import { Operator, Collection } from './Collection';
 

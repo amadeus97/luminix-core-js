@@ -3,10 +3,47 @@ import { AppConfiguration, ConfigFacade } from './Config';
 import { PluginInterface } from './Plugin';
 import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
-import { ModelFacade } from './Model';
+import { BaseModel, Model, ModelSchema, ModelSchemaAttributes } from './Model';
 import { RouteFacade } from './Route';
 import { EventSource, Event } from './Event';
 import { ErrorFacade } from './Error';
+import { ReducibleInterface } from './Reducer';
+
+
+export type GlobalModelEvents = {
+    'save': (e: ModelGlobalEvent) => void,
+    'delete': (e: ModelGlobalEvent) => void,
+    'restore': (e: ModelGlobalEvent) => void,
+    'create': (e: ModelGlobalEvent) => void,
+    'update': (e: ModelGlobalEvent) => void,
+    'fetch': (e: ModelGlobalEvent) => void,
+    'error': (e: ModelGlobalErrorEvent) => void,
+}
+
+
+export type ModelGlobalEvent = Event<ModelFacade> & {
+    class: string,
+    model: BaseModel,
+    force?: boolean,
+};
+
+
+export type ModelGlobalErrorEvent = ModelGlobalEvent & {
+    error: unknown,
+    operation: 'save' | 'delete' | 'restore' | 'forceDelete',
+};
+
+
+
+export type ModelFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
+    schema(): ModelSchema;
+    schema(abstract: string): ModelSchemaAttributes;
+    make(): Record<string, typeof Model>;
+    make(abstract: string): typeof Model;
+    boot(app: AppFacade): void;
+    
+}
+
 
 export type AppEvents = {
     'init': (e: InitEvent) => void,

@@ -2,8 +2,7 @@
 import { HasEvents } from '../mixins/HasEvents';
 import { CollectionEvents , Operator, Collection as CollectionInterface, CollectionIteratorCallback, CollectionPipeCallback, CollectionSortCallback } from '../types/Collection';
 
-import { JsonValue } from '../types/Model';
-import { Constructor, TypeOf } from '../types/Support';
+import { JsonValue, Constructor, TypeOf } from '../types/Support';
 import _ from 'lodash';
 import { cartesian, isCollection } from '../support/collection';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';

@@ -1,15 +1,21 @@
 import { BuilderInterface, ExtendedOperator, Scope } from './Builder';
 import { Collection } from './Collection';
-import { BaseModel, JsonValue, Model } from './Model';
+// import { BaseModel, Model } from './Model';
+
+import { Constructor, JsonValue } from './Support';
+
+export type {
+    BuilderInterface,
+    ExtendedOperator,
+    Scope,
+};
 
 
-
-
-export type RelationInterface = {
+export type RelationInterface<T> = {
 
     guessInverseRelation(): string;
 
-    set(items: Model | Collection<Model> | null): void;
+    set(items: T | Collection<T> | null): void;
 
     getForeignKey(): string | null;
 
@@ -19,15 +25,13 @@ export type RelationInterface = {
 
     getModel(): string;
 
-    getRelated(): typeof Model;
+    getRelated(): Constructor<T>;
 
     query(): BuilderInterface;
 
     isLoaded(): boolean;
 
-    getLoadedItems(): Model | Collection<Model> | null;
-
-    getParent(): BaseModel;
+    getLoadedItems(): T | Collection<T> | null;
 
     where(scope: Scope): BuilderInterface
     where(key: string, value: JsonValue): BuilderInterface

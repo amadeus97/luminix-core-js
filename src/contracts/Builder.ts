@@ -15,9 +15,10 @@ import { AppFacades } from '../types/App';
 import { BuilderEventMap, BuilderInterface, Scope, ExtendedOperator } from '../types/Builder';
 import { EventData } from '../types/Event';
 import {
-    JsonObject, JsonValue, Model, ModelPaginatedLink,
+    Model, ModelPaginatedLink,
     ModelPaginatedResponse, ModelQuery
 } from '../types/Model';
+import { JsonObject, JsonValue } from '../types/Support';
 
 import { Collection as CollectionInterface } from '../types/Collection';
 

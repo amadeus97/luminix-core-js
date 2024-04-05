@@ -1,5 +1,5 @@
 import Relation from '../Relation';
-import { JsonObject, Model, RelationMetaData } from '../../types/Model';
+import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../mixins/BaseModel';
 
 import { AppFacades } from '../../types/App';
@@ -8,6 +8,7 @@ import { BuilderInterface } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
 import { Collection as CollectionInterface } from '../../types/Collection';
+import { JsonObject } from '../../types/Support';
 
 export default class BelongsToMany extends Relation {
 

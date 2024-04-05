@@ -1,14 +1,13 @@
 
 import { AxiosResponse } from 'axios';
 import { EventSource, Event } from './Event';
-import { ReducibleInterface } from './Reducer';
-import { AppFacade } from './App';
+
 import { Collection } from './Collection';
-import { BuilderInterface, Scope, ExtendedOperator } from './Builder';
-import { RelationInterface } from './Relation';
 
+import { RelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
+import { JsonObject, JsonValue } from './Support';
 
-export type RelationRepository = Record<string, RelationInterface>;
+export type RelationRepository = Record<string, RelationInterface<Model>>;
 
 export type ModelEvents = {
     'change': (e: ModelChangeEvent) => void,
@@ -20,15 +19,6 @@ export type ModelEvents = {
     'error': (e: ModelErrorEvent) => void,
 }
 
-export type GlobalModelEvents = {
-    'save': (e: ModelGlobalEvent) => void,
-    'delete': (e: ModelGlobalEvent) => void,
-    'restore': (e: ModelGlobalEvent) => void,
-    'create': (e: ModelGlobalEvent) => void,
-    'update': (e: ModelGlobalEvent) => void,
-    'fetch': (e: ModelGlobalEvent) => void,
-    'error': (e: ModelGlobalErrorEvent) => void,
-}
 
 export type ModelChangeEvent = Event<BaseModel> & {
     value: JsonObject,
@@ -50,18 +40,6 @@ export type ModelErrorEvent = Event<BaseModel> & {
     error: unknown,
     operation: 'save' | 'delete' | 'restore' | 'forceDelete',
 }
-
-export type ModelGlobalEvent = Event<ModelFacade> & {
-    class: string,
-    model: BaseModel,
-    force?: boolean,
-};
-
-
-export type ModelGlobalErrorEvent = ModelGlobalEvent & {
-    error: unknown,
-    operation: 'save' | 'delete' | 'restore' | 'forceDelete',
-};
 
 
 export declare class BaseModel implements EventSource<ModelEvents> {
@@ -96,7 +74,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
     restore(): Promise<AxiosResponse<unknown, unknown>>;
     refresh(): Promise<void>;
-    relation(relationName: string): RelationInterface;
+    relation(relationName: string): RelationInterface<Model>;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
@@ -144,11 +122,6 @@ export interface ModelSaveOptions {
     sendsOnlyModifiedFields?: boolean,
 }
 
-export type JsonObject = {
-    [key: string]: JsonValue,
-}
-
-export type JsonValue = string | number | boolean | null | JsonObject | Array<string | number | boolean | null | JsonObject>;
 
 export type ModelFillCallback = (data: object) => void;
 
@@ -226,14 +199,5 @@ export type ModelPaginatedResponse = {
         total: number,
         links: Array<ModelPaginatedLink>,
     }
-}
-
-export type ModelFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
-    schema(): ModelSchema;
-    schema(abstract: string): ModelSchemaAttributes;
-    make(): Record<string, typeof Model>;
-    make(abstract: string): typeof Model;
-    boot(app: AppFacade): void;
-    
 }
 

@@ -1,9 +1,10 @@
 
 
+import { AppFacade } from '../types/App'; 
 import { AuthCredentials, AuthFacade } from '../types/Auth';
-import { JsonObject, Model } from '../types/Model';
+import { Model } from '../types/Model';
+import { JsonObject } from '../types/Support';
 
-import { AppFacade } from '../types/App';
 
 export default class Auth implements AuthFacade {
 
