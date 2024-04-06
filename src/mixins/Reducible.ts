@@ -60,7 +60,7 @@ export function Reducible<T extends Constructor>(Base: T) {
         }
 
         removeReducer(name: string, callback: ReducerCallback) {
-            const index = this.reducers[name].search(callback);
+            const index = this.reducers[name].search((reducer) => reducer.callback === callback);
             if (index === false) {
                 return;
             }

@@ -253,8 +253,8 @@ describe('testing models', () => {
 
         user2.setAttribute('email_verified_at', '2024-01-01T00:00:00.000Z');
 
-        expect(user2.email_verified_at).toBeInstanceOf(Date);
-        expect((user2.email_verified_at as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
+        expect(user2.emailVerifiedAt).toBeInstanceOf(Date);
+        expect((user2.emailVerifiedAt as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
 
     });
 
@@ -371,8 +371,8 @@ describe('testing models', () => {
 
         expect(post.id).toBe(1);
         expect(post.title).toBe('First Post');
-        expect(post.published_at).toBeInstanceOf(Date);
-        expect((post.published_at as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
+        expect(post.publishedAt).toBeInstanceOf(Date);
+        expect((post.publishedAt as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
         expect(post.content).toBe(null);
         expect(post.published).toBe(true);
         expect(post.likes).toBe(100);
@@ -383,15 +383,15 @@ describe('testing models', () => {
 
         expect(post.content).toEqual({ foo: 'bar' });
 
-        post.published_at = '2024-01-01T00:00:00.000Z';
+        post.publishedAt = '2024-01-01T00:00:00.000Z';
 
-        expect(post.published_at).toBeInstanceOf(Date);
-        expect((post.published_at as Date).toISOString()).toBe('2024-01-01T00:00:00.000Z');
+        expect(post.publishedAt).toBeInstanceOf(Date);
+        expect((post.publishedAt as Date).toISOString()).toBe('2024-01-01T00:00:00.000Z');
 
-        post.published_at = new Date('2024-02-01T00:00:00.000Z');
+        post.publishedAt = new Date('2024-02-01T00:00:00.000Z');
 
-        expect(post.published_at).toBeInstanceOf(Date);
-        expect((post.published_at as Date).toISOString()).toBe('2024-02-01T00:00:00.000Z');
+        expect(post.publishedAt).toBeInstanceOf(Date);
+        expect((post.publishedAt as Date).toISOString()).toBe('2024-02-01T00:00:00.000Z');
 
         post.published = '';
 
