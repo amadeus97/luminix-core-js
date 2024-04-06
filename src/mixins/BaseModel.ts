@@ -783,6 +783,14 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return model.forceDelete();
         }
 
+        static singular() {
+            return facades.model.schema(abstract).displayName.singular;
+        }
+
+        static plural() {
+            return facades.model.schema(abstract).displayName.plural;
+        }
+
         
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): Unsubscribe {

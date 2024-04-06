@@ -6,6 +6,7 @@ export type AppConfiguration = {
     app?: {
         env?: string;
         debug?: boolean;
+        url?: string;
         bootUrl?: string | null | false;
         enforceCamelCaseForModelAttributes?: boolean
         [key: string]: unknown;

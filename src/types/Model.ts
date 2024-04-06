@@ -109,6 +109,10 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     static forceDelete(id: number | string): Promise<AxiosResponse>;
     static forceDelete(ids: Array<number | string>): Promise<AxiosResponse>;
 
+
+    static singular(): string;
+    static plural(): string;
+
     on: EventSource<ModelEvents>['on'];
     once: EventSource<ModelEvents>['once'];
     emit: EventSource<ModelEvents>['emit'];
@@ -140,6 +144,10 @@ export interface ModelTableColumnDefinition {
 }
 
 export interface ModelSchemaAttributes {
+    displayName: {
+        singular: string,
+        plural: string,
+    },
     fillable: string[],
     relations: Record<string, Omit<RelationMetaData, 'name'>>,
     casts: Record<string, string>,

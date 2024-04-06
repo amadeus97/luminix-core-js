@@ -14,7 +14,8 @@ class Route {
 
     constructor(
         private routes: RouteDefinition,
-        private error: ErrorFacade
+        private error: ErrorFacade,
+        private appUrl: string = '',
     ) {
     }
 
@@ -70,7 +71,7 @@ class Route {
                 throw new NotReducibleException('RouteFacade');
             }
             // !Reducer `replaceRouteParams`
-            return this.replaceRouteParams(`/${url}`);
+            return this.appUrl + this.replaceRouteParams(`/${url}`);
         }
 
         const matches = url.match(regex);
@@ -89,7 +90,7 @@ class Route {
 
         const newPath = params.reduce((acc: string, param: string) => acc.replace(`{${param}}`, `${replace[param]}`), url);
 
-        return `/${newPath}`;
+        return this.appUrl + `/${newPath}`;
     }
 
     methods(generator: RouteGenerator): HttpMethod[] {

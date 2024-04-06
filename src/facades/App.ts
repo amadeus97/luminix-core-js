@@ -68,7 +68,7 @@ class App implements AppFacade {
             }
         });
 
-        const bootUrl = configObject.app?.bootUrl ?? '/luminix-api/init';
+        const bootUrl = (configObject.app?.url ?? '') + (configObject.app?.bootUrl ?? '/luminix-api/init');
         
         if (typeof bootUrl === 'string' && !document.getElementById('luminix-data::config')) {
             const { data } = await axios.get(bootUrl);
@@ -101,7 +101,7 @@ class App implements AppFacade {
         this.facades.config.lock('auth.user');
         
         this.bind('error', new Error());
-        this.bind('route', new Route(routes, this.facades.error));
+        this.bind('route', new Route(routes, this.facades.error, configObject.app?.url ?? ''));
         this.bind('model', new Model(models));
         this.bind('auth', new Auth(this));
 
