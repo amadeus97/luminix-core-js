@@ -75,7 +75,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
     restore(): Promise<AxiosResponse<unknown, unknown>>;
     refresh(): Promise<void>;
-    relation(relationName: string): RelationInterface<Model, ModelPaginatedResponse>;
+    relation(relationName: string): RelationInterface<Model, ModelPaginatedResponse> | undefined;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;

@@ -158,15 +158,11 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo', 'HasOne'].includes(type);
     
                     if (isSingle && typeof relationData === 'object' && relationData !== null) {
-                        this.relation(key).set(new Model(relationData as JsonObject));
+                        this.relation(_.camelCase(key))!.set(new Model(relationData as JsonObject));
                     }
     
                     if (!isSingle && Array.isArray(attributes[key])) {
-                        // this.relation(key).set(new CollectionWithEvents(
-                        //     ...(relationData as JsonObject[]).map((item) => new Model(item))
-                        // ));
-
-                        this.relation(key).set(
+                        this.relation(_.camelCase(key))!.set(
                             collect(
                                 (relationData as JsonObject[]).map((item) => new Model(item)),
                                 ModelCollection
@@ -474,7 +470,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         relation(name: string) {
-            return this.relations[name];
+            if (name !== _.camelCase(name)) {
+                return undefined;
+            }
+            return this.relations[_.snakeCase(name)];
         }
 
         async refresh() {
@@ -819,8 +818,6 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return true;
                     }
 
-                    const { config } = facades;
-
                     // If the property exists in the target, return it.
                     if (prop in target) {
                         const subject = target[prop];
@@ -830,27 +827,30 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return subject;
                     }
 
+                    // If the prop is not camel cased, return undefined.
+                    if (prop !== _.camelCase(prop)) {
+                        return undefined;
+                    }
+
+                    const snakeCasedProp = _.snakeCase(prop);
+
                     // If the property is a relation, return it.
-                    if (Object.keys(target.relations).includes(prop)) {
-                        return target.relations[prop].getLoadedItems();
+                    if (Object.keys(target.relations).includes(snakeCasedProp)) {
+                        return target.relations[snakeCasedProp].getLoadedItems();
                     }
                     // If is calling the relation method, return it.
-                    if (prop.endsWith('Relation') && Object.keys(target.relations).includes(prop.slice(0, -8))) {
-                        return () => target.relations[prop.slice(0, -8)];
+                    if (prop.endsWith('Relation') && Object.keys(target.relations).includes(_.snakeCase(prop.slice(0, -8)))) {
+                        return () => target.relation(prop.slice(0, -8));
                     }
 
-                    const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
-                        ? _.snakeCase(prop)
-                        : prop;
-
                     // If the property exists in attributes, return it.
-                    if (Object.keys(target.attributes).includes(lookupKey)) {
-                        return target.getAttribute(lookupKey);
+                    if (Object.keys(target.attributes).includes(snakeCasedProp)) {
+                        return target.getAttribute(snakeCasedProp);
                     }
 
                     // If there is a reducer to handle a property, return it.
-                    if (facades.model.hasReducer(`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`)) {
-                        const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(lookupKey))}Attribute`];
+                    if (facades.model.hasReducer(`model${target.constructor.name}Get${_.upperFirst(prop)}Attribute`)) {
+                        const reducer = facades.model[`model${target.constructor.name}Get${_.upperFirst(prop)}Attribute`];
                         if (typeof reducer !== 'function') {
                             throw new NotReducibleException('ModelFacade');
                         }
@@ -865,22 +865,16 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return Reflect.set(target, prop, value);
                     }
 
-                    const { config } = facades;
-
-                    const lookupKey = config.get('app.enforceCamelCaseForModelAttributes', true)
-                        ? _.snakeCase(prop)
-                        : prop;
-
-                    if (target.fillable.includes(lookupKey)) {
+                    if (target.fillable.includes(_.snakeCase(prop))) {
                         target.setAttribute(
-                            lookupKey,
+                            _.snakeCase(prop),
                             value
                         );
                         return true;
                     }
 
                     
-                    throw new AttributeNotFillableException(abstract, lookupKey);
+                    throw new AttributeNotFillableException(abstract, _.snakeCase(prop));
                 },
             });
         }

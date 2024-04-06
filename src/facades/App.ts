@@ -127,6 +127,10 @@ class App implements AppFacade {
         logger.info('[Luminix] App boot completed', {
             config: this.facades.config.all(),
             plugins: this._plugins,
+            manifest: {
+                routes,
+                models,
+            }
         });
 
         this.emit('booted');
