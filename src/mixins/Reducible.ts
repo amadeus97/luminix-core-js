@@ -68,6 +68,9 @@ export function Reducible<T extends Constructor>(Base: T) {
         }
 
         getReducer(name: string): Collection<Reducer> {
+            if (!this.reducers[name]) {
+                this.reducers[name] = collect<Reducer>();
+            }
             return this.reducers[name];
         }
 
