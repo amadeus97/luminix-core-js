@@ -875,11 +875,15 @@ export class Collection<T> implements CollectionInterface<T> {
     search(callback: CollectionIteratorCallback<T, boolean>): number | false;
     search(valueOrCallback: T | CollectionIteratorCallback<T, boolean>, strict = false): number | false {
         if (typeof valueOrCallback !== 'function' || this.#items.every((item) => typeof item === 'function')) {
-            return this.#items.findIndex((item) => strict ? item === valueOrCallback : item == valueOrCallback);
+            const index = this.#items.findIndex((item) => strict ? item === valueOrCallback : item == valueOrCallback);
+
+            return index === -1 ? false : index;
         }
-        return this.#items.findIndex((item, index) => {
+        const index = this.#items.findIndex((item, index) => {
             return (valueOrCallback as CollectionIteratorCallback<T, boolean>)(item, index, this);
         });
+
+        return index === -1 ? false : index;
 
     }
 
