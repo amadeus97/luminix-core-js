@@ -26,6 +26,14 @@ export default class BelongsTo extends Relation {
         super(meta, facades, parent, items);
     }
 
+    isSingle(): boolean {
+        return true;
+    }
+
+    isMultiple(): boolean {
+        return false;
+    }
+
     query(): BuilderInterface {
         const query = super.query();
 

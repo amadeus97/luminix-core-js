@@ -23,6 +23,14 @@ export default class MorphOne extends MorphOneOrMany
         }
     }
 
+    isSingle(): boolean {
+        return true;
+    }
+
+    isMultiple(): boolean {
+        return false;
+    }
+
     get()
     {
         return this.query().first();

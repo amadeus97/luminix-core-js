@@ -52,7 +52,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     get original(): JsonObject;
     get primaryKey(): string;
     get timestamps(): boolean;
-    get softDeletes(): boolean;
+    // get softDeletes(): boolean;
     get fillable(): string[];
     get relations(): RelationRepository;
     get isDirty(): boolean;
@@ -121,6 +121,8 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 export declare class Model extends BaseModel {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static [key: string]: any;
 }
 
 export interface ModelSaveOptions {
@@ -153,9 +155,10 @@ export interface ModelSchemaAttributes {
     casts: Record<string, string>,
     primaryKey: string,
     timestamps: boolean,
-    softDeletes: boolean,
-    importable?: boolean,
-    exportable?: boolean,
+    labeledBy: string,
+    // softDeletes: boolean,
+    // importable?: boolean,
+    // exportable?: boolean,
 }
 
 export interface RelationMetaData {

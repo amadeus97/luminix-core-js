@@ -1,23 +1,27 @@
-import { Model, ModelPaginatedResponse } from '../../types/Model';
+import { Model } from '../../types/Model';
 import { isModel } from '../../support/model';
-import { BuilderInterface as Builder } from '../../types/Builder';
-
 import BelongsTo from './BelongsTo';
 import NotModelException from '../../exceptions/NotModelException';
 
-type BuilderInterface = Builder<Model,ModelPaginatedResponse>;
 
 export default class MorphTo extends BelongsTo
 {
-    of(abstract: string): this {
-        this.meta.model = abstract;
-        return this;
+    getRelated(): typeof Model
+    {
+        return this.facades.model.make(
+            this.parent.getAttribute(this.getName() + '_type') as string
+        );
     }
 
-    query(): BuilderInterface {
-        this.of(this.parent.getAttribute(this.getName() + '_type') as string);
-        return super.query();
-    }
+    // of(abstract: string): this {
+    //     this.meta.model = abstract;
+    //     return this;
+    // }
+
+    // query(): BuilderInterface {
+    //     this.of(this.parent.getAttribute(this.getName() + '_type') as string);
+    //     return super.query();
+    // }
     
     async associate(item: Model): Promise<void> {
         if (!isModel(item)) {

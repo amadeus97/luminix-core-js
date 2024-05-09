@@ -12,8 +12,9 @@ import { BuilderInterface as Builder, Scope as ScopeBase, ExtendedOperator } fro
 import { Collection as CollectionInterface } from '../types/Collection';
 import { isCollection } from '../support/collection';
 import { RelationInterface as RelationBase } from '../types/Relation';
-import { JsonValue } from '../types/Support';
+import { JsonObject, JsonValue } from '../types/Support';
 import { isModel } from '../support/model';
+import { collect } from './Collection';
 
 type RelationInterface = RelationBase<Model, ModelPaginatedResponse>;
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
@@ -32,6 +33,29 @@ export default class Relation implements RelationInterface {
     ) {
         if (items !== null && !isModel(items) && !(isCollection(items) && items.every(isModel))) {
             throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
+        }
+    }
+
+    make(data: JsonValue): void {
+        const Model = this.getRelated();
+
+        if (data === null || typeof data === 'undefined') {
+            this.set(null);
+            return;
+        }
+
+        if (this.isSingle()) {
+            if (typeof data !== 'object' || Array.isArray(data)) {
+                throw new TypeError('Relation.make() expects an object');
+            }
+            this.set(new Model(data));
+        }
+
+        if (this.isMultiple()) {
+            if (!Array.isArray(data)) {
+                throw new TypeError('Relation.make() expects an array');
+            }
+            this.set(collect(data.map((item) => new Model(item as JsonObject))));
         }
     }
 
@@ -131,6 +155,16 @@ export default class Relation implements RelationInterface {
     getLoadedItems(): Model | CollectionInterface<Model> | null
     {
         return this.items;
+    }
+
+    isSingle(): boolean
+    {
+        return isModel(this.items);
+    }
+
+    isMultiple(): boolean
+    {
+        return isCollection(this.items);
     }
 
     getParent()

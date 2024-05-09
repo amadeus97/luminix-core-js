@@ -15,6 +15,8 @@ export type RelationInterface<R,C> = {
 
     guessInverseRelation(): string;
 
+    make(data: JsonValue): void;
+
     set(items: R | Collection<R> | null): void;
 
     getForeignKey(): string | null;
@@ -26,6 +28,10 @@ export type RelationInterface<R,C> = {
     getModel(): string;
 
     getRelated(): Constructor<R>;
+
+    isSingle(): boolean;
+
+    isMultiple(): boolean;
 
     query(): BuilderInterface<R,C>;
 

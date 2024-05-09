@@ -20,6 +20,16 @@ export default class HasOne extends HasOneOrMany
         super(meta, facades, parent, items);
     }
 
+
+    isSingle(): boolean {
+        return true;
+    }
+
+    isMultiple(): boolean {
+        return false;
+    }
+
+
     get()
     {
         return this.query().first();

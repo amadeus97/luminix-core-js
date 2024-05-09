@@ -5,6 +5,7 @@ import PropertyBag from '../contracts/PropertyBag';
 import { 
     BaseModel, ModelSaveOptions, ModelSchemaAttributes,
     ModelPaginatedResponse, Model as ModelInterface, RelationRepository, ModelEvents,
+    Model,
 } from '../types/Model';
 
 import { AppFacades } from '../types/App';
@@ -15,21 +16,15 @@ import { AxiosResponse } from 'axios';
 import { HasEvents } from './HasEvents';
 import { Unsubscribe } from 'nanoevents';
 
-import { collect } from '../contracts/Collection';
-import ModelCollection from '../contracts/ModelCollection';
-
 import Builder from '../contracts/Builder';
 import Relation from '../contracts/Relation';
-
-
 
 import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import AttributeNotFillableException from '../exceptions/AttributeNotFillableException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
 import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
-import { isCollection } from '../support/collection';
-import { isModel } from '../support/model';
+import { Collection } from '../types/Collection';
 
 type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
 type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
@@ -141,34 +136,8 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             });
     
             if (relations) {
-                Object.entries(relations).forEach(([key, relation]) => {
-                    const { type, model } = relation;
-    
-                    if (type === 'MorphTo' && !attributes[`${key}_type`]) {
-                        return;
-                    }
-    
-                    const Model = facades.model.make(
-                        type === 'MorphTo'
-                            ? attributes[`${key}_type`] as string
-                            : model
-                    );
-    
-                    const relationData = attributes[key];
-                    const isSingle = ['BelongsTo', 'MorphOne', 'MorphTo', 'HasOne'].includes(type);
-    
-                    if (isSingle && typeof relationData === 'object' && relationData !== null) {
-                        this.relation(_.camelCase(key))!.set(new Model(relationData as JsonObject));
-                    }
-    
-                    if (!isSingle && Array.isArray(attributes[key])) {
-                        this.relation(_.camelCase(key))!.set(
-                            collect(
-                                (relationData as JsonObject[]).map((item) => new Model(item)),
-                                ModelCollection
-                            )
-                        );
-                    }
+                Object.keys(relations).forEach((key) => {
+                    this.relation(_.camelCase(key))!.make(attributes[key]);
                 });
             }
 
@@ -270,6 +239,24 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 operation,
             });
         }
+
+        private updateChangedKeys(key: string) {
+
+            const determineValueEquality = (a: unknown, b: unknown) => {
+                if (typeof a === 'object' && a !== null) {
+                    return _.isEqual(a, b);
+                }
+
+                return a == b;
+            };
+
+            if (!this._changedKeys.includes(key) && !determineValueEquality(this._original[key], this._attributes.get('key'))) {
+                this._changedKeys.push(key);
+            } else if (this._changedKeys.includes(key) && determineValueEquality(this._original[key], this._attributes.get('key'))) {
+                this._changedKeys.splice(this._changedKeys.indexOf(key), 1);
+            }
+
+        }
     
         private validateJsonObject(json: unknown): json is JsonObject {
             if (typeof json !== 'object' || json === null) {
@@ -307,15 +294,15 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             return facades.model.schema(abstract).timestamps;
         }
     
-        get softDeletes() {
-            return facades.model.schema(abstract).softDeletes;
-        }
+        // get softDeletes() {
+        //     return facades.model.schema(abstract).softDeletes;
+        // }
     
         get casts(): ModelSchemaAttributes['casts'] {
             return {
                 ...facades.model.schema(abstract).casts,
                 ...this.timestamps ? { created_at: 'datetime', updated_at: 'datetime' } : {},
-                ...this.softDeletes ? { deleted_at: 'datetime' } : {},
+                // ...this.softDeletes ? { deleted_at: 'datetime' } : {},
             };
         }
     
@@ -373,7 +360,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
             this._attributes.set(key, mutated);
 
-            this._changedKeys.push(key);
+            this.updateChangedKeys(key);
     
             this.dispatchChangeEvent({ [key]: mutated });
         }
@@ -416,7 +403,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
             this._attributes.merge('.', mutatedAttributes);
 
-            this._changedKeys.push(...Object.keys(mutatedAttributes));
+            Object.keys(mutatedAttributes).forEach((key) => this.updateChangedKeys(key));
     
             this.dispatchChangeEvent(mutatedAttributes);
         }
@@ -428,20 +415,18 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             });
         }
     
-        toJson() {
-            const modelRelations = facades.model.schema(abstract).relations;
-    
+        toJson() {  
             const relations = Object.entries(this.relations).reduce((acc, [key, relation]) => {
-                const { type } = modelRelations[key];
-
-                const loadedItems = relation.getLoadedItems();
-
-                if (['BelongsTo', 'MorphOne', 'MorphTo'].includes(type) && loadedItems && isModel(loadedItems)) {
-                    acc[_.snakeCase(key)] = loadedItems.toJson();
+                if (!relation.isLoaded()) {
+                    return acc;
                 }
-                if (['HasMany', 'BelongsToMany', 'MorphMany', 'MorphToMany'].includes(type) && relation.isLoaded() && isCollection(loadedItems)) {
-                    acc[_.snakeCase(key)] = loadedItems.map((item) => item.toJson()).all();
+
+                if (relation.isSingle()) {
+                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as Model).toJson();
+                } else if (relation.isMultiple()) {
+                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as Collection<Model>).map((item) => item.toJson()).all();
                 }
+
                 return acc;
             }, {} as JsonObject);
 
