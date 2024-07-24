@@ -34,7 +34,7 @@ const get = <T>(arrayOrCollection: T[] | CollectionInterface<T>, index: number):
 
 export class Collection<T> implements CollectionInterface<T> {
 
-    // static name = 'Collection';
+    // [Symbol.toStringTag] = 'Collection';
 
     #items: T[];
 

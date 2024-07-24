@@ -121,8 +121,10 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 export declare class Model extends BaseModel {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
+
+    [Symbol.toStringTag]: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static [key: string]: any;
+    //static [key: string]: any;
 }
 
 export interface ModelSaveOptions {

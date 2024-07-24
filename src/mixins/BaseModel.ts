@@ -41,7 +41,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         
         public exists = false;
 
-        static name = _.upperFirst(_.camelCase(abstract));
+        [Symbol.toStringTag] = _.upperFirst(_.camelCase(abstract));
 
         constructor(attributes: JsonObject = {}) {
             this.makeRelations();
@@ -799,7 +799,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 export function ModelFactory(facades: AppFacades, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
     return class extends CustomModel {
 
-        static name = _.upperFirst(_.camelCase(abstract));
+        [Symbol.toStringTag] = _.upperFirst(_.camelCase(abstract));
 
         constructor(attributes: JsonObject = {}) {
             super(attributes);

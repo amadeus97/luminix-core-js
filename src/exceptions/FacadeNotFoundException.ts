@@ -1,6 +1,6 @@
 
 export default class FacadeNotFoundException extends Error {
-    static name = 'FacadeNotFoundException';
+    [Symbol.toStringTag] = 'FacadeNotFoundException';
 
     constructor(name: string) {
         super(`[Luminix] Facade "${name}" not found`);

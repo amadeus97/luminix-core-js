@@ -30,7 +30,7 @@ class ModelFacade implements ModelFacadeInterface {
 
     private _models: { [abstract: string]: typeof Model } = {};
 
-    static name = 'ModelFacade';
+    [Symbol.toStringTag] = 'ModelFacade';
 
     constructor(
         private readonly _schema: ModelSchema,

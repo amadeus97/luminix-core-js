@@ -1,7 +1,7 @@
 
 export default class MethodNotImplementedException extends Error {
 
-    static name = 'MethodNotImplementedException';
+    [Symbol.toStringTag] = 'MethodNotImplementedException';
 
     constructor() {
         super('[Luminix] Method not implemented.');

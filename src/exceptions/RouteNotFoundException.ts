@@ -2,7 +2,7 @@
 
 export default class RouteNotFoundException extends Error {
 
-    static name = 'RouteNotFoundException';
+    [Symbol.toStringTag] = 'RouteNotFoundException';
 
     constructor(route: string) {
         super(`[Luminix] Route "${route}" not found`);

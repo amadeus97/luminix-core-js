@@ -3,6 +3,8 @@ import { resolve } from 'path';
 
 import dts from 'vite-plugin-dts';
 
+import packageJson from './package.json';
+
 export default defineConfig({
     plugins: [dts({ insertTypesEntry: true })],
     build: {
@@ -11,7 +13,7 @@ export default defineConfig({
             formats: ['es']
         },
         rollupOptions: {
-            external: ['axios', 'lodash', 'immer']
+            external: Object.keys(packageJson.peerDependencies),
         }
     },
     

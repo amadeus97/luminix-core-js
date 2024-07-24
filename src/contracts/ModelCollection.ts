@@ -7,7 +7,7 @@ import { Collection as CollectionInterface } from '../types/Collection';
 
 class ModelCollection extends Collection<Model> {
 
-    static name = 'Collection';
+    [Symbol.toStringTag] = 'Collection';
 
     intersect(values: Collection<Model> | Model[]): CollectionInterface<Model> {
         return this.filter((item) => {
