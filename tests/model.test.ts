@@ -95,7 +95,7 @@ describe('testing models', () => {
 
         expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
             params: {
-                filters: { id: 1 },
+                where: { id: 1 },
                 page: 1,
                 per_page: 1
             }
@@ -140,7 +140,7 @@ describe('testing models', () => {
 
         expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/post_comments', {
             params: {
-                filters: { id: 1 },
+                where: { id: 1 },
                 page: 1,
                 per_page: 1
             }

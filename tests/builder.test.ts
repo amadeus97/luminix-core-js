@@ -63,7 +63,7 @@ describe('testing builder', () => {
         expect(users.count()).toBe(2);
         expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
             params: {
-                filters: {
+                where: {
                     branchId: 1,
                     roleId: [1, 2, 3],
                     createdAtGreaterThanOrEquals: '2021-01-01',

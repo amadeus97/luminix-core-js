@@ -1,5 +1,6 @@
-import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
+import PropertyBag from '../contracts/PropertyBag';
 import { Event, EventSource } from './Event';
+import { PropertyBagEventMap } from './PropertyBag';
 
 export type ErrorEventMap = {
     change: (e: ErrorChangeEvent) => void;

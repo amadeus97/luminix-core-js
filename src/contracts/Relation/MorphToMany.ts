@@ -27,8 +27,8 @@ export default class MorphToMany extends BelongsToMany
 
         query.where(relation + '_id', this.parent.getKey());
         query.where(relation + '_type', this.parent.getType());
-        query.lock(`filters.${relation}_id`);
-        query.lock(`filters.${relation}_type`);
+        query.lock(`where.${relation}_id`);
+        query.lock(`where.${relation}_type`);
 
         return query;
     }

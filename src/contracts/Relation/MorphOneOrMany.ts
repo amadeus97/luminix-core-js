@@ -22,8 +22,8 @@ export default class MorphOneOrMany extends HasOneOrMany
 
         query.where(relation + '_id', this.parent.getKey());
         query.where(relation + '_type', this.getRelated().getSchemaName());
-        query.lock(`filters.${relation}_id`);
-        query.lock(`filters.${relation}_type`);
+        query.lock(`where.${relation}_id`);
+        query.lock(`where.${relation}_type`);
 
         return query;
     }

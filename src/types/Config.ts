@@ -1,4 +1,4 @@
-import { PropertyBag } from '..';
+import { PropertyBag } from './PropertyBag';
 import { ModelSchema } from './Model';
 import { RouteDefinition } from './Route';
 

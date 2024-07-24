@@ -40,7 +40,7 @@ export default class BelongsToMany extends Relation {
         const relation = this.guessInverseRelation();
 
         query.where(relation, this.parent.getKey());
-        query.lock(`filters.${relation}`);
+        query.lock(`where.${relation}`);
 
         return query;
     }

@@ -178,7 +178,7 @@ export type ModelQuery = JsonObject & {
     page?: number;
     per_page?: number;
     order_by?: string;
-    filters?: JsonObject;
+    where?: JsonObject;
     tab?: string;
     minified?: boolean;
 }

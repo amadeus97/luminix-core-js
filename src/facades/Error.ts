@@ -1,8 +1,9 @@
-import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
+import PropertyBag from '../contracts/PropertyBag';
 import { HasEvents } from '../mixins/HasEvents';
 import { ErrorFacade, ValidationError } from '../types/Error';
 import reader from '../support/reader';
 import { isAxiosError } from 'axios';
+import { PropertyBagEventMap } from '../types/PropertyBag';
 
 const ErrorBag = HasEvents<PropertyBagEventMap<Record<string, string>>, typeof PropertyBag<Record<string, string>>>(PropertyBag<Record<string, string>>);
 

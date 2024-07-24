@@ -1,20 +1,12 @@
 // import { getProperty, setProperty, hasProperty, deleteProperty } from "dot-prop";
 import { produce } from 'immer';
 import _ from 'lodash';
-import { Event } from '../types/Event';
+import { PropertyBag as PropertyBagInterface, PropertyBagEventMap } from '../types/PropertyBag';
 import { Unsubscribe } from 'nanoevents';
 
-export type PropertyBagEventMap<T extends object = any> = {// eslint-disable-line @typescript-eslint/no-explicit-any
-    'change': (e: PropertyBagChangeEvent<T>) => void; 
-};
 
-export type PropertyBagChangeEvent<T extends object> = Event<PropertyBag<T>> & {
-    path: string;
-    value: unknown;
-    type: 'set' | 'merge' | 'delete';
-};
 
-class PropertyBag<T extends object> {
+class PropertyBag<T extends object> implements PropertyBagInterface<T> {
 
     private locked: string[] = [];
 
@@ -129,7 +121,7 @@ class PropertyBag<T extends object> {
         this.locked.push(path);
     }
 
-    clone()
+    clone(): PropertyBagInterface<T>
     {
         return new PropertyBag(this.bag);
     }

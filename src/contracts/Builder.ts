@@ -73,34 +73,34 @@ class Builder implements BuilderInterface {
     }
 
     whereBetween(key: string, value: [JsonValue, JsonValue]): this {
-        if (!this.bag.has('filters')) {
-            this.bag.set('filters', {});
+        if (!this.bag.has('where')) {
+            this.bag.set('where', {});
         }
-        this.bag.set(`filters.${_.camelCase(key)}Between`, value);
+        this.bag.set(`where.${_.camelCase(key)}Between`, value);
         return this;
     }
 
     whereNotBetween(key: string, value: [JsonValue, JsonValue]): this {
-        if (!this.bag.has('filters')) {
-            this.bag.set('filters', {});
+        if (!this.bag.has('where')) {
+            this.bag.set('where', {});
         }
-        this.bag.set(`filters.${_.camelCase(key)}NotBetween`, value);
+        this.bag.set(`where.${_.camelCase(key)}NotBetween`, value);
         return this;
     }
 
     whereNull(key: string): this {
-        if (!this.bag.has('filters')) {
-            this.bag.set('filters', {});
+        if (!this.bag.has('where')) {
+            this.bag.set('where', {});
         }
-        this.bag.set(`filters.${_.camelCase(key)}Null`, true);
+        this.bag.set(`where.${_.camelCase(key)}Null`, true);
         return this;
     }
 
     whereNotNull(key: string): this {
-        if (!this.bag.has('filters')) {
-            this.bag.set('filters', {});
+        if (!this.bag.has('where')) {
+            this.bag.set('where', {});
         }
-        this.bag.set(`filters.${_.camelCase(key)}NotNull`, true);
+        this.bag.set(`where.${_.camelCase(key)}NotNull`, true);
         return this;
     }
 
@@ -113,8 +113,8 @@ class Builder implements BuilderInterface {
     where(key: string, value: JsonValue): this;
     where(key: string, operator: ExtendedOperator, value: JsonValue): this;
     where(key: string | Scope, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface {
-        if (!this.bag.has('filters')) {
-            this.bag.set('filters', {});
+        if (!this.bag.has('where')) {
+            this.bag.set('where', {});
         }
         
         if (typeof key === 'function') {
@@ -123,7 +123,7 @@ class Builder implements BuilderInterface {
         }
 
         if (typeof value === 'undefined') {
-            this.bag.set(`filters.${_.camelCase(key)}`, operatorOrValue);
+            this.bag.set(`where.${_.camelCase(key)}`, operatorOrValue);
             return this;
         }
 
@@ -142,7 +142,7 @@ class Builder implements BuilderInterface {
 
         const suffix: string = operatorSuffixMap[operatorOrValue] || _.upperFirst(_.camelCase(operatorOrValue as string));
 
-        this.bag.set(`filters.${_.camelCase(key)}${suffix}`, value);
+        this.bag.set(`where.${_.camelCase(key)}${suffix}`, value);
 
         return this;
     }
@@ -172,10 +172,10 @@ class Builder implements BuilderInterface {
             this.bag.set('page', page);            
     
             // const params = (() => {
-            //     if (typeof this.bag.get('filters') === 'object') {
+            //     if (typeof this.bag.get('where') === 'object') {
             //         return {
             //             ...this.bag.all(),
-            //             filters: JSON.stringify(this.bag.get('filters')),
+            //             where: JSON.stringify(this.bag.get('where')),
             //         };
             //     }
             //     return this.bag.all();

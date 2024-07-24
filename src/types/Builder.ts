@@ -1,9 +1,10 @@
-import PropertyBag, { PropertyBagEventMap } from '../contracts/PropertyBag';
+import PropertyBag from '../contracts/PropertyBag';
 import { Event, EventSource } from './Event';
 
 import { JsonObject, JsonValue } from './Support';
 
 import { Operator, Collection } from './Collection';
+import { PropertyBagEventMap } from './PropertyBag';
 
 export type Scope<R,C> = (builder: BuilderInterface<R,C>) => BuilderInterface<R,C> | void;
 
