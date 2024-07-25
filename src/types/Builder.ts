@@ -18,6 +18,10 @@ export type BuilderInterface<R, C> = EventSource<BuilderEventMap<R,C>> & {
     where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface<R,C>;
     where(key: string | Scope<R,C>, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface<R,C>;
 
+    with(relation: string | string[]): BuilderInterface<R,C>;
+    withOnly(relation: string | string[]): BuilderInterface<R,C>;
+    without(relation: string | string[]): BuilderInterface<R,C>;
+
     whereNull(key: string): BuilderInterface<R,C>;
     whereNotNull(key: string): BuilderInterface<R,C>;
     whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<R,C>;
@@ -27,6 +31,7 @@ export type BuilderInterface<R, C> = EventSource<BuilderEventMap<R,C>> & {
     searchBy(term: string): BuilderInterface<R,C>;
     minified(): BuilderInterface<R,C>;
     limit(value: number): BuilderInterface<R,C>;
+    include(searchParams: URLSearchParams): BuilderInterface<R,C>;
 
     get(page?: number, replaceLinksWith?: string): Promise<C>;
     all(): Promise<Collection<R>>;

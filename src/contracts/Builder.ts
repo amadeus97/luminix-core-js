@@ -147,6 +147,46 @@ class Builder implements BuilderInterface {
         return this;
     }
 
+    with(relation: string | string[]): this {
+        const relations: string[] = this.bag.get('with', []) as string[];
+
+        const include = Array.isArray(relation) ? relation : [relation];
+
+        include.forEach((relation) => {
+            if (!relations.includes(relation)) {
+                relations.push(relation);
+            }
+        });
+
+        this.bag.set('with', relations);
+
+        return this;
+    }
+
+    withOnly(relation: string | string[]): this {
+
+        this.bag.set('with', Array.isArray(relation) ? relation : [relation]);
+
+        return this;
+    }
+
+    without(relation: string | string[]): this {
+        
+        const relations: string[] = this.bag.get('with', []) as string[];
+
+        const exclude = Array.isArray(relation) ? relation : [relation];
+
+        exclude.forEach((relation) => {
+            if (relations.includes(relation)) {
+                relations.splice(relations.indexOf(relation), 1);
+            }
+        });
+
+        this.bag.set('with', relations);
+
+        return this;
+    }
+
     orderBy(column: string, direction: 'asc' | 'desc' = 'asc'): this {
         this.bag.set('order_by', `${column}:${direction}`);
         return this;
@@ -164,6 +204,15 @@ class Builder implements BuilderInterface {
 
     unset(key: string): this {
         this.bag.delete(key);
+        return this;
+    }
+
+    include(searchParams: URLSearchParams): this {
+
+        for (const [key, value] of searchParams.entries()) {
+            this.bag.set(key, value);
+        }
+        
         return this;
     }
 

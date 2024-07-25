@@ -70,10 +70,16 @@ class App implements AppFacade {
 
         const bootUrl = (configObject.app?.url ?? '') + (configObject.app?.bootUrl ?? '/luminix-api/init');
         
-        if (typeof bootUrl === 'string' && !document.getElementById('luminix-data::config')) {
-            const { data } = await axios.get(bootUrl);
-            if (data && typeof data === 'object') {
-                _.merge(configObject, data);
+        if (!document.getElementById('luminix-data::config')) {
+            try {
+                const { data } = await axios.get(bootUrl);
+                if (data && typeof data === 'object') {
+                    _.merge(configObject, data);
+                }
+            } catch (error) {
+                if (configObject.app?.debug) {
+                    console.error(error);
+                }
             }
         } else if (document.getElementById('luminix-data::config')) {
             const data = reader('config');
