@@ -17,6 +17,11 @@ function app(facade = undefined) {
             make: appInstance.make.bind(appInstance),
             plugins: appInstance.plugins.bind(appInstance),
             on: appInstance.once.bind(appInstance),
+            environment: appInstance.environment.bind(appInstance),
+            getPlugin: appInstance.getPlugin.bind(appInstance),
+            hasDebugModeEnabled: appInstance.hasDebugModeEnabled.bind(appInstance),
+            isLocal: appInstance.isLocal.bind(appInstance),
+            isProduction: appInstance.isProduction.bind(appInstance)
         };
     }
 

@@ -8,6 +8,7 @@ import { RouteFacade } from './Route';
 import { EventSource, Event } from './Event';
 import { ErrorFacade } from './Error';
 import { ReducibleInterface } from './Reducer';
+import { Constructor } from './Support';
 
 type Plugin = PluginInterface<AppFacade, AppFacades>;
 
@@ -43,7 +44,6 @@ export type ModelFacade = EventSource<GlobalModelEvents> & ReducibleInterface & 
     make(): Record<string, typeof Model>;
     make(abstract: string): typeof Model;
     boot(app: AppFacade): void;
-    
 }
 
 
@@ -63,6 +63,14 @@ export type AppExternal = {
     make<T extends keyof AppFacades>(key: T): AppFacades[T];
     plugins: () => Plugin[];
     on: EventSource<AppEvents>['once'];
+
+    environment(): string;
+    environment(...environments: string[]): boolean;
+
+    getPlugin<T extends Plugin>(abstract: Constructor<T>): T | undefined;
+    hasDebugModeEnabled(): boolean;
+    isLocal(): boolean;
+    isProduction(): boolean;
 };
 
 export type AppFacade = AppExternal & {

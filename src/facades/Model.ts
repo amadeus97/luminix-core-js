@@ -51,7 +51,7 @@ class ModelFacade implements ModelFacadeInterface {
 
             // !Reducer `model`
             const Model: typeof BaseModel = this.model(
-                BaseModelFactory(app.make(), abstract),
+                BaseModelFactory(app, abstract),
                 abstract
             );
 

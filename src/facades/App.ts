@@ -14,8 +14,10 @@ import { AppConfiguration } from '../types/Config';
 import { Unsubscribe } from 'nanoevents';
 import _ from 'lodash';
 import Error from './Error';
+import { Constructor } from '../types/Support';
 
 class App implements AppFacade {
+    
 
     private facades: AppFacades = {} as AppFacades;
     private booted = false;
@@ -142,6 +144,36 @@ class App implements AppFacade {
         this.emit('booted');
 
         return this.facades;
+    }
+
+    environment(): string;
+    environment(...environments: string[]): boolean;
+    environment(...rest: unknown[]): string | boolean {
+        if (rest.length > 0) {
+            return rest.includes(this.facades.config.get('app.env', 'production'));
+        }
+        return this.facades.config.get('app.env', 'production') as string;
+    }
+
+    getPlugin<T extends Plugin>(abstract: Constructor<T>): T | undefined {
+        for (const plugin of this._plugins) {
+            if (plugin instanceof abstract) {
+                return plugin;
+            }
+        }
+        return undefined;
+    }
+
+    hasDebugModeEnabled(): boolean {
+        return this.facades.config.get('app.debug', false) as boolean;
+    }
+
+    isLocal(): boolean {
+        return this.facades.config.get('app.env', 'production') === 'local';
+    }
+
+    isProduction(): boolean {
+        return this.facades.config.get('app.env', 'production') === 'production';
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

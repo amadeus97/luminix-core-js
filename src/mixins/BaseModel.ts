@@ -8,7 +8,7 @@ import {
     Model,
 } from '../types/Model';
 
-import { AppFacades } from '../types/App';
+import { AppFacade, AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { JsonObject, JsonValue } from '../types/Support';
 
@@ -21,7 +21,6 @@ import Relation from '../contracts/Relation';
 
 import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
-import AttributeNotFillableException from '../exceptions/AttributeNotFillableException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
 import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
 import { Collection } from '../types/Collection';
@@ -30,7 +29,7 @@ type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
 type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
 
 
-export function BaseModelFactory(facades: AppFacades, abstract: string): typeof BaseModel {
+export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseModel {
 
     class ModelRaw {
 
@@ -40,6 +39,8 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         private _changedKeys: string[] = [];
         
         public exists = false;
+
+        static name = _.upperFirst(_.camelCase(abstract));
 
         [Symbol.toStringTag] = _.upperFirst(_.camelCase(abstract));
 
@@ -91,7 +92,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         private makeRelations() {
-            const { relations } = facades.model.schema(abstract);
+            const { relations } = app.make('model').schema(abstract);
     
             this._relations = {};
 
@@ -99,12 +100,9 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return;
             }
 
-            if (typeof facades.model.relationMap !== 'function') {
-                throw new NotReducibleException('ModelFacade');
-            }
-
             // !Reducer `relationMap`
-            const relationMap: Record<string, typeof Relation> = facades.model.relationMap({}, abstract);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const relationMap: Record<string, typeof Relation> = (app.make('model').relationMap as any)({}, abstract);
     
             Object.entries(relations).forEach(([key, relation]) => {
                 const { type } = relation;
@@ -115,7 +113,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
                 this._relations[key] = new RelationClass(
                     { name: key, ...relation },
-                    facades,
+                    app.make(),
                     this,
                     null,
                 );
@@ -124,7 +122,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         private makeAttributes(attributes: JsonObject)
         {
-            const { relations } = facades.model.schema(abstract);
+            const { relations } = app.make('model').schema(abstract);
     
             // remove relations from attributes
             const excludedKeys = Object.keys(relations || {});
@@ -142,10 +140,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }
 
             if (!this.validateJsonObject(newAttributes)) {
-                if (facades.config.get('app.env', 'production') === 'production') {
+                if (app.isProduction()) {
                     throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
                 } else {
-                    facades.log.warning(`Invalid attributes for model "${abstract}".
+                    app.make('log').warning(`Invalid attributes for model "${abstract}".
                         This will throw an error in production.`, {
                         attributes, abstract
                     });
@@ -174,7 +172,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: attributes,
             });
     
-            facades.model.emit('create', {
+            app.make('model').emit('create', {
                 class: abstract,
                 model: this,
             });
@@ -185,7 +183,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: attributes,
             });
     
-            facades.model.emit('update', {
+            app.make('model').emit('update', {
                 class: abstract,
                 model: this,
             });
@@ -196,7 +194,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: this.diff(),
             });
     
-            facades.model.emit('save', {
+            app.make('model').emit('save', {
                 class: abstract,
                 model: this,
             });
@@ -208,7 +206,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 [this.getKeyName()]: this.getKey(),
             });
     
-            facades.model.emit('delete', {
+            app.make('model').emit('delete', {
                 class: abstract,
                 model: this,
                 force,
@@ -220,7 +218,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 value: this.attributes,
             });
     
-            facades.model.emit('restore', {
+            app.make('model').emit('restore', {
                 class: abstract,
                 model: this,
             });
@@ -232,7 +230,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 operation,
             });
     
-            facades.model.emit('error', {
+            app.make('model').emit('error', {
                 class: abstract,
                 model: this,
                 error,
@@ -283,24 +281,24 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         get fillable() {
-            return facades.model.schema(abstract).fillable;
+            return app.make('model').schema(abstract).fillable;
         }
     
         get primaryKey() {
-            return facades.model.schema(abstract).primaryKey;
+            return app.make('model').schema(abstract).primaryKey;
         }
     
         get timestamps() {
-            return facades.model.schema(abstract).timestamps;
+            return app.make('model').schema(abstract).timestamps;
         }
     
         // get softDeletes() {
-        //     return facades.model.schema(abstract).softDeletes;
+        //     return app.make('model').schema(abstract).softDeletes;
         // }
     
         get casts(): ModelSchemaAttributes['casts'] {
             return {
-                ...facades.model.schema(abstract).casts,
+                ...app.make('model').schema(abstract).casts,
                 ...this.timestamps ? { created_at: 'datetime', updated_at: 'datetime' } : {},
                 // ...this.softDeletes ? { deleted_at: 'datetime' } : {},
             };
@@ -316,41 +314,40 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
             // !Reducer `model${ClassName}Get${Key}Attribute`
-            return reducer.bind(facades.model)(value, this);
+            return reducer.bind(app.make('model'))(value, this);
         }
     
         setAttribute(key: string, value: unknown) {
-            if (!this.fillable.includes(key)) {
-                if (facades.config.get('app.env', 'production') === 'production') {
-                    throw new AttributeNotFillableException(abstract, key);
-                } else {
-                    facades.log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${abstract}".
-                    This will throw an error in production.`);
-                }
-                return;
-            }
+            // if (!this.fillable.includes(key)) {
+            //     if (app.isProduction()) {
+            //         throw new AttributeNotFillableException(abstract, key);
+            //     } else {
+            //         app.make('log').warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${abstract}". This will throw an error in production.`);
+            //     }
+            //     return;
+            // }
 
-            const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model${ClassName}Set${Key}Attribute`
-            const mutated = reducer.bind(facades.model)(
+            const mutated = reducer.bind(app.make('model'))(
                 this.mutate(value, this.casts[key]),
                 this
             );
     
             if (!this.validateJsonObject({ [key]: mutated })) {
-                if (facades.config.get('app.env', 'production') === 'production') {
+                if (app.isProduction()) {
                     throw new TypeError(`[Luminix] Attribute "${key}" in model "${abstract}" must be a boolean, number, string or null`);
                 } else {
-                    facades.log.warning(`Invalid type for attribute "${key}" in model "${abstract}" after mutation.
+                    app.make('log').warning(`Invalid type for attribute "${key}" in model "${abstract}" after mutation.
                         This will throw an error in production.`, {
                         key, value, mutated, cast: this.casts[key], item: this.toJson(),
                     });
@@ -377,12 +374,12 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             const validAttributes = _.pick(attributes, this.fillable);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
-                const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+                const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
                 if (typeof reducer !== 'function') {
                     throw new NotReducibleException('ModelFacade');
                 }
                 // !Reducer `model${ClassName}Set${Key}Attribute`
-                acc[key] = reducer.bind(facades.model)(
+                acc[key] = reducer.bind(app.make('model'))(
                     this.mutate(value, this.casts[key]),
                     this
                 );
@@ -390,10 +387,10 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             }, {});
     
             if (!this.validateJsonObject(mutatedAttributes)) {
-                if (facades.config.get('app.env', 'production') === 'production') {
+                if (app.isProduction()) {
                     throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
                 } else {
-                    facades.log.warning(`Invalid attributes for model "${abstract}" after mutation.
+                    app.make('log').warning(`Invalid attributes for model "${abstract}" after mutation.
                         This will throw an error in production.`, {
                         attributes, mutatedAttributes, item: this.toJson(), casts: this.casts,
                     });
@@ -409,7 +406,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         dump() {
-            facades.log.info({
+            app.make('log').info({
                 ...this.toJson(),
                 [Symbol.toStringTag]: _.upperFirst(_.camelCase(abstract)),
             });
@@ -430,14 +427,14 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                 return acc;
             }, {} as JsonObject);
 
-            const reducer = facades.model[`model${_.upperFirst(_.camelCase(abstract))}Json`];
+            const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Json`];
 
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model${ClassName}Json`
-            return reducer.bind(facades.model)({
+            return reducer.bind(app.make('model'))({
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -465,7 +462,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
             if (!this.exists) {
                 throw new ModelNotPersistedException(abstract, 'refresh');
             }
-            const { data } = await facades.route.call([
+            const { data } = await app.make('route').call([
                 `luminix.${abstract}.show`,
                 this.makePrimaryKeyReplacer()
             ], {
@@ -490,7 +487,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
                     ]
                     : `luminix.${abstract}.store`;
     
-                const response = await facades.route.call(
+                const response = await app.make('route').call(
                     route,
                     {
                         data: {
@@ -523,7 +520,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
                 throw response;
             } catch (error) {
-                facades.log.error(error);
+                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'save');
                 throw error;
             }
@@ -535,7 +532,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         async delete(): Promise<AxiosResponse> {
             try {
-                const response = await facades.route.call([
+                const response = await app.make('route').call([
                     `luminix.${abstract}.destroy`,
                     this.makePrimaryKeyReplacer(),
                 ], {
@@ -549,7 +546,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
                 throw response;
             } catch (error) {
-                facades.log.error(error);
+                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'delete');
                 throw error;
             }
@@ -557,7 +554,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
         async update(data: JsonObject): Promise<void> {
             try {
-                const response = await facades.route.call([
+                const response = await app.make('route').call([
                     `luminix.${abstract}.update`,
                     this.makePrimaryKeyReplacer()
                 ], {
@@ -573,7 +570,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
 
                 throw response;
             } catch (error) {
-                facades.log.error(error);
+                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'save');
                 throw error;
             }
@@ -582,7 +579,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         async forceDelete(): Promise<AxiosResponse> {
             try {
-                const response = await facades.route.call(
+                const response = await app.make('route').call(
                     [
                         `luminix.${abstract}.destroy`,
                         this.makePrimaryKeyReplacer(),
@@ -600,7 +597,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
                 throw response;
             } catch (error) {
-                facades.log.error(error);
+                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'forceDelete');
                 throw error;
             }
@@ -608,7 +605,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
         async restore(): Promise<AxiosResponse> {
             try {
-                const response = await facades.route.call(
+                const response = await app.make('route').call(
                     [
                         `luminix.${abstract}.update`,
                         this.makePrimaryKeyReplacer()
@@ -626,7 +623,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
     
                 throw response;
             } catch (error) {
-                facades.log.error(error);
+                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'restore');
                 throw error;
             }
@@ -637,11 +634,11 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         static getSchema() {
-            return facades.model.schema(abstract);
+            return app.make('model').schema(abstract);
         }
 
         static query() {
-            return new Builder(facades, abstract);
+            return new Builder(app.make(), abstract);
         }
 
         static where(scope: Scope): BuilderInterface
@@ -696,7 +693,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         static async create(attributes: JsonObject) {
-            const Model = facades.model.make(abstract);
+            const Model = app.make('model').make(abstract);
             const model = new Model();
     
             model.fill(attributes);
@@ -707,7 +704,7 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
     
         static async update(id: number | string, attributes: JsonObject) {
-            const Model = facades.model.make(abstract);
+            const Model = app.make('model').make(abstract);
             const model = new Model({ id });
     
             model.fill(attributes);
@@ -722,13 +719,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static delete(id: Array<number | string>): Promise<AxiosResponse>;
         static delete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${abstract}.destroyMany`, {
+                return app.make('route').call(`luminix.${abstract}.destroyMany`, {
                     params: { ids: id },
                     errorBag: `${abstract}.deleteMany`,
                 });
             }
     
-            const Model = facades.model.make(abstract);
+            const Model = app.make('model').make(abstract);
             const model = new Model({ id });
     
             return model.delete();
@@ -738,13 +735,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static async restore(id: Array<number | string>): Promise<AxiosResponse>;
         static async restore(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${abstract}.restoreMany`, {
+                return app.make('route').call(`luminix.${abstract}.restoreMany`, {
                     data: { ids: id },
                     errorBag: `${abstract}.restoreMany`,
                 });
             }
     
-            const Model = facades.model.make(abstract);
+            const Model = app.make('model').make(abstract);
     
             const model = new Model({ id });
     
@@ -755,13 +752,13 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         static forceDelete(id: Array<number | string>): Promise<AxiosResponse>;
         static forceDelete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return facades.route.call(`luminix.${abstract}.destroyMany`, {
+                return app.make('route').call(`luminix.${abstract}.destroyMany`, {
                     params: { ids: id, force: true },
                     errorBag: `${abstract}.forceDeleteMany`,
                 });
             }
     
-            const Model = facades.model.make(abstract);
+            const Model = app.make('model').make(abstract);
     
             const model = new Model({ id });
     
@@ -769,11 +766,11 @@ export function BaseModelFactory(facades: AppFacades, abstract: string): typeof 
         }
 
         static singular() {
-            return facades.model.schema(abstract).displayName.singular;
+            return app.make('model').schema(abstract).displayName.singular;
         }
 
         static plural() {
-            return facades.model.schema(abstract).displayName.plural;
+            return app.make('model').schema(abstract).displayName.plural;
         }
 
         
@@ -813,11 +810,7 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
                     // If the property exists in the target, return it.
                     if (prop in target) {
-                        const subject = target[prop];
-                        if (typeof subject === 'function') {
-                            return subject.bind(target);
-                        }
-                        return subject;
+                        return Reflect.get(target, prop);
                     }
 
                     // If the prop is not camel cased, return undefined.
@@ -827,6 +820,10 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
                     const snakeCasedProp = _.snakeCase(prop);
 
+                    // If the property exists in attributes, return it.
+                    if (Object.keys(target.attributes).includes(snakeCasedProp)) {
+                        return target.getAttribute(snakeCasedProp);
+                    }
                     // If the property is a relation, return it.
                     if (Object.keys(target.relations).includes(snakeCasedProp)) {
                         return target.relations[snakeCasedProp].getLoadedItems();
@@ -836,10 +833,6 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return () => target.relation(prop.slice(0, -8));
                     }
 
-                    // If the property exists in attributes, return it.
-                    if (Object.keys(target.attributes).includes(snakeCasedProp)) {
-                        return target.getAttribute(snakeCasedProp);
-                    }
 
                     // If there is a reducer to handle a property, return it.
                     if (facades.model.hasReducer(`model${target.constructor.name}Get${_.upperFirst(prop)}Attribute`)) {
@@ -857,17 +850,11 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                     if (prop in target && typeof target[prop] !== 'function') {
                         return Reflect.set(target, prop, value);
                     }
-
-                    if (target.fillable.includes(_.snakeCase(prop))) {
-                        target.setAttribute(
-                            _.snakeCase(prop),
-                            value
-                        );
-                        return true;
-                    }
-
-                    
-                    throw new AttributeNotFillableException(abstract, _.snakeCase(prop));
+                    target.setAttribute(
+                        _.snakeCase(prop),
+                        value
+                    );
+                    return true;
                 },
             });
         }
