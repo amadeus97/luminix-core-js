@@ -159,7 +159,7 @@ export interface ModelSchemaAttributes {
         nullable: boolean,
         phpType: string | null,
         primary: boolean,
-        type: string,
+        type: string | null,
         unique: boolean,
         virtual: boolean,
     }[],
