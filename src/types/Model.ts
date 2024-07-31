@@ -148,6 +148,21 @@ export interface ModelTableColumnDefinition {
 }
 
 export interface ModelSchemaAttributes {
+    attributes: {
+        appended: true | null,
+        cast: string | null,
+        default: string | null,
+        fillable: boolean,
+        hidden: boolean,
+        increments: boolean,
+        name: string,
+        nullable: boolean,
+        phpType: string | null,
+        primary: boolean,
+        type: string,
+        unique: boolean,
+        virtual: boolean,
+    }[],
     displayName: {
         singular: string,
         plural: string,
@@ -158,6 +173,8 @@ export interface ModelSchemaAttributes {
     primaryKey: string,
     timestamps: boolean,
     labeledBy: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any,
     // softDeletes: boolean,
     // importable?: boolean,
     // exportable?: boolean,
