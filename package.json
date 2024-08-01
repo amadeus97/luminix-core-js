@@ -1,6 +1,6 @@
 {
   "name": "@luminix/core",
-  "version": "0.0.1-beta.8",
+  "version": "0.0.1-beta.9",
   "description": "> Projeto em desenvolvimento",
   "main": "dist/core.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,8 @@
     "lint:fix": "eslint ./src ./tests --ext .ts --fix",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "ci": "npm run lint && npm run test"
+    "ci": "npm run lint && npm run test",
+    "publish:beta": "npm run build && npm publish --tag beta"
   },
   "author": "",
   "license": "MIT",

@@ -248,9 +248,9 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 return a == b;
             };
 
-            if (!this._changedKeys.includes(key) && !determineValueEquality(this._original[key], this._attributes.get('key'))) {
+            if (!this._changedKeys.includes(key) && !determineValueEquality(this._original[key], this._attributes.get(key))) {
                 this._changedKeys.push(key);
-            } else if (this._changedKeys.includes(key) && determineValueEquality(this._original[key], this._attributes.get('key'))) {
+            } else if (this._changedKeys.includes(key) && determineValueEquality(this._original[key], this._attributes.get(key))) {
                 this._changedKeys.splice(this._changedKeys.indexOf(key), 1);
             }
 

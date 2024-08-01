@@ -18,13 +18,13 @@ export function isEventSource<T>(value: T): value is T & EventSource<any> {
 export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Base: U) {
     return class EventSource extends Base {
     
-        #emitter;
+        emitter;
 
         [Symbol.toStringTag] = Base.name;
 
         constructor(...args: any[]) {
             super(...args);
-            this.#emitter = this.#createNanoEvents();
+            this.emitter = this.#createNanoEvents();
         }
 
         #createNanoEvents(): Emitter<EventSourceEvents> { 
@@ -51,7 +51,7 @@ export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Ba
             if (typeof callback !== 'function') {
                 throw new TypeError('callback must be a function');
             }
-            return this.#emitter.on(event, callback);
+            return this.emitter.on(event, callback);
         }
 
         once<E extends keyof T>(event: E, callback: T[E]) {
@@ -61,7 +61,7 @@ export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Ba
             if (typeof callback !== 'function') {
                 throw new TypeError('callback must be a function');
             }
-            const off = this.#emitter.on(event, (data) => {
+            const off = this.emitter.on(event, (data) => {
                 off();
                 callback(data);
             });
@@ -74,7 +74,7 @@ export function HasEvents<T extends EventSourceEvents, U extends Constructor>(Ba
             if (typeof data !== 'object') {
                 throw new TypeError('data must be an object');
             }
-            this.#emitter.emit(event, {
+            this.emitter.emit(event, {
                 ...data,
                 source: this,
             });
