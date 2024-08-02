@@ -115,7 +115,7 @@ class Route {
         // !Reducer `axiosOptions`
         const axiosOptions = this.axiosOptions(config, name);
         
-        const { method = methods[0], errorBag = 'route.call', ...rest } = axiosOptions;
+        const { method = methods[0], errorBag = 'default', ...rest } = axiosOptions;
         const { data, ...restOfRest } = rest;
 
         this.error.clear(errorBag);
@@ -133,7 +133,8 @@ class Route {
                 this.error.set(Object.entries(errors).reduce((acc, [key, value]) => {
                     acc[key] = value.join(' ');
                     return acc;
-                }, {} as Record<string,string>));
+                }, {} as Record<string,string>), errorBag);
+
             } else if (axios.isAxiosError(error)) {
                 this.error.set(
                     this.axiosError({ axios: error.message }, { 

@@ -150,9 +150,9 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 }
             }
 
-            this._attributes = new PropertyBag(newAttributes);
+            this._attributes.set('.', newAttributes);
             this._original = newAttributes;
-            this._changedKeys = [];
+            this._changedKeys.splice(0, this._changedKeys.length);
         }
     
         private makePrimaryKeyReplacer(): RouteReplacer {
@@ -248,9 +248,9 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 return a == b;
             };
 
-            if (!this._changedKeys.includes(key) && !determineValueEquality(this._original[key], this._attributes.get(key))) {
+            if (!this._changedKeys.includes(key) && !determineValueEquality(_.get(this._original, key), this._attributes.get(key))) {
                 this._changedKeys.push(key);
-            } else if (this._changedKeys.includes(key) && determineValueEquality(this._original[key], this._attributes.get(key))) {
+            } else if (this._changedKeys.includes(key) && determineValueEquality(_.get(this._original, key), this._attributes.get(key))) {
                 this._changedKeys.splice(this._changedKeys.indexOf(key), 1);
             }
 
@@ -458,20 +458,73 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             return this.relations[_.snakeCase(name)];
         }
 
+        getErrorBag(method: string) {
+            const prefix = this.exists
+                ? `${abstract}[${this.getKey()}].`
+                : `${abstract}.`;
+
+            return `${prefix}${method}`;
+        }
+
+        getRouteForSave(): RouteGenerator {
+            return this.exists ?
+                [
+                    `luminix.${abstract}.update`,
+                    this.makePrimaryKeyReplacer()
+                ]
+                : `luminix.${abstract}.store`;
+        }
+
+        getRouteForUpdate(): RouteGenerator {
+            return [
+                `luminix.${abstract}.update`,
+                this.makePrimaryKeyReplacer()
+            ];
+        }
+
+        getRouteForDelete(): RouteGenerator {
+            return [
+                `luminix.${abstract}.destroy`,
+                this.makePrimaryKeyReplacer(),
+            ];
+        }
+
+        getRouteForRestore(): RouteGenerator {
+            return [
+                `luminix.${abstract}.restore`,
+                this.makePrimaryKeyReplacer(),
+            ];
+        }
+
+        getRouteForForceDelete(): RouteGenerator {
+            return [
+                `luminix.${abstract}.forceDelete`,
+                this.makePrimaryKeyReplacer(),
+            ];
+        }
+
+        getRouteForRefresh(): RouteGenerator {
+            return [
+                `luminix.${abstract}.show`,
+                this.makePrimaryKeyReplacer()
+            ];
+        }
+
+
+
         async refresh() {
             if (!this.exists) {
                 throw new ModelNotPersistedException(abstract, 'refresh');
             }
-            const { data } = await app.make('route').call([
-                `luminix.${abstract}.show`,
-                this.makePrimaryKeyReplacer()
-            ], {
-                errorBag: `${abstract}[${this.getKey()}].fetch`,
-            });
+            const { data } = await app.make('route').call(
+                this.getRouteForRefresh(),
+                { errorBag: this.getErrorBag('fetch') }
+            );
+
             this.makeAttributes(data);
         }
     
-        async save(options: ModelSaveOptions = {}): Promise<AxiosResponse> {
+        async save(options: ModelSaveOptions = {}): Promise<AxiosResponse|void> {
             try {
                 const {
                     additionalPayload = {},
@@ -479,29 +532,26 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 } = options;
     
                 const exists = this.exists;
-    
-                const route: RouteGenerator = exists ?
-                    [
-                        `luminix.${abstract}.update`,
-                        this.makePrimaryKeyReplacer()
-                    ]
-                    : `luminix.${abstract}.store`;
+
+                const data = {
+                    ..._.pick(
+                        sendsOnlyModifiedFields && exists
+                            ? this.diff()
+                            : this.attributes,
+                        this.fillable
+                    ),
+                    ...additionalPayload,
+                };
+
+                if (_.isEmpty(data)) {
+                    return;
+                }
     
                 const response = await app.make('route').call(
-                    route,
+                    this.getRouteForSave(),
                     {
-                        data: {
-                            ..._.pick(
-                                sendsOnlyModifiedFields && exists
-                                    ? this.diff()
-                                    : this.attributes,
-                                this.fillable
-                            ),
-                            ...additionalPayload,
-                        },
-                        errorBag: exists
-                            ? `${abstract}[${this.getKey()}].update`
-                            : `${abstract}.store`,
+                        data,
+                        errorBag: this.getErrorBag(exists ? 'update' : 'store'),
                     }
                 );
     
@@ -520,7 +570,6 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
                 throw response;
             } catch (error) {
-                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'save');
                 throw error;
             }
@@ -532,12 +581,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
         async delete(): Promise<AxiosResponse> {
             try {
-                const response = await app.make('route').call([
-                    `luminix.${abstract}.destroy`,
-                    this.makePrimaryKeyReplacer(),
-                ], {
-                    errorBag: `${abstract}[${this.getKey()}].delete`,
-                });
+                const response = await app.make('route').call(
+                    this.getRouteForDelete(),
+                    { errorBag: this.getErrorBag('delete') }
+                );
     
                 if (response.status === 204) {
                     this.dispatchDeleteEvent();
@@ -546,7 +593,6 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
                 throw response;
             } catch (error) {
-                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'delete');
                 throw error;
             }
@@ -554,13 +600,12 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
         async update(data: JsonObject): Promise<void> {
             try {
-                const response = await app.make('route').call([
-                    `luminix.${abstract}.update`,
-                    this.makePrimaryKeyReplacer()
-                ], {
-                    data,
-                    errorBag: `${abstract}[${this.getKey()}].update`,
-                });
+                const response = await app.make('route').call(
+                    this.getRouteForUpdate(), 
+                    {
+                        data,
+                        errorBag: this.getErrorBag('update'),
+                    });
 
                 if (response.status === 200) {
                     this.makeAttributes(response.data);
@@ -570,7 +615,6 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
                 throw response;
             } catch (error) {
-                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'save');
                 throw error;
             }
@@ -580,13 +624,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         async forceDelete(): Promise<AxiosResponse> {
             try {
                 const response = await app.make('route').call(
-                    [
-                        `luminix.${abstract}.destroy`,
-                        this.makePrimaryKeyReplacer(),
-                    ],
+                    this.getRouteForForceDelete(),
                     {
                         params: { force: true },
-                        errorBag: `${abstract}[${this.getKey()}].forceDelete`,
+                        errorBag: this.getErrorBag('forceDelete'),
                     }
                 );
     
@@ -597,7 +638,6 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
                 throw response;
             } catch (error) {
-                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'forceDelete');
                 throw error;
             }
@@ -606,13 +646,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         async restore(): Promise<AxiosResponse> {
             try {
                 const response = await app.make('route').call(
-                    [
-                        `luminix.${abstract}.update`,
-                        this.makePrimaryKeyReplacer()
-                    ],
+                    this.getRouteForRestore(),
                     {
                         params: { restore: true },
-                        errorBag: `${abstract}[${this.getKey()}].restore`,
+                        errorBag: this.getErrorBag('restore'),
                     }
                 );
     
@@ -623,7 +660,6 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
                 throw response;
             } catch (error) {
-                app.make('log').error(error);
                 this.dispatchErrorEvent(error, 'restore');
                 throw error;
             }

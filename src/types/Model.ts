@@ -6,6 +6,7 @@ import { Collection } from './Collection';
 
 import { RelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
 import { JsonObject, JsonValue } from './Support';
+import { RouteGenerator } from './Route';
 
 export type RelationRepository = Record<string, RelationInterface<Model, ModelPaginatedResponse>>;
 
@@ -69,13 +70,22 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     diff(): JsonObject;
     getType(): string;
     dump(): void;
-    save(options?: ModelSaveOptions): Promise<AxiosResponse<unknown, unknown>>;
+    save(options?: ModelSaveOptions): Promise<AxiosResponse|void>;
     update(attributes: JsonObject): Promise<void>;
-    delete(): Promise<AxiosResponse<unknown, unknown>>;
-    forceDelete(): Promise<AxiosResponse<unknown, unknown>>;
-    restore(): Promise<AxiosResponse<unknown, unknown>>;
+    delete(): Promise<AxiosResponse>;
+    forceDelete(): Promise<AxiosResponse>;
+    restore(): Promise<AxiosResponse>;
     refresh(): Promise<void>;
     relation(relationName: string): RelationInterface<Model, ModelPaginatedResponse> | undefined;
+
+    getErrorBag(method: string): string;
+
+    getRouteForSave(): RouteGenerator;
+    getRouteForUpdate(): RouteGenerator;
+    getRouteForDelete(): RouteGenerator;
+    getRouteForRestore(): RouteGenerator;
+    getRouteForForceDelete(): RouteGenerator;
+    getRouteForRefresh(): RouteGenerator;
 
     static getSchemaName(): string;
     static getSchema(): ModelSchemaAttributes;
