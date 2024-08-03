@@ -65,6 +65,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     setAttribute(key: string, value: unknown): void;
     getKey(): string | number;
     getKeyName(): string;
+    getLabel(): string;
     fill(attributes: object): void;
     toJson(): JsonObject;
     diff(): JsonObject;

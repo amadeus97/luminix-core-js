@@ -510,7 +510,12 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             ];
         }
 
+        getLabel(): string {
 
+            const { labeledBy } = app.make('model').schema(abstract);
+
+            return this.getAttribute(labeledBy) as string;
+        }
 
         async refresh() {
             if (!this.exists) {
