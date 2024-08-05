@@ -1,6 +1,6 @@
 {
   "name": "@luminix/core",
-  "version": "0.0.1-beta.10",
+  "version": "0.0.1-beta.11",
   "description": "> Projeto em desenvolvimento",
   "main": "dist/core.js",
   "types": "dist/index.d.ts",
