@@ -39,6 +39,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         private _changedKeys: string[] = [];
         
         public exists = false;
+        public wasRecentlyCreated = false;
 
         static name = _.upperFirst(_.camelCase(abstract));
 
@@ -157,7 +158,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
         private makePrimaryKeyReplacer(): RouteReplacer {
             return {
-                [this.primaryKey]: this.getAttribute(this.primaryKey) as string
+                [this.getKeyName()]: this.getKey(),
             };
         }
     
@@ -536,11 +537,11 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                     sendsOnlyModifiedFields = true,
                 } = options;
     
-                const exists = this.exists;
+                const existedBeforeSaving = this.exists;
 
                 const data = {
                     ..._.pick(
-                        sendsOnlyModifiedFields && exists
+                        sendsOnlyModifiedFields && existedBeforeSaving
                             ? this.diff()
                             : this.attributes,
                         this.fillable
@@ -556,7 +557,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                     this.getRouteForSave(),
                     {
                         data,
-                        errorBag: this.getErrorBag(exists ? 'update' : 'store'),
+                        errorBag: this.getErrorBag(existedBeforeSaving ? 'update' : 'store'),
                     }
                 );
     
@@ -564,7 +565,8 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                     this.makeAttributes(response.data);
                     this.exists = true;
                     this.dispatchSaveEvent();
-                    if (!exists) {
+                    if (!existedBeforeSaving) {
+                        this.wasRecentlyCreated = true;
                         this.dispatchCreateEvent(response.data);
                     } else {
                         this.dispatchUpdateEvent(response.data);

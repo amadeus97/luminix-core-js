@@ -60,6 +60,7 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     get casts(): ModelSchemaAttributes['casts'];
 
     exists: boolean;
+    wasRecentlyCreated: boolean;
 
     getAttribute(key: string): unknown;
     setAttribute(key: string, value: unknown): void;
