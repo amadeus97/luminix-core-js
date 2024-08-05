@@ -385,10 +385,10 @@ export class Collection<T> implements CollectionInterface<T> {
         return item;
     }
 
-    firstWhere(key: keyof T): T | null;
-    firstWhere(key: keyof T, value: T): T | null;
-    firstWhere(key: keyof T, operator: Operator, value: T): T | null;
-    firstWhere(key: unknown, operator?: unknown, value?: unknown): T | null {
+    firstWhere<K extends keyof T>(key: K): T | null;
+    firstWhere<K extends keyof T>(key: K, value: T[K]): T | null;
+    firstWhere<K extends keyof T>(key: K, operator: Operator, value: T[K]): T | null 
+    firstWhere<K extends keyof T>(key: K, operator?: Operator | T[K], value?: T[K]): T | null {
         if (typeof key !== 'string') {
             throw new TypeError('The key must be a string');
         }

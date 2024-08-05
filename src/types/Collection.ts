@@ -618,9 +618,9 @@ export type Collection<T = unknown> = EventSource<CollectionEvents<T>> & {
      * ```
      * 
      */
-    firstWhere(key: keyof T): T | null;
-    firstWhere(key: keyof T, value: T): T | null;
-    firstWhere(key: keyof T, operator: Operator, value: T): T | null;
+    firstWhere<K extends keyof T>(key: K): T | null;
+    firstWhere<K extends keyof T>(key: K, value: T[K]): T | null;
+    firstWhere<K extends keyof T>(key: K, operator: Operator, value: T[K]): T | null;
 
     /**
      * 
