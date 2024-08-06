@@ -159,22 +159,24 @@ export interface ModelTableColumnDefinition {
     sortable?: boolean,
 }
 
+export type ModelAttribute = {
+    appended: true | null,
+    cast: string | null,
+    default: string | null,
+    fillable: boolean,
+    hidden: boolean,
+    increments: boolean,
+    name: string,
+    nullable: boolean,
+    phpType: string | null,
+    primary: boolean,
+    type: string | null,
+    unique: boolean,
+    virtual: boolean,
+};
+
 export interface ModelSchemaAttributes {
-    attributes: {
-        appended: true | null,
-        cast: string | null,
-        default: string | null,
-        fillable: boolean,
-        hidden: boolean,
-        increments: boolean,
-        name: string,
-        nullable: boolean,
-        phpType: string | null,
-        primary: boolean,
-        type: string | null,
-        unique: boolean,
-        virtual: boolean,
-    }[],
+    attributes: ModelAttribute[],
     displayName: {
         singular: string,
         plural: string,
