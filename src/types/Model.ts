@@ -187,9 +187,9 @@ export interface ModelSchemaAttributes {
     primaryKey: string,
     timestamps: boolean,
     labeledBy: string,
+    softDeletes: boolean,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any,
-    // softDeletes: boolean,
     // importable?: boolean,
     // exportable?: boolean,
 }
