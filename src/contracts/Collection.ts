@@ -1210,11 +1210,10 @@ export class Collection<T> implements CollectionInterface<T> {
     unique<K extends keyof T>(key: K): CollectionInterface<T>;
     unique<K extends keyof T>(key?: K): CollectionInterface<T> {
         if (typeof key === 'string') {
-            return collect(this.#items.filter((item, index) => {
-                return !this.#items.some((next, nextIndex) => {
-                    return next[key] == item[key] && nextIndex !== index;
-                });
-            }));
+            return collect(
+                [...new Set(this.#items.map((item) => item[key]))]
+                    .map((k) => this.#items.find((item) => item[key] === k) as T)
+            );
         }
 
         return collect([...new Set(this.#items)]);
