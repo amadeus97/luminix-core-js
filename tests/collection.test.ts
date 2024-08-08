@@ -49,6 +49,14 @@ describe('collection test', () => {
         expect(result5).toEqual([{ name: 'iPhone 5', brand: 'Apple', type: 'phone', released: 2012 }]);
     });
 
+    test('collection unique', () => {
+        const result = collection.unique('brand').all();
+        expect(result).toEqual([
+            { name: 'iPhone 6', brand: 'Apple', type: 'phone', released: 2014 },
+            { name: 'Galaxy S6', brand: 'Samsung', type: 'phone', released: 2015 },
+        ]);
+    });
+
     
 });
 
