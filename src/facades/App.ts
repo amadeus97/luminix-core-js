@@ -155,6 +155,10 @@ class App implements AppFacade {
         return this.facades.config.get('app.env', 'production') as string;
     }
 
+    getLocale(): string {
+        return this.facades.config.get('app.locale', 'en') as string;
+    }
+
     getPlugin<T extends Plugin>(abstract: Constructor<T>): T | undefined {
         for (const plugin of this._plugins) {
             if (plugin instanceof abstract) {

@@ -18,6 +18,7 @@ function app(facade = undefined) {
             plugins: appInstance.plugins.bind(appInstance),
             on: appInstance.once.bind(appInstance),
             environment: appInstance.environment.bind(appInstance),
+            getLocale: appInstance.getLocale.bind(appInstance),
             getPlugin: appInstance.getPlugin.bind(appInstance),
             hasDebugModeEnabled: appInstance.hasDebugModeEnabled.bind(appInstance),
             isLocal: appInstance.isLocal.bind(appInstance),

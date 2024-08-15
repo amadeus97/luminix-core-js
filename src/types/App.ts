@@ -68,6 +68,7 @@ export type AppExternal = {
     environment(...environments: string[]): boolean;
 
     getPlugin<T extends Plugin>(abstract: Constructor<T>): T | undefined;
+    getLocale(): string;
     hasDebugModeEnabled(): boolean;
     isLocal(): boolean;
     isProduction(): boolean;
