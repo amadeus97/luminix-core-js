@@ -490,20 +490,6 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             ];
         }
 
-        getRouteForRestore(): RouteGenerator {
-            return [
-                `luminix.${abstract}.restore`,
-                this.makePrimaryKeyReplacer(),
-            ];
-        }
-
-        getRouteForForceDelete(): RouteGenerator {
-            return [
-                `luminix.${abstract}.forceDelete`,
-                this.makePrimaryKeyReplacer(),
-            ];
-        }
-
         getRouteForRefresh(): RouteGenerator {
             return [
                 `luminix.${abstract}.show`,
@@ -631,7 +617,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         async forceDelete(): Promise<AxiosResponse> {
             try {
                 const response = await app.make('route').call(
-                    this.getRouteForForceDelete(),
+                    this.getRouteForDelete(),
                     {
                         params: { force: true },
                         errorBag: this.getErrorBag('forceDelete'),
@@ -653,7 +639,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         async restore(): Promise<AxiosResponse> {
             try {
                 const response = await app.make('route').call(
-                    this.getRouteForRestore(),
+                    this.getRouteForUpdate(),
                     {
                         params: { restore: true },
                         errorBag: this.getErrorBag('restore'),
