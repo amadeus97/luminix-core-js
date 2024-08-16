@@ -85,7 +85,6 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     getRouteForSave(): RouteGenerator;
     getRouteForUpdate(): RouteGenerator;
     getRouteForDelete(): RouteGenerator;
-    getRouteForForceDelete(): RouteGenerator;
     getRouteForRefresh(): RouteGenerator;
 
     static getSchemaName(): string;
