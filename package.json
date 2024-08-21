@@ -1,8 +1,9 @@
 {
   "name": "@luminix/core",
-  "version": "0.0.1-beta.15",
+  "version": "0.0.1-beta.17",
   "description": "> Projeto em desenvolvimento",
-  "main": "dist/core.js",
+  "main": "dist/core.umd.cjs",
+  "module": "dist/core.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {

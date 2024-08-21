@@ -7,6 +7,7 @@ import log from './helpers/log';
 import model from './helpers/model';
 import route from './helpers/route';
 
+import App from './facades/App';
 import { isValidationError } from './facades/Error';
 
 import Plugin from './contracts/Plugin';
@@ -24,6 +25,7 @@ import { HasEvents } from './mixins/HasEvents';
 
 export {
     app,
+    App,
     auth,
     collect,
     config,
