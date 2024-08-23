@@ -72,9 +72,11 @@ export type AppExternal = {
     hasDebugModeEnabled(): boolean;
     isLocal(): boolean;
     isProduction(): boolean;
+
+    setInstance(app: AppFacade): void;
 };
 
-export type AppFacade = AppExternal & {
+export type AppFacade = Omit<AppExternal, 'setInstance'> & {
     has(key: string): boolean;
     bind<T extends keyof AppFacades>(key: T, facade: AppFacades[T]): void;
     emit: EventSource<AppEvents>['emit'];

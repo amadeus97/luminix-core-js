@@ -22,7 +22,8 @@ function app(facade = undefined) {
             getPlugin: appInstance.getPlugin.bind(appInstance),
             hasDebugModeEnabled: appInstance.hasDebugModeEnabled.bind(appInstance),
             isLocal: appInstance.isLocal.bind(appInstance),
-            isProduction: appInstance.isProduction.bind(appInstance)
+            isProduction: appInstance.isProduction.bind(appInstance),
+            setInstance: (app: AppFacade) => appInstance = app,
         };
     }
 
