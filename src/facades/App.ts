@@ -116,7 +116,7 @@ class App implements AppFacade {
         }
         
         this.bind('error', new Error());
-        this.bind('route', new Route(routes, this.facades.error, url.toString()));
+        this.bind('route', new Route(routes, this.facades.error, _.trim(url.toString(), '/')));
         this.bind('model', new Model(models));
         this.bind('auth', new Auth(this));
 
