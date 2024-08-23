@@ -107,9 +107,16 @@ class App implements AppFacade {
         }
 
         this.facades.config.lock('auth.user');
+
+        const url = new URL(configObject.app?.url ?? 'http://localhost');
+        const port = configObject.app?.port ?? '';
+
+        if (port) {
+            url.port = `${port}`;
+        }
         
         this.bind('error', new Error());
-        this.bind('route', new Route(routes, this.facades.error, configObject.app?.url ?? ''));
+        this.bind('route', new Route(routes, this.facades.error, url.toString()));
         this.bind('model', new Model(models));
         this.bind('auth', new Auth(this));
 

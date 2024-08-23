@@ -4,11 +4,16 @@ import { RouteDefinition } from './Route';
 
 export type AppConfiguration = {
     app?: {
+        name?: string;
         env?: string;
         debug?: boolean;
         url?: string;
+        port?: string | number;
         bootUrl?: string | null | false;
+
+        /** @deprecated */
         enforceCamelCaseForModelAttributes?: boolean
+
         [key: string]: unknown;
     },
     auth?: {
