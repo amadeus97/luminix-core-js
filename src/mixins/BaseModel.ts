@@ -864,8 +864,8 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
 
 
                     // If there is a reducer to handle a property, return it.
-                    if (facades.model.hasReducer(`model${target.constructor.name}Get${_.upperFirst(prop)}Attribute`)) {
-                        const reducer = facades.model[`model${target.constructor.name}Get${_.upperFirst(prop)}Attribute`];
+                    if (facades.model.hasReducer(`model${_.upperFirst(_.camelCase(target.getType()))}Get${_.upperFirst(prop)}Attribute`)) {
+                        const reducer = facades.model[`model${_.upperFirst(_.camelCase(target.getType()))}Get${_.upperFirst(prop)}Attribute`];
                         if (typeof reducer !== 'function') {
                             throw new NotReducibleException('ModelFacade');
                         }
