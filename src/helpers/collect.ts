@@ -1,5 +1,5 @@
-import { collect as collectBase } from '../contracts/Collection';
+import { Collection } from '@luminix/support';
 
 export default function collect<T = unknown>(items: T[]) {
-    return collectBase(items);
+    return new Collection(items);
 }

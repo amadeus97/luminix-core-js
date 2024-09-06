@@ -1,23 +1,15 @@
-import PropertyBag from '../contracts/PropertyBag';
-import { HasEvents } from '../mixins/HasEvents';
+import { PropertyBag, Response } from '@luminix/support';
+
 import { ErrorFacade, ValidationError } from '../types/Error';
 import reader from '../support/reader';
-import { isAxiosError } from 'axios';
-import { PropertyBagEventMap } from '../types/PropertyBag';
 
-const ErrorBag = HasEvents<PropertyBagEventMap<Record<string, string>>, typeof PropertyBag<Record<string, string>>>(PropertyBag<Record<string, string>>);
-
-export const isValidationError = (error: unknown): error is ValidationError => {
-    return isAxiosError(error)
-        && error.response !== undefined
-        && error.response.data !== null
-        && 'message' in error.response.data
-        && typeof error.response.data.message === 'string'
-        && 'errors' in error.response.data
-        && typeof error.response.data.errors === 'object'
-        && error.response.data.errors !== null
-        && Object.values(error.response.data.errors).every((value) => Array.isArray(value) && value.every((v) => typeof v === 'string'))
-        && error.response.status === 422;
+export const isValidationError = (response: unknown): response is Response<ValidationError> => {
+    return response instanceof Response
+        && response.unprocessableEntity()
+        && typeof response.json('message') === 'string'
+        && typeof response.json('errors') === 'object'
+        && response.json('errors') !== null
+        && Object.values(response.json('errors')).every((value) => Array.isArray(value) && value.every((v) => typeof v === 'string'));
 };
 
 class Error implements ErrorFacade {
@@ -38,14 +30,14 @@ class Error implements ErrorFacade {
         });
 
         this.bags = {
-            default: new ErrorBag(startBag)
+            default: new PropertyBag(startBag)
         };
     }
 
 
     bag(name = 'default'): PropertyBag<Record<string, string>> {
         if (!this.bags[name]) {
-            this.bags[name] = new ErrorBag({});
+            this.bags[name] = new PropertyBag({});
         }
 
         return this.bags[name];

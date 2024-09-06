@@ -1,13 +1,26 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ReducibleInterface } from './Reducer';
+import { ReducibleInterface, Response, Client, RequestOptions } from '@luminix/support';
 
 export type RouteReplacer = { [key: string]: string | number };
 
-export type RouteFacade = ReducibleInterface & {
+export type RouteReducers = {
+    clientOptions(config: RequestOptions,  routeName: string): RequestOptions;
+    clientError(
+        errors: Record<string, string>,
+        event: {
+            response: Response,
+            name: string,
+            replace: RouteReplacer,
+            client: Client,
+        },
+    ): Record<string, string>;
+    replaceRouteParams(url: string): string;
+};
+
+export type RouteFacade = ReducibleInterface<RouteReducers> & {
     get(name: string): RouteTuple;
     url(generator: RouteGenerator): string;
     exists(name: string): boolean;
-    call(generator: RouteGenerator, config?: RouteCallConfig): Promise<AxiosResponse>;
+    call<TResponse = unknown>(generator: RouteGenerator, tap?: (client: Client) => Client): Promise<Response<TResponse>>;
     methods(generator: RouteGenerator): HttpMethod[];
 }
 
@@ -20,6 +33,6 @@ export type RouteDefinition = {
     [routeName: string]: RouteTuple | RouteDefinition;
 }
 
-export type RouteCallConfig = Omit<AxiosRequestConfig, 'url'> & {
-    errorBag?: string;
-};
+// export type RouteCallConfig = Omit<AxiosRequestConfig, 'url'> & {
+//     errorBag?: string;
+// };

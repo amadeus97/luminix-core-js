@@ -1,69 +1,64 @@
-import PropertyBag from '../contracts/PropertyBag';
-import { Event, EventSource } from './Event';
+import {
+    EventSource, Collection, PropertyBag, Query,
+    Event, PropertyBagEventMap,
+} from '@luminix/support';
 
 import { JsonObject, JsonValue } from './Support';
 
-import { Operator, Collection } from './Collection';
-import { PropertyBagEventMap } from './PropertyBag';
 
-export type Scope<R,C> = (builder: BuilderInterface<R,C>) => BuilderInterface<R,C> | void;
+export type Scope<TSingle,TMany> = (builder: BuilderInterface<TSingle,TMany>) => BuilderInterface<TSingle,TMany> | void;
 
-export type ExtendedOperator = Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'isNull' | 'isNotNull';
+export type ExtendedOperator = Query.Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'isNull' | 'isNotNull';
 
-export type BuilderInterface<R, C> = EventSource<BuilderEventMap<R,C>> & {
+export type BuilderInterface<TSingle, TMany = Collection<TSingle>> = EventSource<BuilderEventMap<TSingle,TMany>> & {
     lock(path: string): void;
 
-    where(scope: Scope<R,C>): BuilderInterface<R,C>;
-    where(key: string, value: JsonValue): BuilderInterface<R,C>;
-    where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface<R,C>;
-    where(key: string | Scope<R,C>, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface<R,C>;
+    where(scope: Scope<TSingle,TMany>): BuilderInterface<TSingle,TMany>;
+    where(key: string, value: JsonValue): BuilderInterface<TSingle,TMany>;
+    where(key: string, operator: ExtendedOperator, value: JsonValue): BuilderInterface<TSingle,TMany>;
+    where(key: string | Scope<TSingle,TMany>, operatorOrValue?: ExtendedOperator | JsonValue, value?: JsonValue): BuilderInterface<TSingle,TMany>;
 
-    with(relation: string | string[]): BuilderInterface<R,C>;
-    withOnly(relation: string | string[]): BuilderInterface<R,C>;
-    without(relation: string | string[]): BuilderInterface<R,C>;
+    with(relation: string | string[]): BuilderInterface<TSingle,TMany>;
+    withOnly(relation: string | string[]): BuilderInterface<TSingle,TMany>;
+    without(relation: string | string[]): BuilderInterface<TSingle,TMany>;
 
-    whereNull(key: string): BuilderInterface<R,C>;
-    whereNotNull(key: string): BuilderInterface<R,C>;
-    whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<R,C>;
-    whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<R,C>;
+    whereNull(key: string): BuilderInterface<TSingle,TMany>;
+    whereNotNull(key: string): BuilderInterface<TSingle,TMany>;
+    whereBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<TSingle,TMany>;
+    whereNotBetween(key: string, value: [JsonValue, JsonValue]): BuilderInterface<TSingle,TMany>;
 
-    orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface<R,C>;
-    searchBy(term: string): BuilderInterface<R,C>;
-    minified(): BuilderInterface<R,C>;
-    limit(value: number): BuilderInterface<R,C>;
-    include(searchParams: URLSearchParams): BuilderInterface<R,C>;
+    orderBy(column: string, direction?: 'asc' | 'desc'): BuilderInterface<TSingle,TMany>;
+    searchBy(term: string): BuilderInterface<TSingle,TMany>;
+    minified(): BuilderInterface<TSingle,TMany>;
+    limit(value: number): BuilderInterface<TSingle,TMany>;
+    include(searchParams: URLSearchParams): BuilderInterface<TSingle,TMany>;
 
-    get(page?: number, replaceLinksWith?: string): Promise<C>;
-    all(): Promise<Collection<R>>;
-    first(): Promise<R | null>;
-    find(id: string | number): Promise<R | null>;
-    unset(key: string): BuilderInterface<R,C>;
+    get(page?: number, replaceLinksWith?: string): Promise<TMany>;
+    all(): Promise<Collection<TSingle>>;
+    first(): Promise<TSingle | null>;
+    find(id: string | number): Promise<TSingle | null>;
+    unset(key: string): BuilderInterface<TSingle,TMany>;
 
 }
 
 
-export type BuilderEventMap<R,C> = PropertyBagEventMap & {
-    'change': (e: BuilderChangeEvent<R,C>) => void,
-    'submit': (e: BuilderSubmitEvent<R,C>) => void,
-    'success': (e: BuilderSuccessEvent<R,C>) => void,
-    'error': (e: BuilderErrorEvent<R,C>) => void,
+export type BuilderEventMap<TSingle,TMany> = PropertyBagEventMap & {
+    'change': (e: BuilderChangeEvent<TSingle,TMany>) => void,
+    'submit': (e: BuilderSubmitEvent<TSingle,TMany>) => void,
+    'success': (e: BuilderSuccessEvent<TSingle,TMany>) => void,
+    'error': (e: BuilderErrorEvent<TSingle,TMany>) => void,
 };
 
-export type BuilderChangeEvent<R,C> = Event<BuilderInterface<R,C>> & {
-    data: PropertyBag<JsonObject>,
-};
+export type BuilderChangeEvent<TSingle,TMany> = Event<{ data: PropertyBag<JsonObject> }, BuilderInterface<TSingle,TMany>>;
 
-export type BuilderSubmitEvent<R,C> = Event<BuilderInterface<R,C>> & {
-    data: PropertyBag<JsonObject>,
-};
+export type BuilderSubmitEvent<TSingle,TMany> = Event<{ data: PropertyBag<JsonObject> }, BuilderInterface<TSingle,TMany>>;
 
-export type BuilderSuccessEvent<R,C> = Event<BuilderInterface<R,C>> & {
-    response: C,
-    items: Collection<R> | R | null,
-};
+export type BuilderErrorEvent<TSingle,TMany> = Event<{ error: unknown }, BuilderInterface<TSingle,TMany>>;
 
-export type BuilderErrorEvent<R,C> = Event<BuilderInterface<R,C>> & {
-    error: unknown,
-};
+export type BuilderSuccessEvent<TSingle,TMany> = Event<
+    { response: TMany, items: TSingle | Collection<TSingle> | null },
+    BuilderInterface<TSingle,TMany>
+>;
+
 
 

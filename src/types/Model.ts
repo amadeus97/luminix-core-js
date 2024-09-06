@@ -1,14 +1,12 @@
+import { EventSource, Collection, Response, Event, Constructor } from '@luminix/support';
 
-import { AxiosResponse } from 'axios';
-import { EventSource, Event } from './Event';
-
-import { Collection } from './Collection';
-
-import { RelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
+import { RelationInterface as RawRelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
 import { JsonObject, JsonValue } from './Support';
 import { RouteGenerator } from './Route';
 
-export type RelationRepository = Record<string, RelationInterface<Model, ModelPaginatedResponse>>;
+type RelationInterface = RawRelationInterface<Model, ModelPaginatedResponse>;
+
+export type RelationRepository = Record<string, RelationInterface>;
 
 export type ModelEvents = {
     'change': (e: ModelChangeEvent) => void,
@@ -20,30 +18,30 @@ export type ModelEvents = {
     'error': (e: ModelErrorEvent) => void,
 }
 
-
-export type ModelChangeEvent = Event<BaseModel> & {
-    value: JsonObject,
-}
-
-export type ModelSaveEvent = Event<BaseModel> & {
-    value: JsonObject,
-}
-
-export type ModelDeleteEvent = Event<BaseModel> & {
-    force: boolean,
-}
-
-export type ModelRestoreEvent = Event<BaseModel> & {
-    value: JsonObject,
-}
-
-export type ModelErrorEvent = Event<BaseModel> & {
-    error: unknown,
-    operation: 'save' | 'delete' | 'restore' | 'forceDelete',
+export type ModelReducers = {
+    model(constructor: typeof BaseModel, abstract: string): typeof BaseModel,
+    relationMap(relationMap: Record<string, Constructor<RelationInterface>>, abstract: string): Record<string, Constructor<RelationInterface>>,
+    guessInverseRelation(relationMap: Record<string, string[]>, parent: BaseModel, relationType: string, relatedClass: typeof BaseModel): Record<string, string[]>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: (value: any, ...params: any[]) => any,
 }
 
 
-export declare class BaseModel implements EventSource<ModelEvents> {
+export type ModelChangeEvent = Event<{ value: JsonObject }, BaseModel>;
+
+export type ModelSaveEvent = Event<{ value: JsonObject }, BaseModel>;
+
+export type ModelDeleteEvent = Event<{ force: boolean }, BaseModel>;
+
+export type ModelRestoreEvent = Event<{ value: JsonObject }, BaseModel>;
+
+export type ModelErrorEvent = Event<
+    { error: unknown, operation: 'save' | 'delete' | 'restore' | 'forceDelete' },
+    BaseModel
+>;
+
+
+export declare class BaseModel extends EventSource<ModelEvents> {
 
     // emitter: Emitter<EventSourceEvents>;
 
@@ -72,13 +70,13 @@ export declare class BaseModel implements EventSource<ModelEvents> {
     diff(): JsonObject;
     getType(): string;
     dump(): void;
-    save(options?: ModelSaveOptions): Promise<AxiosResponse|void>;
+    save(options?: ModelSaveOptions): Promise<Response|void>;
     update(attributes: JsonObject): Promise<void>;
-    delete(): Promise<AxiosResponse>;
-    forceDelete(): Promise<AxiosResponse>;
-    restore(): Promise<AxiosResponse>;
+    delete(): Promise<Response>;
+    forceDelete(): Promise<Response>;
+    restore(): Promise<Response>;
     refresh(): Promise<void>;
-    relation(relationName: string): RelationInterface<Model, ModelPaginatedResponse> | undefined;
+    relation(relationName: string): RelationInterface | undefined;
 
     getErrorBag(method: string): string;
 
@@ -112,12 +110,12 @@ export declare class BaseModel implements EventSource<ModelEvents> {
 
     static create(attributes: JsonObject): Promise<Model>;
     static update(id: number | string, attributes: JsonObject): Promise<Model>;
-    static delete(id: number | string): Promise<AxiosResponse>;
-    static delete(ids: Array<number | string>): Promise<AxiosResponse>;
-    static restore(id: number | string): Promise<AxiosResponse>;
-    static restore(ids: Array<number | string>): Promise<AxiosResponse>;
-    static forceDelete(id: number | string): Promise<AxiosResponse>;
-    static forceDelete(ids: Array<number | string>): Promise<AxiosResponse>;
+    static delete(id: number | string): Promise<Response>;
+    static delete(ids: Array<number | string>): Promise<Response>;
+    static restore(id: number | string): Promise<Response>;
+    static restore(ids: Array<number | string>): Promise<Response>;
+    static forceDelete(id: number | string): Promise<Response>;
+    static forceDelete(ids: Array<number | string>): Promise<Response>;
 
 
     static singular(): string;
@@ -223,6 +221,10 @@ export type ModelPaginatedLink = {
     url: string | null,
     label: string,
     active: boolean,
+};
+
+export type ModelRawPaginatedResponse = Omit<ModelPaginatedResponse, 'data'> & {
+    data: JsonObject[],
 };
 
 export type ModelPaginatedResponse = {

@@ -1,20 +1,20 @@
+import { Collection } from '@luminix/support';
+
 import { AppFacades } from '../types/App';
 import { BaseModel, Model, ModelPaginatedResponse, RelationMetaData } from '../types/Model';
-
 
 import NotReducibleException from '../exceptions/NotReducibleException';
 
 import NotModelException from '../exceptions/NotModelException';
 import NoInverseRelationException from '../exceptions/NoInverseRelationException';
 import UnsupportedRelationException from '../exceptions/UnsupportedRelationException';
-import { Unsubscribe } from 'nanoevents';
+
 import { BuilderInterface as Builder, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
-import { Collection as CollectionInterface } from '../types/Collection';
-import { isCollection } from '../support/collection';
+
 import { RelationInterface as RelationBase } from '../types/Relation';
 import { JsonObject, JsonValue } from '../types/Support';
 import { isModel } from '../support/model';
-import { collect } from './Collection';
+
 
 type RelationInterface = RelationBase<Model, ModelPaginatedResponse>;
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
@@ -23,15 +23,15 @@ type Scope = ScopeBase<Model, ModelPaginatedResponse>;
 
 export default class Relation implements RelationInterface {
 
-    private unsubscribeQuery: Unsubscribe | null = null;
+    private unsubscribeQuery: (() => void) | null = null;
 
     constructor(
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: BaseModel,
-        protected items: Model | CollectionInterface<Model> | null = null,
+        protected items: Model | Collection<Model> | null = null,
     ) {
-        if (items !== null && !isModel(items) && !(isCollection(items) && items.every(isModel))) {
+        if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
         }
     }
@@ -55,7 +55,7 @@ export default class Relation implements RelationInterface {
             if (!Array.isArray(data)) {
                 throw new TypeError('Relation.make() expects an array');
             }
-            this.set(collect(data.map((item) => new Model(item as JsonObject))));
+            this.set(new Collection(data.map((item) => new Model(item as JsonObject))));
         }
     }
 
@@ -95,15 +95,15 @@ export default class Relation implements RelationInterface {
         throw new NoInverseRelationException(this.parent.getType(), currentRelationType, this.getRelated().getSchemaName(), inverses[currentRelationType].join(' or '));
     }
 
-    set(items: Model | CollectionInterface<Model> | null)
+    set(items: Model | Collection<Model> | null)
     {
-        if (items !== null && !isModel(items) && !(isCollection(items) && items.every(isModel))) {
+        if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('Relation.set()', 'Model, Collection<Model> or null');
         }
 
         if (!this.items || isModel(this.items)) {
             this.items = items;
-        } else if (isCollection(items)) {
+        } else if (items instanceof Collection) {
             this.items.splice(0, this.items.count(), ...items);
         }
     }
@@ -152,7 +152,7 @@ export default class Relation implements RelationInterface {
         return this.items !== null;
     }
     
-    getLoadedItems(): Model | CollectionInterface<Model> | null
+    getLoadedItems(): Model | Collection<Model> | null
     {
         return this.items;
     }
@@ -164,7 +164,7 @@ export default class Relation implements RelationInterface {
 
     isMultiple(): boolean
     {
-        return isCollection(this.items);
+        return this.items instanceof Collection;
     }
 
     getParent()

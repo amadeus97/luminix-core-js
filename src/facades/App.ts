@@ -1,3 +1,5 @@
+import { EventSource, Http, Obj, Str, PropertyBag } from '@luminix/support';
+
 import { AppFacades, AppFacade, AppEvents } from '../types/App';
 
 import Auth from './Auth';
@@ -6,17 +8,16 @@ import Model from './Model';
 import Route from './Route';
 
 import Plugin from '../contracts/Plugin';
-import PropertyBag from '../contracts/PropertyBag';
-import axios from 'axios';
+
+
 import reader from '../support/reader';
-import { HasEvents } from '../mixins/HasEvents';
+
 import { AppConfiguration } from '../types/Config';
-import { Unsubscribe } from 'nanoevents';
-import _ from 'lodash';
+
 import Error from './Error';
 import { Constructor } from '../types/Support';
 
-class App implements AppFacade {
+class App extends EventSource<AppEvents> implements AppFacade {
     
 
     private facades: AppFacades = {} as AppFacades;
@@ -62,21 +63,22 @@ class App implements AppFacade {
         }
 
         this.emit('init', { 
-            register: (plugin: Plugin) => {
+            register: (plugin) => {
                 this._plugins.push(plugin);
                 if (typeof plugin.register === 'function') {
                     plugin.register(this);
                 }
-            }
+            },
+            source: this,
         });
 
         const bootUrl = (configObject.app?.url ?? '') + (configObject.app?.bootUrl ?? '/luminix-api/init');
         
         if (!document.getElementById('luminix-data::config')) {
             try {
-                const { data } = await axios.get(bootUrl);
-                if (data && typeof data === 'object') {
-                    _.merge(configObject, data);
+                const response = await Http.get(bootUrl);
+                if (response.successful()) {
+                    Obj.merge(configObject, response.json());
                 }
             } catch (error) {
                 if (configObject.app?.debug) {
@@ -86,7 +88,7 @@ class App implements AppFacade {
         } else if (document.getElementById('luminix-data::config')) {
             const data = reader('config');
             if (data && typeof data === 'object') {
-                _.merge(configObject, data);
+                Obj.merge(configObject, data);
             }
         }
 
@@ -116,11 +118,11 @@ class App implements AppFacade {
         }
         
         this.bind('error', new Error());
-        this.bind('route', new Route(routes, this.facades.error, _.trim(url.toString(), '/')));
+        this.bind('route', new Route(routes, this.facades.error, Str.trim(url.toString(), '/')));
         this.bind('model', new Model(models));
         this.bind('auth', new Auth(this));
 
-        this.emit('booting');
+        this.emit('booting', { source: this });
 
         // Boot facades
         for (const facade of Object.values(this.facades)) {
@@ -148,7 +150,7 @@ class App implements AppFacade {
             }
         });
 
-        this.emit('booted');
+        this.emit('booted', { source: this });
 
         return this.facades;
     }
@@ -187,19 +189,6 @@ class App implements AppFacade {
         return this.facades.config.get('app.env', 'production') === 'production';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    on<E extends keyof AppEvents>(_: E, __: AppEvents[E]): Unsubscribe {
-        throw new window.Error('Method not implemented.');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    once<E extends keyof AppEvents>(_: E, __: AppEvents[E]): void {
-        throw new window.Error('Method not implemented.');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    emit<E extends keyof AppEvents>(_: E, __?: Omit<Parameters<AppEvents[E]>[0], 'source'>): void {
-        throw new window.Error('Method not implemented.');
-    }
-
 }
 
-export default HasEvents<AppEvents, typeof App>(App);
+export default App;

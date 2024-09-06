@@ -1,14 +1,19 @@
+import { EventSource, Event, ReducibleInterface } from '@luminix/support';
+
 import { AppConfiguration, ConfigFacade } from './Config';
 
 import { PluginInterface } from './Plugin';
 import { LogFacade } from './Log';
 import { AuthFacade } from './Auth';
-import { BaseModel, Model, ModelSchema, ModelSchemaAttributes } from './Model';
+import {
+    BaseModel, Model, ModelPaginatedResponse, ModelReducers,
+    ModelSchema, ModelSchemaAttributes
+} from './Model';
 import { RouteFacade } from './Route';
-import { EventSource, Event } from './Event';
 import { ErrorFacade } from './Error';
-import { ReducibleInterface } from './Reducer';
 import { Constructor } from './Support';
+
+import { RelationInterface } from './Relation';
 
 type Plugin = PluginInterface<AppFacade, AppFacades>;
 
@@ -24,11 +29,11 @@ export type GlobalModelEvents = {
 }
 
 
-export type ModelGlobalEvent = Event<ModelFacade> & {
+export type ModelGlobalEvent = Event<{
     class: string,
     model: BaseModel,
     force?: boolean,
-};
+}, ModelFacade>;
 
 
 export type ModelGlobalErrorEvent = ModelGlobalEvent & {
@@ -38,24 +43,26 @@ export type ModelGlobalErrorEvent = ModelGlobalEvent & {
 
 
 
-export type ModelFacade = EventSource<GlobalModelEvents> & ReducibleInterface & {
+export type ModelFacade = EventSource<GlobalModelEvents> & ModelReducers & ReducibleInterface<ModelReducers> & {
     schema(): ModelSchema;
     schema(abstract: string): ModelSchemaAttributes;
     make(): Record<string, typeof Model>;
     make(abstract: string): typeof Model;
     boot(app: AppFacade): void;
+    getRelationConstructors(abstract: string): Record<string, Constructor<RelationInterface<Model, ModelPaginatedResponse>>>;
 }
-
 
 export type AppEvents = {
     'init': (e: InitEvent) => void,
-    'booted': (e: Event<AppFacade>) => void,
-    'booting': (e: Event<AppFacade>) => void,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    'booted': (e: Event<{}, AppFacade>) => void,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    'booting': (e: Event<{}, AppFacade>) => void,
 }
 
-export type InitEvent = Event<AppFacade> & {
+export type InitEvent = Event<{
     register(plugin: Plugin): void;
-}
+}, AppFacade>;
 
 export type AppExternal = {
     boot: (config?: AppConfiguration) => Promise<AppFacades>;
@@ -76,12 +83,9 @@ export type AppExternal = {
     setInstance(app: AppFacade): void;
 };
 
-export type AppFacade = Omit<AppExternal, 'setInstance'> & {
+export type AppFacade = Omit<AppExternal, 'setInstance'> & EventSource<AppEvents> & {
     has(key: string): boolean;
     bind<T extends keyof AppFacades>(key: T, facade: AppFacades[T]): void;
-    emit: EventSource<AppEvents>['emit'];
-    once: EventSource<AppEvents>['once'];
-    on: EventSource<AppEvents>['on'];
 };
 
 export type AppFacades = {

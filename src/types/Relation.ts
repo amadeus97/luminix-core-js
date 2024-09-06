@@ -1,5 +1,5 @@
+import { Collection } from '@luminix/support';
 import { BuilderInterface, ExtendedOperator, Scope } from './Builder';
-import { Collection } from './Collection';
 // import { BaseModel, Model } from './Model';
 
 import { Constructor, JsonValue } from './Support';

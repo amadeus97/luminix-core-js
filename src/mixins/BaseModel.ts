@@ -1,6 +1,8 @@
 
-import _ from 'lodash';
-import PropertyBag from '../contracts/PropertyBag';
+import {
+    PropertyBag, EventSource, Collection, Response,
+    Str, Obj
+} from '@luminix/support';
 
 import { 
     BaseModel, ModelSaveOptions, ModelSchemaAttributes,
@@ -12,10 +14,6 @@ import { AppFacade, AppFacades } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { JsonObject, JsonValue } from '../types/Support';
 
-import { AxiosResponse } from 'axios';
-import { HasEvents } from './HasEvents';
-import { Unsubscribe } from 'nanoevents';
-
 import Builder from '../contracts/Builder';
 import Relation from '../contracts/Relation';
 
@@ -23,7 +21,6 @@ import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
 import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
-import { Collection } from '../types/Collection';
 
 type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
 type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
@@ -31,7 +28,7 @@ type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
 
 export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseModel {
 
-    class ModelRaw {
+    return class extends EventSource<ModelEvents> {
 
         private _attributes: PropertyBag<JsonObject> = new PropertyBag({});
         private _original: JsonObject = {};
@@ -41,11 +38,12 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         public exists = false;
         public wasRecentlyCreated = false;
 
-        static name = _.upperFirst(_.camelCase(abstract));
+        static name = Str.studly(abstract);
 
-        [Symbol.toStringTag] = _.upperFirst(_.camelCase(abstract));
+        [Symbol.toStringTag] = Str.studly(abstract);
 
         constructor(attributes: JsonObject = {}) {
+            super();
             this.makeRelations();
             this.makeAttributes(attributes);
 
@@ -103,7 +101,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
             // !Reducer `relationMap`
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const relationMap: Record<string, typeof Relation> = (app.make('model').relationMap as any)({}, abstract);
+            const relationMap = app.make('model').getRelationConstructors(abstract); //(app.make('model').relationMap as any)({}, abstract);
     
             Object.entries(relations).forEach(([key, relation]) => {
                 const { type } = relation;
@@ -127,7 +125,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
             // remove relations from attributes
             const excludedKeys = Object.keys(relations || {});
-            const newAttributes: JsonObject = _.omit(attributes, excludedKeys);
+            const newAttributes: JsonObject = Obj.omit(attributes, ...excludedKeys);
     
             // fill missing fillable attributes with null
             this.fillable.filter((key) => !(key in newAttributes)).forEach((key) => {
@@ -136,7 +134,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
             if (relations) {
                 Object.keys(relations).forEach((key) => {
-                    this.relation(_.camelCase(key))!.make(attributes[key]);
+                    this.relation(Str.camel(key))!.make(attributes[key]);
                 });
             }
 
@@ -165,39 +163,46 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         private dispatchChangeEvent(change: JsonObject) {
             this.emit('change', {
                 value: change,
+                source: this,
             });
         }
     
         private dispatchCreateEvent(attributes: JsonObject) {
             this.emit('create', {
                 value: attributes,
+                source: this,
             });
     
             app.make('model').emit('create', {
                 class: abstract,
                 model: this,
+                source: app.make('model'),
             });
         }
     
         private dispatchUpdateEvent(attributes: JsonObject) {
             this.emit('update', {
                 value: attributes,
+                source: this,
             });
     
             app.make('model').emit('update', {
                 class: abstract,
                 model: this,
+                source: app.make('model'),
             });
         }
     
         private dispatchSaveEvent() {
             this.emit('save', {
                 value: this.diff(),
+                source: this,
             });
     
             app.make('model').emit('save', {
                 class: abstract,
                 model: this,
+                source: app.make('model'),
             });
         }
     
@@ -205,11 +210,13 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             this.emit('delete', {
                 force,
                 [this.getKeyName()]: this.getKey(),
+                source: this,
             });
     
             app.make('model').emit('delete', {
                 class: abstract,
                 model: this,
+                source: app.make('model'),
                 force,
             });
         }
@@ -217,11 +224,13 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         private dispatchRestoreEvent() {
             this.emit('restore', {
                 value: this.attributes,
+                source: this,
             });
     
             app.make('model').emit('restore', {
                 class: abstract,
                 model: this,
+                source: app.make('model'),
             });
         }
     
@@ -229,11 +238,13 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             this.emit('error', {
                 error,
                 operation,
+                source: this,
             });
     
             app.make('model').emit('error', {
                 class: abstract,
                 model: this,
+                source: app.make('model'),
                 error,
                 operation,
             });
@@ -243,15 +254,15 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
             const determineValueEquality = (a: unknown, b: unknown) => {
                 if (typeof a === 'object' && a !== null) {
-                    return _.isEqual(a, b);
+                    return Obj.isEqual(a, b);
                 }
 
                 return a == b;
             };
 
-            if (!this._changedKeys.includes(key) && !determineValueEquality(_.get(this._original, key), this._attributes.get(key))) {
+            if (!this._changedKeys.includes(key) && !determineValueEquality(Obj.get(this._original, key), this._attributes.get(key))) {
                 this._changedKeys.push(key);
-            } else if (this._changedKeys.includes(key) && determineValueEquality(_.get(this._original, key), this._attributes.get(key))) {
+            } else if (this._changedKeys.includes(key) && determineValueEquality(Obj.get(this._original, key), this._attributes.get(key))) {
                 this._changedKeys.splice(this._changedKeys.indexOf(key), 1);
             }
 
@@ -315,7 +326,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Get${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = app.make('model')[`model${Str.studly(abstract)}Get${Str.studly(key)}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
@@ -333,7 +344,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             //     return;
             // }
 
-            const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+            const reducer = app.make('model')[`model${Str.studly(abstract)}Set${Str.studly(key)}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
@@ -372,10 +383,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
     
         fill(attributes: object) {
-            const validAttributes = _.pick(attributes, this.fillable);
+            const validAttributes = Obj.pick(attributes, ...this.fillable);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
-                const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Set${_.upperFirst(_.camelCase(key))}Attribute`];
+                const reducer = app.make('model')[`model${Str.studly(abstract)}Set${Str.studly(key)}Attribute`];
                 if (typeof reducer !== 'function') {
                     throw new NotReducibleException('ModelFacade');
                 }
@@ -409,7 +420,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         dump() {
             app.make('log').info({
                 ...this.toJson(),
-                [Symbol.toStringTag]: _.upperFirst(_.camelCase(abstract)),
+                [Symbol.toStringTag]: Str.studly(abstract),
             });
         }
     
@@ -420,15 +431,15 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 }
 
                 if (relation.isSingle()) {
-                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as Model).toJson();
+                    acc[Str.snake(key)] = (relation.getLoadedItems() as Model).toJson();
                 } else if (relation.isMultiple()) {
-                    acc[_.snakeCase(key)] = (relation.getLoadedItems() as Collection<Model>).map((item) => item.toJson()).all();
+                    acc[Str.snake(key)] = (relation.getLoadedItems() as Collection<Model>).map((item) => item.toJson()).all();
                 }
 
                 return acc;
             }, {} as JsonObject);
 
-            const reducer = app.make('model')[`model${_.upperFirst(_.camelCase(abstract))}Json`];
+            const reducer = app.make('model')[`model${Str.studly(abstract)}Json`];
 
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
@@ -453,10 +464,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
 
         relation(name: string) {
-            if (name !== _.camelCase(name)) {
+            if (name !== Str.camel(name)) {
                 return undefined;
             }
-            return this.relations[_.snakeCase(name)];
+            return this.relations[Str.snake(name)];
         }
 
         getErrorBag(method: string) {
@@ -508,15 +519,15 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             if (!this.exists) {
                 throw new ModelNotPersistedException(abstract, 'refresh');
             }
-            const { data } = await app.make('route').call(
+            const response = await app.make('route').call<JsonObject>(
                 this.getRouteForRefresh(),
-                { errorBag: this.getErrorBag('fetch') }
+                //{ errorBag: this.getErrorBag('fetch') }
             );
 
-            this.makeAttributes(data);
+            this.makeAttributes(response.json());
         }
     
-        async save(options: ModelSaveOptions = {}): Promise<AxiosResponse|void> {
+        async save(options: ModelSaveOptions = {}): Promise<Response|void> {
             try {
                 const {
                     additionalPayload = {},
@@ -526,36 +537,33 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 const existedBeforeSaving = this.exists;
 
                 const data = {
-                    ..._.pick(
+                    ...Obj.pick(
                         sendsOnlyModifiedFields && existedBeforeSaving
                             ? this.diff()
                             : this.attributes,
-                        this.fillable
+                        ...this.fillable
                     ),
                     ...additionalPayload,
                 };
 
-                if (_.isEmpty(data)) {
+                if (Obj.isEmpty(data)) {
                     return;
                 }
     
-                const response = await app.make('route').call(
+                const response = await app.make('route').call<JsonObject>(
                     this.getRouteForSave(),
-                    {
-                        data,
-                        errorBag: this.getErrorBag(existedBeforeSaving ? 'update' : 'store'),
-                    }
+                    (client) => client.withData(data),
                 );
     
-                if ([200, 201].includes(response.status)) {
-                    this.makeAttributes(response.data);
+                if (response.successful()) {
+                    this.makeAttributes(response.json());
                     this.exists = true;
                     this.dispatchSaveEvent();
                     if (!existedBeforeSaving) {
                         this.wasRecentlyCreated = true;
-                        this.dispatchCreateEvent(response.data);
+                        this.dispatchCreateEvent(response.json());
                     } else {
-                        this.dispatchUpdateEvent(response.data);
+                        this.dispatchUpdateEvent(response.json());
                     }
                     
                     return response;
@@ -568,18 +576,18 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             }
         }
 
-        async push(): Promise<AxiosResponse> {
+        async push(): Promise<Response> {
             throw new MethodNotImplementedException();
         }
     
-        async delete(): Promise<AxiosResponse> {
+        async delete(): Promise<Response> {
             try {
                 const response = await app.make('route').call(
                     this.getRouteForDelete(),
-                    { errorBag: this.getErrorBag('delete') }
+                    //{ errorBag: this.getErrorBag('delete') }
                 );
     
-                if (response.status === 204) {
+                if (response.noContent()) {
                     this.dispatchDeleteEvent();
                     return response;
                 }
@@ -593,16 +601,14 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
         async update(data: JsonObject): Promise<void> {
             try {
-                const response = await app.make('route').call(
+                const response = await app.make('route').call<JsonObject>(
                     this.getRouteForUpdate(), 
-                    {
-                        data,
-                        errorBag: this.getErrorBag('update'),
-                    });
+                    (client) => client.withData(data),
+                );
 
-                if (response.status === 200) {
-                    this.makeAttributes(response.data);
-                    this.dispatchUpdateEvent(response.data);
+                if (response.ok()) {
+                    this.makeAttributes(response.json());
+                    this.dispatchUpdateEvent(response.json());
                     return;
                 }
 
@@ -614,17 +620,18 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
         }
     
-        async forceDelete(): Promise<AxiosResponse> {
+        async forceDelete(): Promise<Response> {
             try {
                 const response = await app.make('route').call(
                     this.getRouteForDelete(),
-                    {
-                        params: { force: true },
-                        errorBag: this.getErrorBag('forceDelete'),
-                    }
+                    (client) => client.withQueryParameters({ force: true }),
+                    // {
+                    //     params: { force: true },
+                    //     errorBag: this.getErrorBag('forceDelete'),
+                    // }
                 );
     
-                if (response.status === 204) {
+                if (response.noContent()) {
                     this.dispatchDeleteEvent(true);
                     return response;
                 }
@@ -636,17 +643,14 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             }
         }
     
-        async restore(): Promise<AxiosResponse> {
+        async restore(): Promise<Response> {
             try {
                 const response = await app.make('route').call(
                     this.getRouteForUpdate(),
-                    {
-                        params: { restore: true },
-                        errorBag: this.getErrorBag('restore'),
-                    }
+                    (client) => client.withQueryParameters({ restore: true }),
                 );
     
-                if (response.status === 200) {
+                if (response.ok()) {
                     this.dispatchRestoreEvent();
                     return response;
                 }
@@ -744,14 +748,18 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             return model;
         }
     
-        static delete(id: number | string): Promise<AxiosResponse>;
-        static delete(id: Array<number | string>): Promise<AxiosResponse>;
+        static delete(id: number | string): Promise<Response>;
+        static delete(id: Array<number | string>): Promise<Response>;
         static delete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return app.make('route').call(`luminix.${abstract}.destroyMany`, {
-                    params: { ids: id },
-                    errorBag: `${abstract}.deleteMany`,
-                });
+                return app.make('route').call(
+                    `luminix.${abstract}.destroyMany`,
+                    (client) => client.withQueryParameters({ ids: id }),
+                );
+                //     {
+                //     params: { ids: id },
+                //     errorBag: `${abstract}.deleteMany`,
+                // });
             }
     
             const Model = app.make('model').make(abstract);
@@ -760,14 +768,14 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             return model.delete();
         }
     
-        static async restore(id: number | string): Promise<AxiosResponse>;
-        static async restore(id: Array<number | string>): Promise<AxiosResponse>;
+        static async restore(id: number | string): Promise<Response>;
+        static async restore(id: Array<number | string>): Promise<Response>;
         static async restore(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return app.make('route').call(`luminix.${abstract}.restoreMany`, {
-                    data: { ids: id },
-                    errorBag: `${abstract}.restoreMany`,
-                });
+                return app.make('route').call(
+                    `luminix.${abstract}.restoreMany`, 
+                    (client) => client.withData({ ids: id }),
+                );
             }
     
             const Model = app.make('model').make(abstract);
@@ -777,14 +785,18 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             return model.restore();
         }
     
-        static forceDelete(id: number | string): Promise<AxiosResponse>;
-        static forceDelete(id: Array<number | string>): Promise<AxiosResponse>;
+        static forceDelete(id: number | string): Promise<Response>;
+        static forceDelete(id: Array<number | string>): Promise<Response>;
         static forceDelete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return app.make('route').call(`luminix.${abstract}.destroyMany`, {
-                    params: { ids: id, force: true },
-                    errorBag: `${abstract}.forceDeleteMany`,
-                });
+                return app.make('route').call(
+                    `luminix.${abstract}.destroyMany`, 
+                    (client) => client.withQueryParameters({ ids: id, force: true }),
+                );
+                // {
+                //     params: { ids: id, force: true },
+                //     errorBag: `${abstract}.forceDeleteMany`,
+                // });
             }
     
             const Model = app.make('model').make(abstract);
@@ -801,31 +813,14 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         static plural() {
             return app.make('model').schema(abstract).displayName.plural;
         }
+    };
 
-        
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        on<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): Unsubscribe {
-            throw new MethodNotImplementedException();
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        once<E extends keyof ModelEvents>(_: E, __: ModelEvents[E]): void {
-            throw new MethodNotImplementedException();
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        emit<E extends keyof ModelEvents>(_: E, __?: Omit<Parameters<ModelEvents[E]>[0], 'source'>): void {
-            throw new MethodNotImplementedException();
-        }
-    }
-
-    return HasEvents<ModelEvents, typeof ModelRaw>(ModelRaw);
 }
 
 export function ModelFactory(facades: AppFacades, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
     return class extends CustomModel {
 
-        [Symbol.toStringTag] = _.upperFirst(_.camelCase(abstract));
+        [Symbol.toStringTag] = Str.studly(abstract);
 
         constructor(attributes: JsonObject = {}) {
             super(attributes);
@@ -838,34 +833,34 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                     }
 
                     // If the property exists in the target, return it.
-                    if (prop in target) {
+                    if (Reflect.has(target, prop)) {
                         return Reflect.get(target, prop);
                     }
 
                     // If the prop is not camel cased, return undefined.
-                    if (prop !== _.camelCase(prop)) {
-                        return undefined;
-                    }
+                    // if (prop !== Str.camel(prop)) {
+                    //     return undefined;
+                    // }
 
-                    const snakeCasedProp = _.snakeCase(prop);
+                    // const snakeCasedProp = Str.snake(prop);
 
                     // If the property exists in attributes, return it.
-                    if (Object.keys(target.attributes).includes(snakeCasedProp)) {
-                        return target.getAttribute(snakeCasedProp);
+                    if (Object.keys(target.attributes).includes(prop)) {
+                        return target.getAttribute(prop);
                     }
                     // If the property is a relation, return it.
-                    if (Object.keys(target.relations).includes(snakeCasedProp)) {
-                        return target.relations[snakeCasedProp].getLoadedItems();
+                    if (Object.keys(target.relations).includes(prop)) {
+                        return target.relations[prop].getLoadedItems();
                     }
                     // If is calling the relation method, return it.
-                    if (prop.endsWith('Relation') && Object.keys(target.relations).includes(_.snakeCase(prop.slice(0, -8)))) {
+                    if (prop.endsWith('Relation') && Object.keys(target.relations).includes(Str.snake(prop.slice(0, -8)))) {
                         return () => target.relation(prop.slice(0, -8));
                     }
 
 
                     // If there is a reducer to handle a property, return it.
-                    if (facades.model.hasReducer(`model${_.upperFirst(_.camelCase(target.getType()))}Get${_.upperFirst(prop)}Attribute`)) {
-                        const reducer = facades.model[`model${_.upperFirst(_.camelCase(target.getType()))}Get${_.upperFirst(prop)}Attribute`];
+                    if (facades.model.hasReducer(`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`)) {
+                        const reducer = facades.model[`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`];
                         if (typeof reducer !== 'function') {
                             throw new NotReducibleException('ModelFacade');
                         }
@@ -880,7 +875,7 @@ export function ModelFactory(facades: AppFacades, abstract: string, CustomModel:
                         return Reflect.set(target, prop, value);
                     }
                     target.setAttribute(
-                        _.snakeCase(prop),
+                        Str.snake(prop),
                         value
                     );
                     return true;

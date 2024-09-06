@@ -1,13 +1,12 @@
+import { Collection } from '@luminix/support';
 import Relation from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
 import { AppFacades } from '../../types/App';
-import Collection from '../Collection';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
-import { Collection as CollectionInterface } from '../../types/Collection';
 import { JsonObject } from '../../types/Support';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
@@ -18,7 +17,7 @@ export default class BelongsToMany extends Relation {
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected items: CollectionInterface<Model> | null = null,
+        protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
@@ -68,10 +67,7 @@ export default class BelongsToMany extends Relation {
                 [this.parent.getKeyName()]: this.parent.getKey(),
                 itemId: id,
             }
-        ], {
-            data: pivot,
-            errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:attach`
-        });
+        ], (client) => client.withData(pivot));
     }
 
     async attach(id: string | number, pivot: JsonObject = {}) {
@@ -104,9 +100,9 @@ export default class BelongsToMany extends Relation {
                     itemId: id,
                 }
             ],
-            {
-                errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:detach`
-            }
+            // {
+            //     errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:detach`
+            // }
         );
     }
 
@@ -127,10 +123,11 @@ export default class BelongsToMany extends Relation {
             {
                 [this.parent.getKeyName()]: this.parent.getKey(),
             }
-        ], {
-            data: ids,
-            errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:sync`
-        });
+        ], (client) => client.withData(ids));
+        // {
+        //     data: ids,
+        //     errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:sync`
+        // });
     }
 
     async syncWithPivotValuesQuietly(ids: (string | number)[], pivot: JsonObject) {
@@ -139,13 +136,17 @@ export default class BelongsToMany extends Relation {
             {
                 [this.parent.getKeyName()]: this.parent.getKey(),
             }
-        ], {
-            data: ids.map((id) => ({
-                [this.getRelated().getSchema().primaryKey]: id,
-                ...pivot,
-            })),
-            errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:sync`
-        });
+        ], (client) => client.withData(ids.map((id) => ({
+            [this.getRelated().getSchema().primaryKey]: id,
+            ...pivot,
+        }))));
+        // {
+        //     data: ids.map((id) => ({
+        //         [this.getRelated().getSchema().primaryKey]: id,
+        //         ...pivot,
+        //     })),
+        //     errorBag: `${this.parent.getType()}[${this.parent.getKey()}].${this.getName()}:sync`
+        // });
     }
 
     async sync(ids: (string | number | JsonObject)[]) {

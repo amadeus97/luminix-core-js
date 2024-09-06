@@ -1,15 +1,6 @@
-import { Unsubscribe } from 'nanoevents';
-
-import PropertyBag from './PropertyBag';
 
 
-import { collect } from './Collection';
-import Collection from './ModelCollection';
-
-
-
-import { HasEvents } from '../mixins/HasEvents';
-import { createMergedSearchParams } from '../support/searchParams';
+import { PropertyBag, Collection, EventSource, Str, Query } from '@luminix/support';
 
 import { AppFacades } from '../types/App';
 
@@ -17,26 +8,21 @@ import {
     BuilderEventMap as BuilderEvents, BuilderInterface as BuilderBase, Scope as ScopeBase,
     ExtendedOperator
 } from '../types/Builder';
-import { EventData } from '../types/Event';
+// import { EventData } from '../types/Event';
 import {
     Model, ModelPaginatedLink,
-    ModelPaginatedResponse, ModelQuery
+    ModelPaginatedResponse, ModelQuery,
+    ModelRawPaginatedResponse
 } from '../types/Model';
-import { JsonObject, JsonValue } from '../types/Support';
+import { JsonValue } from '../types/Support';
 
-import { Collection as CollectionInterface } from '../types/Collection';
-
-import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
-import _ from 'lodash';
 
 type BuilderInterface = BuilderBase<Model, ModelPaginatedResponse>;
 type BuilderEventMap = BuilderEvents<Model, ModelPaginatedResponse>;
 type Scope = ScopeBase<Model, ModelPaginatedResponse>;
 
-const QueryBag = HasEvents<BuilderEventMap, typeof PropertyBag<ModelQuery>>(PropertyBag);
-
-class Builder implements BuilderInterface {
+class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
 
     private bag: PropertyBag<ModelQuery>;
 
@@ -45,27 +31,14 @@ class Builder implements BuilderInterface {
         protected abstract: string,
         protected query: ModelQuery = {},
     ) {
-        this.bag = new QueryBag(query);
+        super();
+        this.bag = new PropertyBag(query);
         this.bag.on('change', () => {
             this.emit('change', {
                 data: this.bag,
+                source: this
             });
         });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    on<T extends keyof BuilderEventMap>(_: T, __: BuilderEventMap[T]): Unsubscribe {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    once<T extends keyof BuilderEventMap>(_: T, __: BuilderEventMap[T]): void {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    emit<T extends keyof BuilderEventMap>(_: T, __: EventData<BuilderEventMap, T>): void {
-        throw new MethodNotImplementedException();
     }
 
     lock(path: string): void {
@@ -76,7 +49,7 @@ class Builder implements BuilderInterface {
         if (!this.bag.has('where')) {
             this.bag.set('where', {});
         }
-        this.bag.set(`where.${_.camelCase(key)}Between`, value);
+        this.bag.set(`where.${Str.camel(key)}Between`, value);
         return this;
     }
 
@@ -84,7 +57,7 @@ class Builder implements BuilderInterface {
         if (!this.bag.has('where')) {
             this.bag.set('where', {});
         }
-        this.bag.set(`where.${_.camelCase(key)}NotBetween`, value);
+        this.bag.set(`where.${Str.camel(key)}NotBetween`, value);
         return this;
     }
 
@@ -92,7 +65,7 @@ class Builder implements BuilderInterface {
         if (!this.bag.has('where')) {
             this.bag.set('where', {});
         }
-        this.bag.set(`where.${_.camelCase(key)}Null`, true);
+        this.bag.set(`where.${Str.camel(key)}Null`, true);
         return this;
     }
 
@@ -100,7 +73,7 @@ class Builder implements BuilderInterface {
         if (!this.bag.has('where')) {
             this.bag.set('where', {});
         }
-        this.bag.set(`where.${_.camelCase(key)}NotNull`, true);
+        this.bag.set(`where.${Str.camel(key)}NotNull`, true);
         return this;
     }
 
@@ -123,7 +96,7 @@ class Builder implements BuilderInterface {
         }
 
         if (typeof value === 'undefined') {
-            this.bag.set(`where.${_.camelCase(key)}`, operatorOrValue);
+            this.bag.set(`where.${Str.camel(key)}`, operatorOrValue);
             return this;
         }
 
@@ -140,9 +113,9 @@ class Builder implements BuilderInterface {
             '<=': 'LessThanOrEquals',
         };
 
-        const suffix: string = operatorSuffixMap[operatorOrValue] || _.upperFirst(_.camelCase(operatorOrValue as string));
+        const suffix: string = operatorSuffixMap[operatorOrValue] || Str.studly(operatorOrValue as string);
 
-        this.bag.set(`where.${_.camelCase(key)}${suffix}`, value);
+        this.bag.set(`where.${Str.camel(key)}${suffix}`, value);
 
         return this;
     }
@@ -220,24 +193,19 @@ class Builder implements BuilderInterface {
         try {
             this.bag.set('page', page);            
     
-            // const params = (() => {
-            //     if (typeof this.bag.get('where') === 'object') {
-            //         return {
-            //             ...this.bag.all(),
-            //             where: JSON.stringify(this.bag.get('where')),
-            //         };
-            //     }
-            //     return this.bag.all();
-            // })();
-    
             this.emit('submit', {
                 data: this.bag,
+                source: this,
             });
     
-            const { data } = await this.facades.route.call(`luminix.${this.abstract}.index`, {
+            const response = await this.facades.route.call<ModelRawPaginatedResponse>(
+                `luminix.${this.abstract}.index`,
+                (client) => client.withQueryParameters(this.bag.all())
+            );
+            /*{
                 params: this.bag.all(),
                 errorBag: `${this.abstract}.fetch`,
-            });
+            });*/
     
             const Model = this.facades.model.make(this.abstract);
     
@@ -254,48 +222,49 @@ class Builder implements BuilderInterface {
             //         return value;
             //     })
             // );
-            const models = collect(data.data.map((item: JsonObject) => {
+            const models = new Collection<Model>(response.json('data').map((item) => {
                 const value = new Model(item);
                 value.exists = true;
 
                 this.facades.model.emit('fetch', {
                     class: this.abstract,
                     model: value,
+                    source: this.facades.model,
                 });
 
                 return value;
-            }), Collection);
+            }));
 
     
             if (replaceLinksWith) {
                 const [base] = replaceLinksWith.split('?');
                 return {
-                    ...data,
+                    ...response.json(),
                     data: models,
                     links: {
-                        first: `${base}?${createMergedSearchParams(replaceLinksWith, data.links.first).toString()}`,
-                        last: `${base}?${createMergedSearchParams(replaceLinksWith, data.links.last).toString()}`,
-                        next: data.links.next && `${base}?${createMergedSearchParams(replaceLinksWith, data.links.next).toString()}`,
-                        prev: data.links.prev && `${base}?${createMergedSearchParams(replaceLinksWith, data.links.prev).toString()}`
-                            
+                        first: `${base}?${Query.merge(replaceLinksWith, response.json('links').first).toString()}`,
+                        last: `${base}?${Query.merge(replaceLinksWith, response.json('links').last).toString()}`,
+                        next: response.json('links').next && `${base}?${Query.merge(replaceLinksWith, response.json('links').next ?? '').toString()}`,
+                        prev: response.json('links').prev && `${base}?${Query.merge(replaceLinksWith, response.json('links').prev ?? '').toString()}`
                     },
                     meta: {
-                        ...data.meta,
-                        links: data.meta.links.map((link: ModelPaginatedLink) => ({
+                        ...response.json('meta'),
+                        links: response.json('meta').links.map((link: ModelPaginatedLink) => ({
                             ...link,
-                            url: link.url && `${base}?${createMergedSearchParams(replaceLinksWith, link.url).toString()}`,
+                            url: link.url && `${base}?${Query.merge(replaceLinksWith, link.url).toString()}`,
                         })),
                     }
                 };
             }
     
             return {
-                ...data,
+                ...response.json(),
                 data: models,
             };
         } catch (error) {
             this.emit('error', {
                 error,
+                source: this,
             });
             throw error;
         }
@@ -306,6 +275,7 @@ class Builder implements BuilderInterface {
         this.emit('success', {
             response: result,
             items: result.data,
+            source: this,
         });
         return result;
     }
@@ -317,6 +287,7 @@ class Builder implements BuilderInterface {
         this.emit('success', {
             response: result,
             items: result.data.first(),
+            source: this,
         });
 
         return result.data.first();
@@ -333,12 +304,13 @@ class Builder implements BuilderInterface {
         this.emit('success', {
             response: result,
             items: result.data.sole(),
+            source: this,
         });
 
         return result.data.sole();
     }
 
-    async all(): Promise<CollectionInterface<Model>> {
+    async all(): Promise<Collection<Model>> {
         const limit = this.facades.config.get('luminix.backend.api.max_per_page', 150) as number;
         const firstPage = await this.limit(limit).exec(1);
 
@@ -362,12 +334,11 @@ class Builder implements BuilderInterface {
         //     }, firstPage.data).all()
         // );
 
-        const all = collect(
+        const all = new Collection<Model>(
             results.reduce((acc, result) => {
                 acc.push(...result.data);
                 return acc;
-            }, firstPage.data).all(),
-            Collection
+            }, firstPage.data).all()
         );
 
         this.emit('success', {
@@ -376,14 +347,14 @@ class Builder implements BuilderInterface {
                 data: all,
             },
             items: all,
+            source: this,
         });
 
         return all;
     }
 
-
     
 }
 
 
-export default HasEvents<BuilderEventMap, typeof Builder>(Builder);
+export default Builder;

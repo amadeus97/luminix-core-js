@@ -1,18 +1,11 @@
-import { BaseModel, ModelSchema, ModelSchemaAttributes, Model } from '../types/Model';
+import { Reducible, EventSource, Str } from '@luminix/support';
+
+import { BaseModel, ModelSchema, ModelSchemaAttributes, Model, ModelReducers } from '../types/Model';
 
 import { BaseModelFactory, ModelFactory } from '../mixins/BaseModel';
 
-import { Reducible } from '../mixins/Reducible';
+import { AppFacade, GlobalModelEvents } from '../types/App';
 
-import { AppFacade, GlobalModelEvents, ModelFacade as ModelFacadeInterface } from '../types/App';
-
-import { HasEvents } from '../mixins/HasEvents';
-import _ from 'lodash';
-import { Unsubscribe } from 'nanoevents';
-import { Reducer, ReducerCallback, Unsubscribe as UnsubscribeReducer } from '../types/Reducer';
-import { Collection } from '../contracts/Collection';
-import NotReducibleException from '../exceptions/NotReducibleException';
-import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelNotFoundException from '../exceptions/ModelNotFoundException';
 
 import BelongsTo from '../contracts/Relation/BelongsTo';
@@ -24,9 +17,7 @@ import MorphOne from '../contracts/Relation/MorphOne';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
 
-
-
-class ModelFacade implements ModelFacadeInterface {
+class ModelFacade extends EventSource<GlobalModelEvents> {
 
     private _models: { [abstract: string]: typeof Model } = {};
 
@@ -35,6 +26,7 @@ class ModelFacade implements ModelFacadeInterface {
     constructor(
         private readonly _schema: ModelSchema,
     ) {
+        super();
     }
 
     boot(app: AppFacade) {
@@ -44,34 +36,18 @@ class ModelFacade implements ModelFacadeInterface {
        
         
         Object.keys(this._schema).forEach((abstract) => {
-            const modelReducer = this[`model${_.upperFirst(_.camelCase(abstract))}`];
-            if (typeof this.model !== 'function' || typeof modelReducer !== 'function') {
-                throw new NotReducibleException('ModelFacade');
-            }
+            const modelReducer = this[`model${Str.studly(abstract)}`];
 
-            // !Reducer `model`
             const Model: typeof BaseModel = this.model(
                 BaseModelFactory(app, abstract),
                 abstract
             );
 
-            // !Reducer `model${ClassName}`
             const SpecificModel: typeof BaseModel = modelReducer(Model);
 
             this._models[abstract] = ModelFactory(app.make(), abstract, SpecificModel);
         });
 
-
-        this.reducer('relationMap', () => ({
-            'BelongsTo': BelongsTo,
-            'BelongsToMany': BelongsToMany,
-            'HasOne': HasOne,
-            'HasMany': HasMany,
-            'MorphMany': MorphMany,
-            'MorphOne': MorphOne,
-            'MorphTo': MorphTo,
-            'MorphToMany': MorphToMany,
-        }), 0);
     }
 
     schema(): ModelSchema
@@ -104,60 +80,31 @@ class ModelFacade implements ModelFacadeInterface {
         return this._models[abstract];
     }
 
+    getRelationConstructors(abstract: string) {
+        return this.relationMap({
+            'BelongsTo': BelongsTo,
+            'BelongsToMany': BelongsToMany,
+            'HasOne': HasOne,
+            'HasMany': HasMany,
+            'MorphMany': MorphMany,
+            'MorphOne': MorphOne,
+            'MorphTo': MorphTo,
+            'MorphToMany': MorphToMany,
+        }, abstract);
+    }
+
     toString()
     {
         return 'model';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public on<K extends keyof GlobalModelEvents>(_: K, __: GlobalModelEvents[K]): Unsubscribe {
-        throw new MethodNotImplementedException();
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+    
+    
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public once<K extends keyof GlobalModelEvents>(_: K, __: GlobalModelEvents[K]): void {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public emit<K extends keyof GlobalModelEvents>(_: K, __?: Omit<Parameters<GlobalModelEvents[K]>[0], 'source'>): void {
-        throw new MethodNotImplementedException();
-    }
-
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public reducer(_: string, __: ReducerCallback, ___?: number): UnsubscribeReducer {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public removeReducer(_: string): void {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public getReducer(_: string): Collection<Reducer> {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public hasReducer(_: string): boolean {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public clearReducer(_: string): void {
-        throw new MethodNotImplementedException();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public flushReducers(): void {
-        throw new MethodNotImplementedException();
-    }
-
-    [reducer: string]: unknown;
 }
 
 
-export default HasEvents<GlobalModelEvents, typeof ModelFacade>(Reducible(ModelFacade));
+export default Reducible<ModelReducers, typeof ModelFacade>(ModelFacade);
 

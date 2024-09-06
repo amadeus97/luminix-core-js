@@ -1,14 +1,13 @@
+import { Collection } from '@luminix/support';
+
 import { AppFacades } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
 import MorphOneOrMany from './MorphOneOrMany';
 
-import Collection from '../Collection';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
-
-import { Collection as CollectionInterface } from '../../types/Collection';
 
 
 export default class MorphMany extends MorphOneOrMany
@@ -17,7 +16,7 @@ export default class MorphMany extends MorphOneOrMany
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected items: CollectionInterface<Model> | null = null,
+        protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('MorphMany.constructor()', 'Collection<Model> or null');

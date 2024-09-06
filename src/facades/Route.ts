@@ -1,9 +1,10 @@
-import _ from 'lodash';
+import { Obj, Reducible, Http, Client, Response } from '@luminix/support';
+
 import {
-    RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator, RouteCallConfig
+    RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator,
+    RouteReducers
 } from '../types/Route';
-import axios from 'axios';
-import { Reducible } from '../mixins/Reducible';
+
 import { ErrorFacade } from '../types/Error';
 import { isValidationError } from './Error';
 import NotReducibleException from '../exceptions/NotReducibleException';
@@ -56,7 +57,7 @@ class Route {
         if (!this.exists(name)) {
             throw new RouteNotFoundException(name);
         }
-        return _.get(this.routes, name) as RouteTuple;
+        return Obj.get(this.routes, name) as RouteTuple;
     }
 
     url(generator: RouteGenerator): string {
@@ -99,52 +100,54 @@ class Route {
     }
 
     exists(name: string) {
-        return _.has(this.routes, name)
-            && this.isRouteTuple(_.get(this.routes, name));
+        return Obj.has(this.routes, name)
+            && this.isRouteTuple(Obj.get(this.routes, name));
     }
 
-    async call(generator: RouteGenerator, config: RouteCallConfig = {}) {
-        if (typeof this.axiosOptions !== 'function' || typeof this.axiosError !== 'function') {
+    async call(generator: RouteGenerator, tap: (client: Client) => Client = (client) => client) {
+        if (typeof this.clientOptions !== 'function' || typeof this.clientError !== 'function') {
             throw new NotReducibleException('RouteFacade');
         }
         const [name, replace] = this.extractGenerator(generator);
         
         const [, ...methods] = this.get(name);
         const url = this.url(replace ? [name, replace] : name);
+
+        const client = tap(Http.getClient());
         
-        // !Reducer `axiosOptions`
-        const axiosOptions = this.axiosOptions(config, name);
-        
-        const { method = methods[0], errorBag = 'default', ...rest } = axiosOptions;
-        const { data, ...restOfRest } = rest;
+        // !Reducer `clientOptions`
+        const clientOptions = this.clientOptions({}, name);
+
+        if (!Obj.isEmpty(clientOptions)) {
+            client.withOptions(clientOptions);
+        }
+
+        const method = methods[0] ?? clientOptions.method;
+        const errorBag = clientOptions.errorBag ?? 'default';
 
         this.error.clear(errorBag);
 
-        try {
-            const response = ['get', 'delete'].includes(method)
-                ? await axios[method as HttpMethod](url, rest)
-                : await axios[method as HttpMethod](url, data, restOfRest);
-            
-            return response;
-        } catch (error: unknown) {
-            if (isValidationError(error)) {
-                const { errors } = error.response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response: Response = await (client as any)[method](url);
 
-                this.error.set(Object.entries(errors).reduce((acc, [key, value]) => {
-                    acc[key] = value.join(' ');
-                    return acc;
-                }, {} as Record<string,string>), errorBag);
+        if (isValidationError(response)) {
+            const errors = response.json('errors');
 
-            } else if (axios.isAxiosError(error)) {
-                this.error.set(
-                    this.axiosError({ axios: error.message }, { 
-                        error, name, replace, config
-                    }),
-                    errorBag
-                );
-            }
-            throw error;
+            this.error.set(Object.entries(errors).reduce((acc, [key, value]) => {
+                acc[key] = value.join(' ');
+                return acc;
+            }, {} as Record<string,string>), errorBag);
+
+        } else if (response.failed()) {
+            this.error.set(
+                this.clientError({ axios: response.json('message') }, { 
+                    response, name, replace, client
+                }),
+                errorBag
+            );
         }
+        
+        return response;
     }
 
     toString()
@@ -154,7 +157,8 @@ class Route {
     
     [reducer: string]: unknown;
 
+    
 }
 
-export default Reducible(Route);
+export default Reducible<RouteReducers, typeof Route>(Route);
 

@@ -1,4 +1,4 @@
-import { PropertyBag } from './PropertyBag';
+import { PropertyBag } from '@luminix/support';
 import { ModelSchema } from './Model';
 import { RouteDefinition } from './Route';
 

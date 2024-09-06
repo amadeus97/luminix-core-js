@@ -1,12 +1,12 @@
+import { Collection } from '@luminix/support';
+
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../support/model';
 import { AppFacades } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
-import Collection from '../Collection';
-import HasOneOrMany from './HasOneOrMany';
-import { Collection as CollectionInterface } from '../../types/Collection';
 
+import HasOneOrMany from './HasOneOrMany';
 
 export default class HasMany extends HasOneOrMany
 {
@@ -15,7 +15,7 @@ export default class HasMany extends HasOneOrMany
         protected meta: RelationMetaData,
         protected facades: AppFacades,
         protected parent: Model,
-        protected items: CollectionInterface<Model> | null = null,
+        protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('HasMany.constructor()', 'Collection<Model> or null');

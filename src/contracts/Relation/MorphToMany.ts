@@ -1,8 +1,8 @@
+import { Collection } from '@luminix/support';
+
 import { AppFacades } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
-
-import { Collection } from '../../types/Collection';
 
 import BelongsToMany from './BelongsToMany';
 

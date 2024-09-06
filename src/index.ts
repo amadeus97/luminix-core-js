@@ -11,16 +11,8 @@ import App from './facades/App';
 import { isValidationError } from './facades/Error';
 
 import Plugin from './contracts/Plugin';
-import PropertyBag from './contracts/PropertyBag';
 
 import { isModel } from './support/model';
-import { isCollection } from './support/collection';
-
-import { Reducible } from './mixins/Reducible';
-import { HasEvents } from './mixins/HasEvents';
-
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 
 export {
@@ -34,21 +26,16 @@ export {
     model,
     route,
 
-    isCollection,
     isValidationError,
     isModel,
 
     Plugin,
-    PropertyBag,
-    Reducible,
-    HasEvents,
+
 };
 
 // types
 export type { AppFacade } from './types/App';
 export type { AuthFacade } from './types/Auth';
 export type { LogFacade } from './types/Log';
-export type { ReducibleInterface } from './types/Reducer';
 export type { RouteFacade } from './types/Route';
 export type { Model, BaseModel } from './types/Model';
-export type { EventSource } from './types/Event';
