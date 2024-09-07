@@ -1,61 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { LogFacade } from '../types/Log';
+import { HasFacadeAccessor, MakeFacade } from '@luminix/support';
+import LogService from '../services/LogService';
+import App from './App';
 
-export default class Log implements LogFacade {
 
-    constructor(
-        private _debug: boolean
-    ) { 
+class LogFacade implements HasFacadeAccessor
+{
+
+    getFacadeAccessor(): string | object {
+        return 'log';    
     }
 
-    public emergency(...args: any[]) {
-        if (this._debug) {
-            console.error(...args);
-        }
-    }
-
-    public alert(...args: any[]) {
-        if (this._debug) {
-            console.error(...args);
-        }
-    }
-
-    public critical(...args: any[]) {
-        if (this._debug) {
-            console.error(...args);
-        }
-    }
-
-    public error(...args: any[]) {
-        if (this._debug) {
-            console.error(...args);
-        }
-    }
-
-    public warning(...args: any[]) {
-        if (this._debug) {
-            console.warn(...args);
-        }
-    }
-
-    public notice(...args: any[]) {
-        if (this._debug) {
-            console.info(...args);
-        }
-    }
-
-    public info(...args: any[]) {
-        if (this._debug) {
-            console.info(...args);
-        }
-    }
-
-    public debug(...args: any[]) {
-        if (this._debug) {
-            console.debug(...args);
-        }
-    }
 }
 
+const Log = MakeFacade<LogService, LogFacade>(LogFacade, App);
 
-
+export default Log;

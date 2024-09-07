@@ -8,6 +8,13 @@ import model from './helpers/model';
 import route from './helpers/route';
 
 import App from './facades/App';
+import Auth from './facades/Auth';
+import Error from './facades/Error';
+import Log from './facades/Log';
+import Model from './facades/Model';
+import Route from './facades/Route';
+
+
 import { isValidationError } from './facades/Error';
 
 import Plugin from './contracts/Plugin';
@@ -19,12 +26,17 @@ export {
     app,
     App,
     auth,
+    Auth,
     collect,
     config,
     error,
+    Error,
     log,
+    Log,
     model,
+    Model,
     route,
+    Route,
 
     isValidationError,
     isModel,
@@ -38,4 +50,4 @@ export type { AppFacade } from './types/App';
 export type { AuthFacade } from './types/Auth';
 export type { LogFacade } from './types/Log';
 export type { RouteFacade } from './types/Route';
-export type { Model, BaseModel } from './types/Model';
+export type { Model as ModelType, BaseModel } from './types/Model';

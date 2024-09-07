@@ -10,7 +10,7 @@ import { isValidationError } from '../facades/Error';
 import NotReducibleException from '../exceptions/NotReducibleException';
 import RouteNotFoundException from '../exceptions/RouteNotFoundException';
 
-class RouteService
+export class RouteService
 {
     constructor(
         private routes: RouteDefinition,

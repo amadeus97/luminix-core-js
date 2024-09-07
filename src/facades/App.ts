@@ -11,7 +11,7 @@ import RouteServiceProvider from '../providers/RouteServiceProvider';
 
 let application: Application;
 
-class App implements HasFacadeAccessor
+class AppFacade implements HasFacadeAccessor
 {
 
     getFacadeAccessor(): string | object {
@@ -57,7 +57,9 @@ class App implements HasFacadeAccessor
     }
 }
 
-export default MakeFacade<Application<AppFacades>>(App);
+const App = MakeFacade<Application<AppFacades>, AppFacade>(AppFacade);
+
+export default App;
 
 // class App extends EventSource<AppEvents> implements AppFacade {
     

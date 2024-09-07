@@ -17,7 +17,7 @@ import MorphOne from '../contracts/Relation/MorphOne';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
 
-class ModelService extends EventSource<GlobalModelEvents> {
+export class ModelService extends EventSource<GlobalModelEvents> {
 
     private _models: { [abstract: string]: typeof Model } = {};
 
