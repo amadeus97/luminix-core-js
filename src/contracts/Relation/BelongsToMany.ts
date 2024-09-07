@@ -3,7 +3,7 @@ import Relation from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
@@ -15,7 +15,7 @@ export default class BelongsToMany extends Relation {
 
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {

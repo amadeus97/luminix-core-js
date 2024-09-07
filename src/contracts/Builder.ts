@@ -2,7 +2,7 @@
 
 import { PropertyBag, Collection, EventSource, Str, Query } from '@luminix/support';
 
-import { AppFacades } from '../types/App';
+import { AppContainers } from '../types/App';
 
 import {
     BuilderEventMap as BuilderEvents, BuilderInterface as BuilderBase, Scope as ScopeBase,
@@ -27,7 +27,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     private bag: PropertyBag<ModelQuery>;
 
     constructor(
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected abstract: string,
         protected query: ModelQuery = {},
     ) {

@@ -21,7 +21,7 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
     private _models: { [abstract: string]: typeof Model } = {};
 
-    [Symbol.toStringTag] = 'ModelFacade';
+    [Symbol.toStringTag] = 'ModelService';
 
     constructor(
         private readonly _schema: ModelSchema,

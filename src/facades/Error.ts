@@ -4,6 +4,7 @@ import { ValidationError } from '../types/Error';
 import ErrorService from '../services/ErrorService';
 import App from './App';
 
+/** @deprecated */
 export const isValidationError = (response: unknown): response is Response<ValidationError> => {
     return response instanceof Response
         && response.unprocessableEntity()

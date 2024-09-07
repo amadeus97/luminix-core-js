@@ -10,7 +10,7 @@ import {
     Model,
 } from '../types/Model';
 
-import { AppFacade, AppFacades } from '../types/App';
+import { AppFacade, AppContainers } from '../types/App';
 import { RouteGenerator, RouteReplacer } from '../types/Route';
 import { JsonObject, JsonValue } from '../types/Support';
 
@@ -817,7 +817,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
 }
 
-export function ModelFactory(facades: AppFacades, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
+export function ModelFactory(facades: AppContainers, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
     return class extends CustomModel {
 
         [Symbol.toStringTag] = Str.studly(abstract);

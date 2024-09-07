@@ -1,6 +1,6 @@
 import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 
 import HasOneOrMany from './HasOneOrMany';
 import NotModelException from '../../exceptions/NotModelException';
@@ -10,7 +10,7 @@ export default class HasOne extends HasOneOrMany
 
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Model | null = null,
     ) {

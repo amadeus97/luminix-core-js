@@ -1,6 +1,6 @@
 import { Collection } from '@luminix/support';
 
-import { AppFacades } from '../types/App';
+import { AppContainers } from '../types/App';
 import { BaseModel, Model, ModelPaginatedResponse, RelationMetaData } from '../types/Model';
 
 import NotReducibleException from '../exceptions/NotReducibleException';
@@ -27,7 +27,7 @@ export default class Relation implements RelationInterface {
 
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: BaseModel,
         protected items: Model | Collection<Model> | null = null,
     ) {

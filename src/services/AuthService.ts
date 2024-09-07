@@ -1,25 +1,31 @@
 
-import { Application, JsonObject } from '@luminix/support';
+import { JsonObject, PropertyBag } from '@luminix/support';
  
 import { AuthCredentials } from '../types/Auth';
 import { Model } from '../types/Model';
 
+import { AppConfiguration } from '../types/Config';
+import { ModelFacade } from '../types/App';
+import { RouteFacade } from '../types/Route';
+
 export default class AuthService {
 
-    private _user: Model | undefined;
+    protected _user: Model | undefined;
 
     constructor(
-        private readonly app: Application
-    ) { }
+        protected config: PropertyBag<AppConfiguration>,
+        protected model: ModelFacade,
+        protected route: RouteFacade,
+    ) {}
 
     attempt(credentials: AuthCredentials, remember: boolean = false, onSubmit?: (e: Event) => void) {
         const form = document.createElement('form');
 
         form.method = 'post';
-        form.action = this.app.make('route').url('login');
+        form.action = this.route.url('login');
         form.style.display = 'none';
 
-        const csrfToken = this.app.make('config').get('auth.csrf');
+        const csrfToken = this.config.get('auth.csrf');
 
         if (typeof csrfToken === 'string') {
             const csrfInput = document.createElement('input');
@@ -61,9 +67,7 @@ export default class AuthService {
     }
 
     check() {
-        const config = this.app.make('config');
-
-        return !!config.get('auth.user');
+        return !!this.config.get('auth.user');
     }
 
     logout(onSubmit?: (e: Event) => void) {
@@ -71,10 +75,10 @@ export default class AuthService {
         const form = document.createElement('form');
 
         form.method = 'post';
-        form.action = this.app.make('route').url('logout');
+        form.action = this.route.url('logout');
         form.style.display = 'none';
 
-        const csrfToken = this.app.make('config').get('auth.csrf');
+        const csrfToken = this.config.get('auth.csrf');
 
         if (typeof csrfToken === 'string') {
             const input = document.createElement('input');
@@ -95,11 +99,8 @@ export default class AuthService {
 
     user(): Model | undefined {
         if (!this._user) {
-            const model = this.app.make('model');
-            const config = this.app.make('config');
-
-            const User = model.make('user');
-            const userData = config.get('auth.user');
+            const User = this.model.make('user');
+            const userData = this.config.get('auth.user');
 
             if (!userData) {
                 return;

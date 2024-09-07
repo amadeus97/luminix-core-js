@@ -1,6 +1,6 @@
 import { HasFacadeAccessor, Application, MakeFacade } from '@luminix/support';
 
-import { AppFacades } from '../types/App';
+import { AppContainers } from '../types/App';
 
 import LuminixServiceProvider from '../providers/LuminixServiceProvider';
 
@@ -47,7 +47,7 @@ class AppFacade implements HasFacadeAccessor
     }
 }
 
-const App = MakeFacade<Application<AppFacades>, AppFacade>(AppFacade);
+const App = MakeFacade<Application<AppContainers>, AppFacade>(AppFacade);
 
 export default App;
 

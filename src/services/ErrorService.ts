@@ -1,5 +1,4 @@
-import { PropertyBag } from '@luminix/support';
-import reader from '../support/reader';
+import { PropertyBag, reader } from '@luminix/support';
 
 export default class ErrorService
 {

@@ -1,4 +1,4 @@
-import { EventSource, Event, ReducibleInterface } from '@luminix/support';
+import { EventSource, Event, ReducibleInterface, Client } from '@luminix/support';
 
 import { AppConfiguration, ConfigFacade } from './Config';
 
@@ -15,7 +15,7 @@ import { Constructor } from './Support';
 
 import { RelationInterface } from './Relation';
 
-type Plugin = PluginInterface<AppFacade, AppFacades>;
+type Plugin = PluginInterface<AppFacade, AppContainers>;
 
 
 export type GlobalModelEvents = {
@@ -65,9 +65,9 @@ export type InitEvent = Event<{
 }, AppFacade>;
 
 export type AppExternal = {
-    boot: (config?: AppConfiguration) => Promise<AppFacades>;
-    make(): AppFacades;
-    make<T extends keyof AppFacades>(key: T): AppFacades[T];
+    boot: (config?: AppConfiguration) => Promise<AppContainers>;
+    make(): AppContainers;
+    make<T extends keyof AppContainers>(key: T): AppContainers[T];
     plugins: () => Plugin[];
     on: EventSource<AppEvents>['once'];
 
@@ -85,13 +85,14 @@ export type AppExternal = {
 
 export type AppFacade = Omit<AppExternal, 'setInstance'> & EventSource<AppEvents> & {
     has(key: string): boolean;
-    bind<T extends keyof AppFacades>(key: T, facade: AppFacades[T]): void;
+    bind<T extends keyof AppContainers>(key: T, facade: AppContainers[T]): void;
 };
 
-export type AppFacades = {
+export type AppContainers = {
     auth: AuthFacade;
     config: ConfigFacade;
     error: ErrorFacade;
+    http: Client;
     log: LogFacade;
     model: ModelFacade;
     route: RouteFacade;

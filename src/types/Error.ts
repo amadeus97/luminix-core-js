@@ -11,6 +11,7 @@ export type ErrorFacade = {
     bag(name?: string): ErrorBag;
 };
 
+/** @deprecated */
 export type ValidationError = {
     message: string;
     errors: {

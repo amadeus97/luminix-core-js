@@ -1,6 +1,6 @@
 import { Collection } from '@luminix/support';
 
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 
@@ -12,7 +12,7 @@ export default class MorphToMany extends BelongsToMany
 {
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {

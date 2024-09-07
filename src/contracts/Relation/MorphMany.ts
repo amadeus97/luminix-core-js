@@ -1,6 +1,6 @@
 import { Collection } from '@luminix/support';
 
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
@@ -14,7 +14,7 @@ export default class MorphMany extends MorphOneOrMany
 {
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {

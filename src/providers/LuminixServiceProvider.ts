@@ -14,7 +14,11 @@ export default class LuminixServiceProvider extends ServiceProvider
     register(): void {
 
         this.app.singleton('auth', () => {
-            return new AuthService(this.app);
+            return new AuthService(
+                this.app.make('config'),
+                this.app.make('model'),
+                this.app.make('route'),
+            );
         });
 
 
@@ -52,14 +56,19 @@ export default class LuminixServiceProvider extends ServiceProvider
             return new RouteService(
                 this.app.configuration.manifest?.routes ?? {},
                 this.app.make('error'),
+                () => this.app.make('http'),
                 this.app.configuration.app?.url
             );
         });
 
         this.flushReady = this.app.on('ready', () => {
-            this.app.make('log').info('[Luminix] App boot completed', this.app);
+            this.app.dump('[Luminix] App boot completed');
         });
 
+    }
+
+    boot(): void {
+        this.app.make('model').boot(this.app);
     }
 
 

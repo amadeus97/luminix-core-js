@@ -3,7 +3,7 @@ import { Collection } from '@luminix/support';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../support/model';
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
 
 import HasOneOrMany from './HasOneOrMany';
@@ -13,7 +13,7 @@ export default class HasMany extends HasOneOrMany
 
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {

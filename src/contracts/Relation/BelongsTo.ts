@@ -3,7 +3,7 @@ import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Mod
 
 import { isModel } from '../../support/model';
 
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
@@ -16,7 +16,7 @@ export default class BelongsTo extends Relation {
 
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Model | null = null,
     ) {

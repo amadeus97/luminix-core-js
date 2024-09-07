@@ -9,6 +9,7 @@ import route from './helpers/route';
 
 import App from './facades/App';
 import Auth from './facades/Auth';
+import Config from './facades/Config';
 import Error from './facades/Error';
 import Http from './facades/Http';
 import Log from './facades/Log';
@@ -30,6 +31,7 @@ export {
     Auth,
     collect,
     config,
+    Config,
     error,
     Error,
     Http,

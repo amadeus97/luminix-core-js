@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { AppFacade, AppFacades } from '../types/App';
+import { AppFacade, AppContainers } from '../types/App';
 
 export default abstract class Plugin {
     readonly name?: string;
@@ -9,7 +9,7 @@ export default abstract class Plugin {
     register(_app: AppFacade): void {
 
     }
-    boot(_facades: AppFacades):void {
+    boot(_facades: AppContainers):void {
         
     }
 }

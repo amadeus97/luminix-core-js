@@ -1,6 +1,6 @@
 
 import NotModelException from '../../exceptions/NotModelException';
-import { AppFacades } from '../../types/App';
+import { AppContainers } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
@@ -12,7 +12,7 @@ export default class MorphOne extends MorphOneOrMany
 {
     constructor(
         protected meta: RelationMetaData,
-        protected facades: AppFacades,
+        protected facades: AppContainers,
         protected parent: Model,
         protected items: Model | null = null,
     ) {
