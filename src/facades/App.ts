@@ -2,12 +2,7 @@ import { HasFacadeAccessor, Application, MakeFacade } from '@luminix/support';
 
 import { AppFacades } from '../types/App';
 
-import AuthServiceProvider from '../providers/AuthServiceProvider';
-import ConfigServiceProvider from '../providers/ConfigServiceProvider';
-import ErrorServiceProvider from '../providers/ErrorServiceProvider';
-import LogServiceProvider from '../providers/LogServiceProvider';
-import ModelServiceProvider from '../providers/ModelServiceProvider';
-import RouteServiceProvider from '../providers/RouteServiceProvider';
+import LuminixServiceProvider from '../providers/LuminixServiceProvider';
 
 let application: Application;
 
@@ -18,12 +13,7 @@ class AppFacade implements HasFacadeAccessor
 
         if (!application) {
             application = Application.provides([
-                AuthServiceProvider,
-                ConfigServiceProvider,
-                ErrorServiceProvider,
-                LogServiceProvider,
-                ModelServiceProvider,
-                RouteServiceProvider,
+                LuminixServiceProvider,
             ]);
         }
 

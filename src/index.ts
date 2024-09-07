@@ -10,6 +10,7 @@ import route from './helpers/route';
 import App from './facades/App';
 import Auth from './facades/Auth';
 import Error from './facades/Error';
+import Http from './facades/Http';
 import Log from './facades/Log';
 import Model from './facades/Model';
 import Route from './facades/Route';
@@ -31,6 +32,7 @@ export {
     config,
     error,
     Error,
+    Http,
     log,
     Log,
     model,

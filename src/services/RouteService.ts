@@ -1,4 +1,4 @@
-import { Obj, Reducible, Http, Client, Response } from '@luminix/support';
+import { Obj, Reducible, Client, Response } from '@luminix/support';
 
 import {
     RouteReplacer, RouteDefinition, RouteTuple as RouteTuple, HttpMethod, RouteGenerator,
@@ -7,6 +7,7 @@ import {
 
 import { ErrorFacade } from '../types/Error';
 import { isValidationError } from '../facades/Error';
+import Http from '../facades/Http';
 import NotReducibleException from '../exceptions/NotReducibleException';
 import RouteNotFoundException from '../exceptions/RouteNotFoundException';
 
@@ -112,7 +113,7 @@ export class RouteService
         const [, ...methods] = this.get(name);
         const url = this.url(replace ? [name, replace] : name);
 
-        const client = tap(Http.getClient());
+        const client = tap(Http);
         
         // !Reducer `clientOptions`
         const clientOptions = this.clientOptions({}, name);
