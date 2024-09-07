@@ -1,6 +1,5 @@
 import { Collection } from '@luminix/support';
 import { BuilderInterface, ExtendedOperator, Scope } from './Builder';
-// import { BaseModel, Model } from './Model';
 
 import { Constructor, JsonValue } from './Support';
 
@@ -9,7 +8,6 @@ export type {
     ExtendedOperator,
     Scope,
 };
-
 
 export type RelationInterface<R,C> = {
 

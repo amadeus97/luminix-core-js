@@ -32,7 +32,3 @@ export type RouteTuple = [string, ...HttpMethod[]];
 export type RouteDefinition = {
     [routeName: string]: RouteTuple | RouteDefinition;
 }
-
-// export type RouteCallConfig = Omit<AxiosRequestConfig, 'url'> & {
-//     errorBag?: string;
-// };
