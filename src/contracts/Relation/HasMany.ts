@@ -3,24 +3,25 @@ import { Collection } from '@luminix/support';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
 import { isModel } from '../../support/model';
-import { AppContainers } from '../../types/App';
+
 import { Model, RelationMetaData } from '../../types/Model';
 
 import HasOneOrMany from './HasOneOrMany';
+import { RelationServices } from '../Relation';
 
 export default class HasMany extends HasOneOrMany
 {
 
     constructor(
+        protected services: RelationServices,
         protected meta: RelationMetaData,
-        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('HasMany.constructor()', 'Collection<Model> or null');
         }
-        super(meta, facades, parent, items);
+        super(services, meta, parent, items);
     }
 
     isSingle(): boolean {

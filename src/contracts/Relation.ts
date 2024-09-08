@@ -19,14 +19,15 @@ type RelationInterface = RelationBase<Model, ModelPaginatedResponse>;
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 type Scope = ScopeBase<Model, ModelPaginatedResponse>;
 
+export type RelationServices = { model: ModelFacade, route: RouteFacade };
+
 
 export default class Relation implements RelationInterface {
 
     private unsubscribeQuery: (() => void) | null = null;
 
     constructor(
-        protected model: ModelFacade,
-        protected route: RouteFacade,
+        protected services: RelationServices,
         protected meta: RelationMetaData,
         protected parent: BaseModel,
         protected items: Model | Collection<Model> | null = null,
@@ -65,7 +66,7 @@ export default class Relation implements RelationInterface {
         const currentRelationType = this.getType();
 
         // !Reducer `guessInverseRelation`
-        const inverses: { [key: string]: string[] } = this.model.guessInverseRelation({
+        const inverses: { [key: string]: string[] } = this.services.model.guessInverseRelation({
             'HasOne': ['BelongsTo'],
             'HasMany': ['BelongsTo'],
             'BelongsTo': ['HasOne', 'HasMany'],
@@ -125,7 +126,7 @@ export default class Relation implements RelationInterface {
 
     getRelated()
     {
-        return this.model.make(this.meta.model);
+        return this.services.model.make(this.meta.model);
     }
 
     query()

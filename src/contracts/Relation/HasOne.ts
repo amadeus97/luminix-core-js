@@ -1,23 +1,23 @@
 import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
-import { AppContainers } from '../../types/App';
 
 import HasOneOrMany from './HasOneOrMany';
 import NotModelException from '../../exceptions/NotModelException';
+import { RelationServices } from '../Relation';
 
 export default class HasOne extends HasOneOrMany
 {
 
     constructor(
-        protected meta: RelationMetaData,
-        protected facades: AppContainers,
+        protected services: RelationServices,
+        protected meta: RelationMetaData,        
         protected parent: Model,
         protected items: Model | null = null,
     ) {
         if (!isModel(items) && items !== null) {
             throw new NotModelException('HasOne.constructor()', 'Model or null');
         }
-        super(meta, facades, parent, items);
+        super(services, meta, parent, items);
     }
 
 

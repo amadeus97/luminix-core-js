@@ -1,9 +1,8 @@
 import { Collection } from '@luminix/support';
-import Relation from '../Relation';
+import Relation, { RelationServices } from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
-import { AppContainers, ModelFacade } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
@@ -14,7 +13,7 @@ type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 export default class BelongsToMany extends Relation {
 
     constructor(
-        protected model: ModelFacade,
+        protected services: RelationServices,
         protected meta: RelationMetaData,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
@@ -22,7 +21,7 @@ export default class BelongsToMany extends Relation {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
         }
-        super(model, meta, parent, items);
+        super(services, meta, parent, items);
     }
 
     isSingle(): boolean {
@@ -61,7 +60,7 @@ export default class BelongsToMany extends Relation {
     }
 
     attachQuietly(id: string | number, pivot: JsonObject = {}) {
-        return this.facades.route.call([
+        return this.services.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:attach`,
             {
                 [this.parent.getKeyName()]: this.parent.getKey(),
@@ -92,7 +91,7 @@ export default class BelongsToMany extends Relation {
     }
 
     async detachQuietly(id: string | number) {
-        await this.facades.route.call(
+        await this.services.route.call(
             [
                 `luminix.${this.parent.getType()}.${this.getName()}:detach`,
                 {
@@ -118,7 +117,7 @@ export default class BelongsToMany extends Relation {
     }
 
     async syncQuietly(ids: (string | number | JsonObject)[]) {
-        await this.facades.route.call([
+        await this.services.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:sync`,
             {
                 [this.parent.getKeyName()]: this.parent.getKey(),
@@ -131,7 +130,7 @@ export default class BelongsToMany extends Relation {
     }
 
     async syncWithPivotValuesQuietly(ids: (string | number)[], pivot: JsonObject) {
-        await this.facades.route.call([
+        await this.services.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:sync`,
             {
                 [this.parent.getKeyName()]: this.parent.getKey(),

@@ -2,6 +2,7 @@
 
 import { AppFacade, AppContainers } from '../types/App';
 
+/** @deprecated */
 export default abstract class Plugin {
     readonly name?: string;
     readonly version?: string;

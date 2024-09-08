@@ -1,4 +1,4 @@
-import Relation from '../Relation';
+import Relation, { RelationServices } from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 
 import { isModel } from '../../support/model';
@@ -7,7 +7,6 @@ import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import ModelNotPersistedException from '../../exceptions/ModelNotPersistedException';
-import { ModelFacade } from '../../types/App';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
@@ -15,7 +14,7 @@ type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 export default class BelongsTo extends Relation {
 
     constructor(
-        protected model: ModelFacade,
+        protected services: RelationServices,
         protected meta: RelationMetaData,
         protected parent: Model,
         protected items: Model | null = null,
@@ -23,7 +22,7 @@ export default class BelongsTo extends Relation {
         if (!isModel(items) && items !== null) {
             throw new NotModelException('BelongsTo.constructor()', 'Model or null');
         }
-        super(model, meta, parent, items);
+        super(services, meta, parent, items);
     }
 
     isSingle(): boolean {

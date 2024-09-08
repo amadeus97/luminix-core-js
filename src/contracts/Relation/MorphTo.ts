@@ -8,7 +8,7 @@ export default class MorphTo extends BelongsTo
 {
     getRelated(): typeof Model
     {
-        return this.facades.model.make(
+        return this.services.model.make(
             this.parent.getAttribute(this.getName() + '_type') as string
         );
     }

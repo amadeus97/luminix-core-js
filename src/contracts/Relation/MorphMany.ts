@@ -1,6 +1,5 @@
 import { Collection } from '@luminix/support';
 
-import { AppContainers } from '../../types/App';
 import { Model, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
@@ -8,20 +7,21 @@ import MorphOneOrMany from './MorphOneOrMany';
 
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
+import { RelationServices } from '../Relation';
 
 
 export default class MorphMany extends MorphOneOrMany
 {
     constructor(
+        protected services: RelationServices,
         protected meta: RelationMetaData,
-        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('MorphMany.constructor()', 'Collection<Model> or null');
         }
-        super(meta, facades, parent, items);
+        super(services, meta, parent, items);
     }
 
 

@@ -32,9 +32,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     private bag: PropertyBag<ModelQuery>;
 
     constructor(
-        protected config: ConfigFacade,
-        protected model: ModelFacade,
-        protected route: RouteFacade,
+        protected services: { config: ConfigFacade, model: ModelFacade, route: RouteFacade },
         protected abstract: string,
         protected query: ModelQuery = {},
     ) {
@@ -205,7 +203,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 source: this,
             });
     
-            const response = await this.route.call<ModelRawPaginatedResponse>(
+            const response = await this.services.route.call<ModelRawPaginatedResponse>(
                 `luminix.${this.abstract}.index`,
                 (client) => client.withQueryParameters(this.bag.all())
             );
@@ -214,7 +212,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 errorBag: `${this.abstract}.fetch`,
             });*/
     
-            const Model = this.model.make(this.abstract);
+            const Model = this.services.model.make(this.abstract);
     
             // const models = new Collection(
             //     ...data.data.map((item: JsonObject) => {
@@ -233,10 +231,10 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 const value = new Model(item);
                 value.exists = true;
 
-                this.model.emit('fetch', {
+                this.services.model.emit('fetch', {
                     class: this.abstract,
                     model: value,
-                    source: this.model,
+                    source: this.services.model,
                 });
 
                 return value;
@@ -301,7 +299,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     }
 
     async find(id: string | number): Promise<Model | null> {
-        const pk = this.model.schema(this.abstract).primaryKey;
+        const pk = this.services.model.schema(this.abstract).primaryKey;
         if (!pk) {
             throw new ModelWithoutPrimaryKeyException(this.abstract);
         }
@@ -318,7 +316,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     }
 
     async all(): Promise<Collection<Model>> {
-        const limit = this.config.get('luminix.backend.api.max_per_page', 150) as number;
+        const limit = this.services.config.get('luminix.backend.api.max_per_page', 150) as number;
         const firstPage = await this.limit(limit).exec(1);
 
         const pages = firstPage.meta.last_page;

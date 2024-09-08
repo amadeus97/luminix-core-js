@@ -12,7 +12,7 @@ import {
     Model,
 } from '../types/Model';
 
-import { AppContainers, ModelFacade } from '../types/App';
+import { ModelFacade } from '../types/App';
 import { RouteFacade, RouteGenerator, RouteReplacer } from '../types/Route';
 
 import Builder from '../contracts/Builder';
@@ -123,7 +123,7 @@ export function BaseModelFactory(
                     : Relation;
 
                 this._relations[key] = new RelationClass(
-                    ModelFacade,
+                    { model: ModelFacade, route: Route },
                     { name: key, ...relation },
                     this,
                     null,
@@ -684,9 +684,7 @@ export function BaseModelFactory(
 
         static query() {
             return new Builder(
-                Config,
-                ModelFacade,
-                Route,
+                { config: Config, route: Route, model: ModelFacade },
                 abstract
             );
         }
@@ -834,7 +832,7 @@ export function BaseModelFactory(
 
 }
 
-export function ModelFactory(facades: AppContainers, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
+export function ModelFactory(ModelFacade: ModelFacade, abstract: string, CustomModel: typeof BaseModel): typeof ModelInterface {
     return class extends CustomModel {
 
         [Symbol.toStringTag] = Str.studly(abstract);
@@ -876,13 +874,13 @@ export function ModelFactory(facades: AppContainers, abstract: string, CustomMod
 
 
                     // If there is a reducer to handle a property, return it.
-                    if (facades.model.hasReducer(`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`)) {
-                        const reducer = facades.model[`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`];
+                    if (ModelFacade.hasReducer(`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`)) {
+                        const reducer = ModelFacade[`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`];
                         if (typeof reducer !== 'function') {
                             throw new NotReducibleException('ModelFacade');
                         }
                         // !Reducer `model${ClassName}Get${Key}Attribute`
-                        return reducer.bind(facades.model)(undefined, target);
+                        return reducer.bind(ModelFacade)(undefined, target);
                     }
 
                     return Reflect.get(target, prop);

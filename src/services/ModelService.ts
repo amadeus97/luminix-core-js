@@ -51,7 +51,7 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
             const SpecificModel: typeof BaseModel = modelReducer(Model);
 
-            this._models[abstract] = ModelFactory(app.make(), abstract, SpecificModel);
+            this._models[abstract] = ModelFactory(app.make('model'), abstract, SpecificModel);
         });
 
     }
