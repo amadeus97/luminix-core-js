@@ -1,10 +1,11 @@
-import { ServiceProvider, Obj, PropertyBag, Client, } from '@luminix/support';
+import { ServiceProvider, Obj, PropertyBag, } from '@luminix/support';
 
 import AuthService from '../services/AuthService';
 import ErrorService from '../services/ErrorService';
 import LogService from '../services/LogService';
 import ModelService from '../services/ModelService';
 import RouteService from '../services/RouteService';
+import HttpService from '../services/HttpService';
 
 export default class LuminixServiceProvider extends ServiceProvider
 {
@@ -38,8 +39,8 @@ export default class LuminixServiceProvider extends ServiceProvider
             return new ErrorService();
         });
 
-        this.app.bind('http', () => {
-            return new Client();
+        this.app.singleton('http', () => {
+            return new HttpService();
         });
 
         this.app.singleton('log', () => {
