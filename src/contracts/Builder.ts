@@ -2,8 +2,6 @@
 
 import { PropertyBag, Collection, EventSource, Str, Query } from '@luminix/support';
 
-import { AppContainers } from '../types/App';
-
 import {
     BuilderEventMap as BuilderEvents, BuilderInterface as BuilderBase, Scope as ScopeBase,
     ExtendedOperator
@@ -17,6 +15,13 @@ import {
 import { JsonValue } from '../types/Support';
 
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
+import { ModelFacade } from '../types/App';
+import { RouteFacade } from '../types/Route';
+import { ConfigFacade } from '../types/Config';
+
+// import ModelFacade from '../facades/Model';
+// import Route from '../facades/Route';
+// import Config from '../facades/Config';
 
 type BuilderInterface = BuilderBase<Model, ModelPaginatedResponse>;
 type BuilderEventMap = BuilderEvents<Model, ModelPaginatedResponse>;
@@ -27,7 +32,9 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     private bag: PropertyBag<ModelQuery>;
 
     constructor(
-        protected facades: AppContainers,
+        protected config: ConfigFacade,
+        protected model: ModelFacade,
+        protected route: RouteFacade,
         protected abstract: string,
         protected query: ModelQuery = {},
     ) {
@@ -198,7 +205,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 source: this,
             });
     
-            const response = await this.facades.route.call<ModelRawPaginatedResponse>(
+            const response = await this.route.call<ModelRawPaginatedResponse>(
                 `luminix.${this.abstract}.index`,
                 (client) => client.withQueryParameters(this.bag.all())
             );
@@ -207,14 +214,14 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 errorBag: `${this.abstract}.fetch`,
             });*/
     
-            const Model = this.facades.model.make(this.abstract);
+            const Model = this.model.make(this.abstract);
     
             // const models = new Collection(
             //     ...data.data.map((item: JsonObject) => {
             //         const value = new Model(item);
             //         value.exists = true;
 
-            //         this.facades.model.emit('fetch', {
+            //         ModelFacade.emit('fetch', {
             //             class: this.abstract,
             //             model: value,
             //         });
@@ -226,10 +233,10 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 const value = new Model(item);
                 value.exists = true;
 
-                this.facades.model.emit('fetch', {
+                this.model.emit('fetch', {
                     class: this.abstract,
                     model: value,
-                    source: this.facades.model,
+                    source: this.model,
                 });
 
                 return value;
@@ -294,7 +301,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     }
 
     async find(id: string | number): Promise<Model | null> {
-        const pk = this.facades.model.schema(this.abstract).primaryKey;
+        const pk = this.model.schema(this.abstract).primaryKey;
         if (!pk) {
             throw new ModelWithoutPrimaryKeyException(this.abstract);
         }
@@ -311,7 +318,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     }
 
     async all(): Promise<Collection<Model>> {
-        const limit = this.facades.config.get('luminix.backend.api.max_per_page', 150) as number;
+        const limit = this.config.get('luminix.backend.api.max_per_page', 150) as number;
         const firstPage = await this.limit(limit).exec(1);
 
         const pages = firstPage.meta.last_page;

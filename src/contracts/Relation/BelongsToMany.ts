@@ -3,7 +3,7 @@ import Relation from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 import { isModel } from '../../support/model';
 
-import { AppContainers } from '../../types/App';
+import { AppContainers, ModelFacade } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
@@ -14,15 +14,15 @@ type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 export default class BelongsToMany extends Relation {
 
     constructor(
+        protected model: ModelFacade,
         protected meta: RelationMetaData,
-        protected facades: AppContainers,
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {
         if (items !== null && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
         }
-        super(meta, facades, parent, items);
+        super(model, meta, parent, items);
     }
 
     isSingle(): boolean {

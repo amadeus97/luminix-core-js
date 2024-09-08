@@ -66,7 +66,10 @@ export type InitEvent = Event<{
 
 export type AppExternal = {
     boot: (config?: AppConfiguration) => Promise<AppContainers>;
+
+    /** @deprecated */
     make(): AppContainers;
+
     make<T extends keyof AppContainers>(key: T): AppContainers[T];
     plugins: () => Plugin[];
     on: EventSource<AppEvents>['once'];

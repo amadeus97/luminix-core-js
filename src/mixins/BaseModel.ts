@@ -1,8 +1,10 @@
 
 import {
     PropertyBag, EventSource, Collection, Response,
-    Str, Obj
+    Str, Obj, JsonObject, JsonValue
 } from '@luminix/support';
+
+// import ModelFacade from '../facades/Model';
 
 import { 
     BaseModel, ModelSaveOptions, ModelSchemaAttributes,
@@ -10,9 +12,8 @@ import {
     Model,
 } from '../types/Model';
 
-import { AppFacade, AppContainers } from '../types/App';
-import { RouteGenerator, RouteReplacer } from '../types/Route';
-import { JsonObject, JsonValue } from '../types/Support';
+import { AppContainers, ModelFacade } from '../types/App';
+import { RouteFacade, RouteGenerator, RouteReplacer } from '../types/Route';
 
 import Builder from '../contracts/Builder';
 import Relation from '../contracts/Relation';
@@ -21,12 +22,23 @@ import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
 import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
+import { LogFacade } from '../types/Log';
+import { ConfigFacade } from '../types/Config';
+// import App from '../facades/App';
+// import Log from '../facades/Log';
+// import Route from '../facades/Route';
 
 type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
 type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
 
 
-export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseModel {
+export function BaseModelFactory(
+    Config: ConfigFacade,
+    Log: LogFacade,
+    ModelFacade: ModelFacade,
+    Route: RouteFacade,
+    abstract: string
+): typeof BaseModel {
 
     return class extends EventSource<ModelEvents> {
 
@@ -91,7 +103,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
 
         private makeRelations() {
-            const { relations } = app.make('model').schema(abstract);
+            const { relations } = ModelFacade.schema(abstract);
     
             this._relations = {};
 
@@ -101,7 +113,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
             // !Reducer `relationMap`
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const relationMap = app.make('model').getRelationConstructors(abstract); //(app.make('model').relationMap as any)({}, abstract);
+            const relationMap = ModelFacade.getRelationConstructors(abstract); //(ModelFacade.relationMap as any)({}, abstract);
     
             Object.entries(relations).forEach(([key, relation]) => {
                 const { type } = relation;
@@ -111,8 +123,8 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                     : Relation;
 
                 this._relations[key] = new RelationClass(
+                    ModelFacade,
                     { name: key, ...relation },
-                    app.make(),
                     this,
                     null,
                 );
@@ -121,7 +133,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
         private makeAttributes(attributes: JsonObject)
         {
-            const { relations } = app.make('model').schema(abstract);
+            const { relations } = ModelFacade.schema(abstract);
     
             // remove relations from attributes
             const excludedKeys = Object.keys(relations || {});
@@ -139,10 +151,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             }
 
             if (!this.validateJsonObject(newAttributes)) {
-                if (app.isProduction()) {
+                if (Config.get('app.env', 'production') === 'production') {
                     throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
                 } else {
-                    app.make('log').warning(`Invalid attributes for model "${abstract}".
+                    Log.warning(`Invalid attributes for model "${abstract}".
                         This will throw an error in production.`, {
                         attributes, abstract
                     });
@@ -173,10 +185,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 source: this,
             });
     
-            app.make('model').emit('create', {
+            ModelFacade.emit('create', {
                 class: abstract,
                 model: this,
-                source: app.make('model'),
+                source: ModelFacade,
             });
         }
     
@@ -186,10 +198,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 source: this,
             });
     
-            app.make('model').emit('update', {
+            ModelFacade.emit('update', {
                 class: abstract,
                 model: this,
-                source: app.make('model'),
+                source: ModelFacade,
             });
         }
     
@@ -199,10 +211,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 source: this,
             });
     
-            app.make('model').emit('save', {
+            ModelFacade.emit('save', {
                 class: abstract,
                 model: this,
-                source: app.make('model'),
+                source: ModelFacade,
             });
         }
     
@@ -213,10 +225,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 source: this,
             });
     
-            app.make('model').emit('delete', {
+            ModelFacade.emit('delete', {
                 class: abstract,
                 model: this,
-                source: app.make('model'),
+                source: ModelFacade,
                 force,
             });
         }
@@ -227,10 +239,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 source: this,
             });
     
-            app.make('model').emit('restore', {
+            ModelFacade.emit('restore', {
                 class: abstract,
                 model: this,
-                source: app.make('model'),
+                source: ModelFacade,
             });
         }
     
@@ -241,10 +253,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 source: this,
             });
     
-            app.make('model').emit('error', {
+            ModelFacade.emit('error', {
                 class: abstract,
                 model: this,
-                source: app.make('model'),
+                source: ModelFacade,
                 error,
                 operation,
             });
@@ -293,24 +305,24 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
     
         get fillable() {
-            return app.make('model').schema(abstract).fillable;
+            return ModelFacade.schema(abstract).fillable;
         }
     
         get primaryKey() {
-            return app.make('model').schema(abstract).primaryKey;
+            return ModelFacade.schema(abstract).primaryKey;
         }
     
         get timestamps() {
-            return app.make('model').schema(abstract).timestamps;
+            return ModelFacade.schema(abstract).timestamps;
         }
     
         // get softDeletes() {
-        //     return app.make('model').schema(abstract).softDeletes;
+        //     return ModelFacade.schema(abstract).softDeletes;
         // }
     
         get casts(): ModelSchemaAttributes['casts'] {
             return {
-                ...app.make('model').schema(abstract).casts,
+                ...ModelFacade.schema(abstract).casts,
                 ...this.timestamps ? { created_at: 'datetime', updated_at: 'datetime' } : {},
                 // ...this.softDeletes ? { deleted_at: 'datetime' } : {},
             };
@@ -326,12 +338,12 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             if (key in this.casts) {
                 value = this.cast(value, this.casts[key]);
             }
-            const reducer = app.make('model')[`model${Str.studly(abstract)}Get${Str.studly(key)}Attribute`];
+            const reducer = ModelFacade[`model${Str.studly(abstract)}Get${Str.studly(key)}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
             // !Reducer `model${ClassName}Get${Key}Attribute`
-            return reducer.bind(app.make('model'))(value, this);
+            return reducer.bind(ModelFacade)(value, this);
         }
     
         setAttribute(key: string, value: unknown) {
@@ -339,27 +351,27 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             //     if (app.isProduction()) {
             //         throw new AttributeNotFillableException(abstract, key);
             //     } else {
-            //         app.make('log').warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${abstract}". This will throw an error in production.`);
+            //         Log.warning(`[Luminix] Trying to set a non-fillable attribute "${key}" in model "${abstract}". This will throw an error in production.`);
             //     }
             //     return;
             // }
 
-            const reducer = app.make('model')[`model${Str.studly(abstract)}Set${Str.studly(key)}Attribute`];
+            const reducer = ModelFacade[`model${Str.studly(abstract)}Set${Str.studly(key)}Attribute`];
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model${ClassName}Set${Key}Attribute`
-            const mutated = reducer.bind(app.make('model'))(
+            const mutated = reducer.bind(ModelFacade)(
                 this.mutate(value, this.casts[key]),
                 this
             );
     
             if (!this.validateJsonObject({ [key]: mutated })) {
-                if (app.isProduction()) {
+                if (Config.get('app.env', 'production') === 'production') {
                     throw new TypeError(`[Luminix] Attribute "${key}" in model "${abstract}" must be a boolean, number, string or null`);
                 } else {
-                    app.make('log').warning(`Invalid type for attribute "${key}" in model "${abstract}" after mutation.
+                    Log.warning(`Invalid type for attribute "${key}" in model "${abstract}" after mutation.
                         This will throw an error in production.`, {
                         key, value, mutated, cast: this.casts[key], item: this.toJson(),
                     });
@@ -386,12 +398,12 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             const validAttributes = Obj.pick(attributes, ...this.fillable);
     
             const mutatedAttributes = Object.entries(validAttributes).reduce((acc: JsonObject, [key, value]) => {
-                const reducer = app.make('model')[`model${Str.studly(abstract)}Set${Str.studly(key)}Attribute`];
+                const reducer = ModelFacade[`model${Str.studly(abstract)}Set${Str.studly(key)}Attribute`];
                 if (typeof reducer !== 'function') {
                     throw new NotReducibleException('ModelFacade');
                 }
                 // !Reducer `model${ClassName}Set${Key}Attribute`
-                acc[key] = reducer.bind(app.make('model'))(
+                acc[key] = reducer.bind(ModelFacade)(
                     this.mutate(value, this.casts[key]),
                     this
                 );
@@ -399,10 +411,10 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             }, {});
     
             if (!this.validateJsonObject(mutatedAttributes)) {
-                if (app.isProduction()) {
+                if (Config.get('app.env', 'production') === 'production') {
                     throw new TypeError(`[Luminix] Invalid attributes for model "${abstract}"`);
                 } else {
-                    app.make('log').warning(`Invalid attributes for model "${abstract}" after mutation.
+                    Log.warning(`Invalid attributes for model "${abstract}" after mutation.
                         This will throw an error in production.`, {
                         attributes, mutatedAttributes, item: this.toJson(), casts: this.casts,
                     });
@@ -418,7 +430,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
 
         dump() {
-            app.make('log').info({
+            Log.info({
                 ...this.toJson(),
                 [Symbol.toStringTag]: Str.studly(abstract),
             });
@@ -439,14 +451,14 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 return acc;
             }, {} as JsonObject);
 
-            const reducer = app.make('model')[`model${Str.studly(abstract)}Json`];
+            const reducer = ModelFacade[`model${Str.studly(abstract)}Json`];
 
             if (typeof reducer !== 'function') {
                 throw new NotReducibleException('ModelFacade');
             }
 
             // !Reducer `model${ClassName}Json`
-            return reducer.bind(app.make('model'))({
+            return reducer.bind(ModelFacade)({
                 ...this.attributes,
                 ...relations,
             }, this);
@@ -510,7 +522,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
         getLabel(): string {
 
-            const { labeledBy } = app.make('model').schema(abstract);
+            const { labeledBy } = ModelFacade.schema(abstract);
 
             return this.getAttribute(labeledBy) as string;
         }
@@ -519,7 +531,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
             if (!this.exists) {
                 throw new ModelNotPersistedException(abstract, 'refresh');
             }
-            const response = await app.make('route').call<JsonObject>(
+            const response = await Route.call<JsonObject>(
                 this.getRouteForRefresh(),
                 //{ errorBag: this.getErrorBag('fetch') }
             );
@@ -550,7 +562,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                     return;
                 }
     
-                const response = await app.make('route').call<JsonObject>(
+                const response = await Route.call<JsonObject>(
                     this.getRouteForSave(),
                     (client) => client.withData(data),
                 );
@@ -582,7 +594,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
         async delete(): Promise<Response> {
             try {
-                const response = await app.make('route').call(
+                const response = await Route.call(
                     this.getRouteForDelete(),
                     //{ errorBag: this.getErrorBag('delete') }
                 );
@@ -601,7 +613,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
 
         async update(data: JsonObject): Promise<void> {
             try {
-                const response = await app.make('route').call<JsonObject>(
+                const response = await Route.call<JsonObject>(
                     this.getRouteForUpdate(), 
                     (client) => client.withData(data),
                 );
@@ -622,7 +634,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
         async forceDelete(): Promise<Response> {
             try {
-                const response = await app.make('route').call(
+                const response = await Route.call(
                     this.getRouteForDelete(),
                     (client) => client.withQueryParameters({ force: true }),
                     // {
@@ -645,7 +657,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
     
         async restore(): Promise<Response> {
             try {
-                const response = await app.make('route').call(
+                const response = await Route.call(
                     this.getRouteForUpdate(),
                     (client) => client.withQueryParameters({ restore: true }),
                 );
@@ -667,11 +679,16 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
 
         static getSchema() {
-            return app.make('model').schema(abstract);
+            return ModelFacade.schema(abstract);
         }
 
         static query() {
-            return new Builder(app.make(), abstract);
+            return new Builder(
+                Config,
+                ModelFacade,
+                Route,
+                abstract
+            );
         }
 
         static where(scope: Scope): BuilderInterface
@@ -726,7 +743,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
     
         static async create(attributes: JsonObject) {
-            const Model = app.make('model').make(abstract);
+            const Model = ModelFacade.make(abstract);
             const model = new Model();
     
             model.fill(attributes);
@@ -737,7 +754,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
     
         static async update(id: number | string, attributes: JsonObject) {
-            const Model = app.make('model').make(abstract);
+            const Model = ModelFacade.make(abstract);
             const model = new Model({ id });
     
             model.fill(attributes);
@@ -752,7 +769,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         static delete(id: Array<number | string>): Promise<Response>;
         static delete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return app.make('route').call(
+                return Route.call(
                     `luminix.${abstract}.destroyMany`,
                     (client) => client.withQueryParameters({ ids: id }),
                 );
@@ -762,7 +779,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 // });
             }
     
-            const Model = app.make('model').make(abstract);
+            const Model = ModelFacade.make(abstract);
             const model = new Model({ id });
     
             return model.delete();
@@ -772,13 +789,13 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         static async restore(id: Array<number | string>): Promise<Response>;
         static async restore(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return app.make('route').call(
+                return Route.call(
                     `luminix.${abstract}.restoreMany`, 
                     (client) => client.withData({ ids: id }),
                 );
             }
     
-            const Model = app.make('model').make(abstract);
+            const Model = ModelFacade.make(abstract);
     
             const model = new Model({ id });
     
@@ -789,7 +806,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         static forceDelete(id: Array<number | string>): Promise<Response>;
         static forceDelete(id: number | string | Array<number | string>) {
             if (Array.isArray(id)) {
-                return app.make('route').call(
+                return Route.call(
                     `luminix.${abstract}.destroyMany`, 
                     (client) => client.withQueryParameters({ ids: id, force: true }),
                 );
@@ -799,7 +816,7 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
                 // });
             }
     
-            const Model = app.make('model').make(abstract);
+            const Model = ModelFacade.make(abstract);
     
             const model = new Model({ id });
     
@@ -807,11 +824,11 @@ export function BaseModelFactory(app: AppFacade, abstract: string): typeof BaseM
         }
 
         static singular() {
-            return app.make('model').schema(abstract).displayName.singular;
+            return ModelFacade.schema(abstract).displayName.singular;
         }
 
         static plural() {
-            return app.make('model').schema(abstract).displayName.plural;
+            return ModelFacade.schema(abstract).displayName.plural;
         }
     };
 

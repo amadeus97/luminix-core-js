@@ -3,11 +3,11 @@ import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Mod
 
 import { isModel } from '../../support/model';
 
-import { AppContainers } from '../../types/App';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import ModelNotPersistedException from '../../exceptions/ModelNotPersistedException';
+import { ModelFacade } from '../../types/App';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
@@ -15,15 +15,15 @@ type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 export default class BelongsTo extends Relation {
 
     constructor(
+        protected model: ModelFacade,
         protected meta: RelationMetaData,
-        protected facades: AppContainers,
         protected parent: Model,
         protected items: Model | null = null,
     ) {
         if (!isModel(items) && items !== null) {
             throw new NotModelException('BelongsTo.constructor()', 'Model or null');
         }
-        super(meta, facades, parent, items);
+        super(model, meta, parent, items);
     }
 
     isSingle(): boolean {

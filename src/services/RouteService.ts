@@ -104,7 +104,9 @@ export class RouteService
             && this.isRouteTuple(Obj.get(this.routes, name));
     }
 
-    async call(generator: RouteGenerator, tap: (client: Client) => Client = (client) => client) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async call<TResponse = any>(generator: RouteGenerator, tap: (client: Client) => Client = (client) => client): Promise<Response<TResponse>>
+    {
         if (typeof this.clientOptions !== 'function' || typeof this.clientError !== 'function') {
             throw new NotReducibleException('RouteFacade');
         }

@@ -1,9 +1,6 @@
-import { Collection } from '@luminix/support';
+import { Collection, JsonObject, JsonValue } from '@luminix/support';
 
-import { AppContainers } from '../types/App';
 import { BaseModel, Model, ModelPaginatedResponse, RelationMetaData } from '../types/Model';
-
-import NotReducibleException from '../exceptions/NotReducibleException';
 
 import NotModelException from '../exceptions/NotModelException';
 import NoInverseRelationException from '../exceptions/NoInverseRelationException';
@@ -12,8 +9,10 @@ import UnsupportedRelationException from '../exceptions/UnsupportedRelationExcep
 import { BuilderInterface as Builder, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
 
 import { RelationInterface as RelationBase } from '../types/Relation';
-import { JsonObject, JsonValue } from '../types/Support';
+
 import { isModel } from '../support/model';
+import { ModelFacade } from '../types/App';
+import { RouteFacade } from '../types/Route';
 
 
 type RelationInterface = RelationBase<Model, ModelPaginatedResponse>;
@@ -26,8 +25,9 @@ export default class Relation implements RelationInterface {
     private unsubscribeQuery: (() => void) | null = null;
 
     constructor(
+        protected model: ModelFacade,
+        protected route: RouteFacade,
         protected meta: RelationMetaData,
-        protected facades: AppContainers,
         protected parent: BaseModel,
         protected items: Model | Collection<Model> | null = null,
     ) {
@@ -62,14 +62,10 @@ export default class Relation implements RelationInterface {
     guessInverseRelation(): string {
         const { relations } = this.getRelated().getSchema();
 
-        if (typeof this.facades.model.guessInverseRelation !== 'function') {
-            throw new NotReducibleException('ModelFacade');
-        }
-
         const currentRelationType = this.getType();
 
         // !Reducer `guessInverseRelation`
-        const inverses: { [key: string]: string[] } = this.facades.model.guessInverseRelation({
+        const inverses: { [key: string]: string[] } = this.model.guessInverseRelation({
             'HasOne': ['BelongsTo'],
             'HasMany': ['BelongsTo'],
             'BelongsTo': ['HasOne', 'HasMany'],
@@ -129,7 +125,7 @@ export default class Relation implements RelationInterface {
 
     getRelated()
     {
-        return this.facades.model.make(this.meta.model);
+        return this.model.make(this.meta.model);
     }
 
     query()

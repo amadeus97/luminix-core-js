@@ -39,7 +39,13 @@ export class ModelService extends EventSource<GlobalModelEvents> {
             const modelReducer = this[`model${Str.studly(abstract)}`];
 
             const Model: typeof BaseModel = this.model(
-                BaseModelFactory(app, abstract),
+                BaseModelFactory(
+                    app.make('config'),
+                    app.make('log'),
+                    app.make('model'),
+                    app.make('route'),
+                    abstract,
+                ),
                 abstract
             );
 
