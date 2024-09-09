@@ -1,11 +1,10 @@
 import { Model } from '../types/Model';
-import { ModelFacade } from '../types/App';
+import { AppContainers } from '../types/App';
 
 import app from './app';
 
-function model(): ModelFacade;
+function model(): AppContainers['model'];
 function model(abstract: string): typeof Model;
-
 function model(abstract?: string) {
     const modelFacade = app('model');
     if (!abstract) {

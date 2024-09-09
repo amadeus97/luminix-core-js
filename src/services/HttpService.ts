@@ -3,7 +3,7 @@ import {
 } from '@luminix/support';
 
 
-class HttpService {
+export class HttpService {
 
     getClient(): Client {
         return new Client();

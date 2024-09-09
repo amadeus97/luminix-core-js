@@ -1,4 +1,4 @@
-import { ServiceProvider, Obj, PropertyBag, } from '@luminix/support';
+import { ServiceProvider, Obj, PropertyBag } from '@luminix/support';
 
 import AuthService from '../services/AuthService';
 import ErrorService from '../services/ErrorService';
@@ -7,12 +7,35 @@ import ModelService from '../services/ModelService';
 import RouteService from '../services/RouteService';
 import HttpService from '../services/HttpService';
 
+
 export default class LuminixServiceProvider extends ServiceProvider
 {
 
     protected flushReady?: () => void;
 
     register(): void {
+
+        this.registerServices();
+        this.registerMacros();
+
+        this.flushReady = this.app.on('ready', () => {
+            this.app.dump('[Luminix] App boot completed');
+        });
+    }
+
+    boot(): void {
+        this.app.make('model').boot(this.app);
+    }
+
+
+    flush(): void {
+        if (this.flushReady) {
+            this.flushReady();
+            delete this.flushReady;
+        }
+    }
+
+    registerServices() {
 
         this.app.singleton('auth', () => {
             return new AuthService(
@@ -21,7 +44,6 @@ export default class LuminixServiceProvider extends ServiceProvider
                 this.app.make('route'),
             );
         });
-
 
         this.app.singleton('config', () => {
             const config = new PropertyBag(Obj.omit(this.app.configuration, 'manifest'));
@@ -62,24 +84,34 @@ export default class LuminixServiceProvider extends ServiceProvider
             );
         });
 
-        this.flushReady = this.app.on('ready', () => {
-            this.app.dump('[Luminix] App boot completed');
+    }
+
+
+    registerMacros() {
+
+        this.app.macro('environment', (...environments: string[]) => {
+            if (environments.length > 0) {
+                return environments.includes(this.app.make('config').get('app.env', 'production'));
+            }
+            return this.app.make('config').get('app.env', 'production') as string;
+        });
+
+        this.app.macro('getLocale', () => {
+            return this.app.make('config').get('app.locale', 'en') as string;
+        });
+
+        this.app.macro('hasDebugModeEnabled', () => {
+            return this.app.make('config').get('app.debug', false) as boolean;
+        });
+
+        this.app.macro('isLocal', () => {
+            return this.app.make('config').get('app.env', 'production') === 'local';
+        });
+
+        this.app.macro('isProduction', () => {
+            return this.app.make('config').get('app.env', 'production') === 'production';
         });
 
     }
-
-    boot(): void {
-        this.app.make('model').boot(this.app);
-    }
-
-
-    flush(): void {
-        if (this.flushReady) {
-            this.flushReady();
-            delete this.flushReady;
-        }
-    }
-
-
 }
 

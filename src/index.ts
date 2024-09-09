@@ -23,7 +23,6 @@ import Plugin from './contracts/Plugin';
 
 import { isModel } from './support/model';
 
-
 export {
     app,
     App,

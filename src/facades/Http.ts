@@ -1,9 +1,10 @@
 import {
-    Client, HasFacadeAccessor, MakeFacade, MacroableOf,
+    HasFacadeAccessor, MakeFacade, MacroableOf,
 } from '@luminix/support';
 
-
 import App from './App';
+import { HttpService } from '../services/HttpService';
+import { HttpMacro } from '../types/Http';
 
 class HttpFacade implements HasFacadeAccessor
 {
@@ -12,9 +13,7 @@ class HttpFacade implements HasFacadeAccessor
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type HttpMacro = (...args: any) => Client;
 
-const Http = MakeFacade<Client, InstanceType<MacroableOf<typeof HttpFacade, Record<string, HttpMacro>>> & HasFacadeAccessor>(HttpFacade, App);
+const Http = MakeFacade<HttpService, InstanceType<MacroableOf<typeof HttpFacade, Record<string, HttpMacro>>> & HasFacadeAccessor>(HttpFacade, App);
 
 export default Http;

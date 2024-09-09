@@ -1,10 +1,10 @@
-import { EventSource, Event, ReducibleInterface, Client } from '@luminix/support';
+import { EventSource, Event, ReducibleInterface, FacadeOf, HasFacadeAccessor, Application, MacroableInterface } from '@luminix/support';
 
 import { AppConfiguration, ConfigFacade } from './Config';
 
 import { PluginInterface } from './Plugin';
 import { LogFacade } from './Log';
-import { AuthFacade } from './Auth';
+
 import {
     BaseModel, Model, ModelPaginatedResponse, ModelReducers,
     ModelSchema, ModelSchemaAttributes
@@ -14,6 +14,8 @@ import { ErrorFacade } from './Error';
 import { Constructor } from './Support';
 
 import { RelationInterface } from './Relation';
+import { AuthFacade } from './Auth';
+import { HttpFacade } from './Http';
 
 type Plugin = PluginInterface<AppFacade, AppContainers>;
 
@@ -64,6 +66,7 @@ export type InitEvent = Event<{
     register(plugin: Plugin): void;
 }, AppFacade>;
 
+/** @deprecated */
 export type AppExternal = {
     boot: (config?: AppConfiguration) => Promise<AppContainers>;
 
@@ -86,19 +89,17 @@ export type AppExternal = {
     setInstance(app: AppFacade): void;
 };
 
-export type AppFacade = Omit<AppExternal, 'setInstance'> & EventSource<AppEvents> & {
-    has(key: string): boolean;
-    bind<T extends keyof AppContainers>(key: T, facade: AppContainers[T]): void;
-};
+export type AppFacade = FacadeOf<Application<AppContainers> & AppMacros & MacroableInterface<AppMacros>, HasFacadeAccessor>
+
 
 export type AppContainers = {
-    auth: AuthFacade;
-    config: ConfigFacade;
-    error: ErrorFacade;
-    http: Client;
-    log: LogFacade;
-    model: ModelFacade;
-    route: RouteFacade;
+    auth: FacadeOf<AuthFacade, HasFacadeAccessor>;
+    config: FacadeOf<ConfigFacade, HasFacadeAccessor>;
+    error: FacadeOf<ErrorFacade, HasFacadeAccessor>;
+    http: FacadeOf<HttpFacade, HasFacadeAccessor>;
+    log: FacadeOf<LogFacade, HasFacadeAccessor>;
+    model: FacadeOf<ModelFacade, HasFacadeAccessor>;
+    route: FacadeOf<RouteFacade, HasFacadeAccessor>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
 };
@@ -108,4 +109,10 @@ export type BootOptions = {
     skipBootRequest?: boolean;
 };
 
-
+export type AppMacros = {
+    environment(...environments: string[]): string | boolean;
+    getLocale(): string;
+    hasDebugModeEnabled(): boolean;
+    isLocal(): boolean;
+    isProduction(): boolean;
+};
