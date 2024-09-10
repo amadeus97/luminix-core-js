@@ -1,6 +1,9 @@
 
 
-import { PropertyBag, Collection, EventSource, Str, Query } from '@luminix/support';
+import {
+    PropertyBag, Collection, EventSource, Query,
+    JsonValue
+} from '@luminix/support';
 
 import {
     BuilderEventMap as BuilderEvents, BuilderInterface as BuilderBase, Scope as ScopeBase,
@@ -12,7 +15,6 @@ import {
     ModelPaginatedResponse, ModelQuery,
     ModelRawPaginatedResponse
 } from '../types/Model';
-import { JsonValue } from '../types/Support';
 
 import ModelWithoutPrimaryKeyException from '../exceptions/ModelWithoutPrimaryKeyException';
 import { ModelFacade } from '../types/App';
@@ -51,35 +53,19 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     }
 
     whereBetween(key: string, value: [JsonValue, JsonValue]): this {
-        if (!this.bag.has('where')) {
-            this.bag.set('where', {});
-        }
-        this.bag.set(`where.${Str.camel(key)}Between`, value);
-        return this;
+        return this.where(key, 'between', value as JsonValue);
     }
 
     whereNotBetween(key: string, value: [JsonValue, JsonValue]): this {
-        if (!this.bag.has('where')) {
-            this.bag.set('where', {});
-        }
-        this.bag.set(`where.${Str.camel(key)}NotBetween`, value);
-        return this;
+        return this.where(key, 'notBetween', value as JsonValue);
     }
 
     whereNull(key: string): this {
-        if (!this.bag.has('where')) {
-            this.bag.set('where', {});
-        }
-        this.bag.set(`where.${Str.camel(key)}Null`, true);
-        return this;
+        return this.where(key, 'null', null);
     }
 
     whereNotNull(key: string): this {
-        if (!this.bag.has('where')) {
-            this.bag.set('where', {});
-        }
-        this.bag.set(`where.${Str.camel(key)}NotNull`, true);
-        return this;
+        return this.where(key, 'notNull', null);
     }
 
     limit(value: number): this {
@@ -101,7 +87,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
         }
 
         if (typeof value === 'undefined') {
-            this.bag.set(`where.${Str.camel(key)}`, operatorOrValue);
+            this.bag.set(`where.${key}`, operatorOrValue);
             return this;
         }
 
@@ -111,16 +97,16 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
 
         const operatorSuffixMap: Record<string, string> = {
             '=': '',
-            '!=': 'NotEquals',
-            '>': 'GreaterThan',
-            '>=': 'GreaterThanOrEquals',
-            '<': 'LessThan',
-            '<=': 'LessThanOrEquals',
+            '!=': 'notEquals',
+            '>': 'greaterThan',
+            '>=': 'greaterThanOrEquals',
+            '<': 'lessThan',
+            '<=': 'lessThanOrEquals',
         };
 
-        const suffix: string = operatorSuffixMap[operatorOrValue] || Str.studly(operatorOrValue as string);
+        const suffix: string = operatorSuffixMap[operatorOrValue] || operatorOrValue;
 
-        this.bag.set(`where.${Str.camel(key)}${suffix}`, value);
+        this.bag.set(`where.${key}:${suffix}`, value);
 
         return this;
     }
