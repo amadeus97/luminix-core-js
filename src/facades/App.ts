@@ -9,7 +9,7 @@ declare module '@luminix/support' {
     }
 }
 
-let application: Application;
+let application: Application | undefined = undefined;
 
 class AppFacade implements HasFacadeAccessor
 {
@@ -23,6 +23,13 @@ class AppFacade implements HasFacadeAccessor
         }
 
         return application;
+    }
+
+    down() {
+        if (application) {
+            application.flush();
+            application = undefined;
+        }
     }
 
 }

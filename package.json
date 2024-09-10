@@ -1,12 +1,12 @@
 {
   "name": "@luminix/core",
-  "version": "0.0.1-beta.21",
+  "version": "0.1.0-beta.0",
   "description": "> Projeto em desenvolvimento",
-  "main": "dist/core.umd.cjs",
   "module": "dist/core.js",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "type": "module",
   "scripts": {
+    "prebuild": "rm -rf types",
     "build": "tsc && vite build",
     "lint": "eslint ./src ./tests --ext .ts",
     "lint:fix": "eslint ./src ./tests --ext .ts --fix",
@@ -30,6 +30,6 @@
     "vite-plugin-dts": "^4.0.0-beta.1"
   },
   "peerDependencies": {
-    "@luminix/support": "^0.0.1-beta.6"
+    "@luminix/support": "^0.0.1-beta.7"
   }
 }

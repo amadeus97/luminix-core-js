@@ -89,7 +89,9 @@ export type AppExternal = {
     setInstance(app: AppFacade): void;
 };
 
-export type AppFacade = FacadeOf<Application<AppContainers> & AppMacros & MacroableInterface<AppMacros>, HasFacadeAccessor>
+export type AppFacade = FacadeOf<Application<AppContainers> & AppMacros & MacroableInterface<AppMacros>, HasFacadeAccessor> & {
+    down(): void;
+};
 
 
 export type AppContainers = {
