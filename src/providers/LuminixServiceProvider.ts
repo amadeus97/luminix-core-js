@@ -11,28 +11,20 @@ import HttpService from '../services/HttpService';
 export default class LuminixServiceProvider extends ServiceProvider
 {
 
-    protected flushReady?: () => void;
+    [Symbol.toStringTag] = 'LuminixServiceProvider';
 
     register(): void {
 
         this.registerServices();
         this.registerMacros();
 
-        this.flushReady = this.app.on('ready', () => {
+        this.app.on('ready', () => {
             this.app.dump('[Luminix] App boot completed');
         });
     }
 
     boot(): void {
         this.app.make('model').boot(this.app);
-    }
-
-
-    flush(): void {
-        if (this.flushReady) {
-            this.flushReady();
-            delete this.flushReady;
-        }
     }
 
     registerServices() {

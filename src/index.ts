@@ -49,8 +49,9 @@ export {
 };
 
 // types
-export type { AppFacade } from './types/App';
+export type { AppFacade, AppEvents, AppContainers } from './types/App';
 export type { AuthFacade } from './types/Auth';
+export type { AppConfiguration } from './types/Config';
 export type { LogFacade } from './types/Log';
-export type { RouteFacade } from './types/Route';
-export type { Model as ModelType, BaseModel } from './types/Model';
+export type { Model as ModelType, BaseModel, ModelAttribute, ModelSaveOptions, ModelPaginatedResponse } from './types/Model';
+export type { RouteFacade, RouteReducers, HttpMethod } from './types/Route';

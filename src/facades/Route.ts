@@ -1,6 +1,7 @@
-import { HasFacadeAccessor, MakeFacade } from '@luminix/support';
+import { HasFacadeAccessor, MakeFacade, ReducibleInterface } from '@luminix/support';
 import { RouteService } from '../services/RouteService';
 import App from './App';
+import { RouteReducers } from '../types/Route';
 
 class RouteFacade implements HasFacadeAccessor
 {
@@ -9,6 +10,6 @@ class RouteFacade implements HasFacadeAccessor
     }
 }
 
-const Route = MakeFacade<RouteService, RouteFacade>(RouteFacade, App);
+const Route = MakeFacade<RouteService & RouteReducers & ReducibleInterface<RouteReducers>, RouteFacade>(RouteFacade, App);
 
 export default Route;

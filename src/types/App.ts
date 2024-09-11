@@ -1,4 +1,7 @@
-import { EventSource, Event, ReducibleInterface, FacadeOf, HasFacadeAccessor, Application, MacroableInterface } from '@luminix/support';
+import {
+    EventSource, Event, ReducibleInterface, FacadeOf, HasFacadeAccessor,
+    Application, MacroableInterface, Constructor,
+} from '@luminix/support';
 
 import { AppConfiguration, ConfigFacade } from './Config';
 
@@ -11,7 +14,7 @@ import {
 } from './Model';
 import { RouteFacade } from './Route';
 import { ErrorFacade } from './Error';
-import { Constructor } from './Support';
+
 
 import { RelationInterface } from './Relation';
 import { AuthFacade } from './Auth';
@@ -54,6 +57,7 @@ export type ModelFacade = EventSource<GlobalModelEvents> & ModelReducers & Reduc
     getRelationConstructors(abstract: string): Record<string, Constructor<RelationInterface<Model, ModelPaginatedResponse>>>;
 }
 
+/** @deprecated */
 export type AppEvents = {
     'init': (e: InitEvent) => void,
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -94,7 +98,7 @@ export type AppFacade = FacadeOf<Application<AppContainers> & AppMacros & Macroa
 };
 
 
-export type AppContainers = {
+export declare class AppContainers {
     auth: FacadeOf<AuthFacade, HasFacadeAccessor>;
     config: FacadeOf<ConfigFacade, HasFacadeAccessor>;
     error: FacadeOf<ErrorFacade, HasFacadeAccessor>;
@@ -104,7 +108,7 @@ export type AppContainers = {
     route: FacadeOf<RouteFacade, HasFacadeAccessor>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
-};
+}
 
 export type BootOptions = {
     config?: AppConfiguration;

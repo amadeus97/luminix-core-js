@@ -157,6 +157,7 @@ export class RouteService
         return 'route';
     }
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [reducer: string]: unknown;
 }
 

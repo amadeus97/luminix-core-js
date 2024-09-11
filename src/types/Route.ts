@@ -2,7 +2,7 @@ import { ReducibleInterface, Response, Client, RequestOptions } from '@luminix/s
 
 export type RouteReplacer = { [key: string]: string | number };
 
-export type RouteReducers = {
+export declare class RouteReducers {
     clientOptions(config: RequestOptions,  routeName: string): RequestOptions;
     clientError(
         errors: Record<string, string>,
@@ -14,7 +14,10 @@ export type RouteReducers = {
         },
     ): Record<string, string>;
     replaceRouteParams(url: string): string;
-};
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [reducer: string]: (...args: any[]) => any;
+}
 
 export type RouteFacade = ReducibleInterface<RouteReducers> & {
     get(name: string): RouteTuple;
