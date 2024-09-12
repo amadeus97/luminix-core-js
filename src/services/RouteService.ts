@@ -105,7 +105,7 @@ export class RouteService
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async call<TResponse = any>(generator: RouteGenerator, tap: (client: Client) => Client = (client) => client): Promise<Response<TResponse>>
+    async call<TResponse = any>(generator: RouteGenerator, tap: (client: Client) => Client = (client) => client, errorBag = 'default'): Promise<Response<TResponse>>
     {
         if (typeof this.clientOptions !== 'function' || typeof this.clientError !== 'function') {
             throw new NotReducibleException('RouteFacade');
@@ -125,7 +125,6 @@ export class RouteService
         }
 
         const method = methods[0] ?? clientOptions.method;
-        const errorBag = clientOptions.errorBag ?? 'default';
 
         this.error.clear(errorBag);
 

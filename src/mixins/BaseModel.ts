@@ -1,7 +1,8 @@
 
 import {
     PropertyBag, EventSource, Collection, Response,
-    Str, Obj, JsonObject, JsonValue
+    Str, Obj, JsonObject, JsonValue,
+    Client
 } from '@luminix/support';
 
 // import ModelFacade from '../facades/Model';
@@ -527,19 +528,20 @@ export function BaseModelFactory(
             return this.getAttribute(labeledBy) as string;
         }
 
-        async refresh() {
+        async refresh(tap?: (client: Client) => Client) {
             if (!this.exists) {
                 throw new ModelNotPersistedException(abstract, 'refresh');
             }
             const response = await Route.call<JsonObject>(
                 this.getRouteForRefresh(),
-                //{ errorBag: this.getErrorBag('fetch') }
+                tap,
+                this.getErrorBag('fetch'),
             );
 
             this.makeAttributes(response.json());
         }
     
-        async save(options: ModelSaveOptions = {}): Promise<Response|void> {
+        async save(options: ModelSaveOptions = {}, tap?: (client: Client) => Client): Promise<Response|void> {
             try {
                 const {
                     additionalPayload = {},
@@ -564,9 +566,17 @@ export function BaseModelFactory(
     
                 const response = await Route.call<JsonObject>(
                     this.getRouteForSave(),
-                    (client) => client.withData(data),
+                    (client) => {
+                        if (tap) {
+                            return tap(client.withData(data));
+                        }
+                        return client.withData(data);
+                    },
+                    this.getErrorBag(existedBeforeSaving
+                        ? 'update'
+                        : 'store'),
                 );
-    
+
                 if (response.successful()) {
                     this.makeAttributes(response.json());
                     this.exists = true;
@@ -596,7 +606,8 @@ export function BaseModelFactory(
             try {
                 const response = await Route.call(
                     this.getRouteForDelete(),
-                    //{ errorBag: this.getErrorBag('delete') }
+                    undefined,
+                    this.getErrorBag('delete'),
                 );
     
                 if (response.noContent()) {
@@ -611,11 +622,17 @@ export function BaseModelFactory(
             }
         }
 
-        async update(data: JsonObject): Promise<void> {
+        async update(data: JsonObject, tap?: (client: Client) => Client): Promise<void> {
             try {
                 const response = await Route.call<JsonObject>(
-                    this.getRouteForUpdate(), 
-                    (client) => client.withData(data),
+                    this.getRouteForUpdate(),
+                    (client) => {
+                        if (tap) {
+                            return tap(client.withData(data));
+                        }
+                        return client.withData(data);
+                    },
+                    this.getErrorBag('update'),
                 );
 
                 if (response.ok()) {
@@ -637,10 +654,7 @@ export function BaseModelFactory(
                 const response = await Route.call(
                     this.getRouteForDelete(),
                     (client) => client.withQueryParameters({ force: true }),
-                    // {
-                    //     params: { force: true },
-                    //     errorBag: this.getErrorBag('forceDelete'),
-                    // }
+                    this.getErrorBag('forceDelete'),
                 );
     
                 if (response.noContent()) {
@@ -660,6 +674,7 @@ export function BaseModelFactory(
                 const response = await Route.call(
                     this.getRouteForUpdate(),
                     (client) => client.withQueryParameters({ restore: true }),
+                    this.getErrorBag('restore'),
                 );
     
                 if (response.ok()) {
@@ -770,6 +785,7 @@ export function BaseModelFactory(
                 return Route.call(
                     `luminix.${abstract}.destroyMany`,
                     (client) => client.withQueryParameters({ ids: id }),
+                    `${abstract}.deleteMany`,
                 );
                 //     {
                 //     params: { ids: id },
@@ -790,6 +806,7 @@ export function BaseModelFactory(
                 return Route.call(
                     `luminix.${abstract}.restoreMany`, 
                     (client) => client.withData({ ids: id }),
+                    `${abstract}.restoreMany`,
                 );
             }
     
@@ -807,11 +824,8 @@ export function BaseModelFactory(
                 return Route.call(
                     `luminix.${abstract}.destroyMany`, 
                     (client) => client.withQueryParameters({ ids: id, force: true }),
+                    `${abstract}.forceDeleteMany`,
                 );
-                // {
-                //     params: { ids: id, force: true },
-                //     errorBag: `${abstract}.forceDeleteMany`,
-                // });
             }
     
             const Model = ModelFacade.make(abstract);

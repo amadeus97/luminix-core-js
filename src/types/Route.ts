@@ -8,8 +8,8 @@ export declare class RouteReducers {
         errors: Record<string, string>,
         event: {
             response: Response,
-            name: string,
-            replace: RouteReplacer,
+            name?: string,
+            replace?: RouteReplacer,
             client: Client,
         },
     ): Record<string, string>;
@@ -23,7 +23,7 @@ export type RouteFacade = ReducibleInterface<RouteReducers> & {
     get(name: string): RouteTuple;
     url(generator: RouteGenerator): string;
     exists(name: string): boolean;
-    call<TResponse = unknown>(generator: RouteGenerator, tap?: (client: Client) => Client): Promise<Response<TResponse>>;
+    call<TResponse = unknown>(generator: RouteGenerator, tap?: (client: Client) => Client, errorBag?: string): Promise<Response<TResponse>>;
     methods(generator: RouteGenerator): HttpMethod[];
 }
 
