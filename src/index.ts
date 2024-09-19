@@ -51,7 +51,7 @@ export {
 // types
 export type { AppFacade, AppEvents, AppContainers } from './types/App';
 export type { AuthFacade } from './types/Auth';
-export type { BuilderInterface } from './types/Builder';
+export type { BuilderInterface, Scope } from './types/Builder';
 export type { AppConfiguration } from './types/Config';
 export type { LogFacade } from './types/Log';
 export type { Model as ModelType, BaseModel, ModelAttribute, ModelSaveOptions, ModelPaginatedResponse } from './types/Model';
