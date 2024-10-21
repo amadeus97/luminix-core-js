@@ -1,6 +1,6 @@
 {
   "name": "@luminix/core",
-  "version": "0.1.0-beta.0",
+  "version": "",
   "description": "> Projeto em desenvolvimento",
   "module": "dist/core.js",
   "types": "types/index.d.ts",
@@ -30,6 +30,6 @@
     "vite-plugin-dts": "^4.0.0-beta.1"
   },
   "peerDependencies": {
-    "@luminix/support": "^0.0.1-beta.7"
+    "@luminix/support": "^0.1.0-beta.2"
   }
 }

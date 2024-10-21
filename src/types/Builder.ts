@@ -1,12 +1,12 @@
 import {
-    EventSource, Collection, PropertyBag, Query,
+    EventSource, Collection, PropertyBag, Operator,
     Event, PropertyBagEventMap, JsonObject, JsonValue
 } from '@luminix/support';
 
 
 export type Scope<TSingle,TMany> = (builder: BuilderInterface<TSingle,TMany>) => BuilderInterface<TSingle,TMany> | void;
 
-export type ExtendedOperator = Query.Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'null' | 'notNull';
+export type ExtendedOperator = Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'null' | 'notNull';
 
 export type BuilderInterface<TSingle, TMany = Collection<TSingle>> = EventSource<BuilderEventMap<TSingle,TMany>> & {
     lock(path: string): void;

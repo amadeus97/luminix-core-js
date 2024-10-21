@@ -2,3 +2,9 @@ src/
 tests/
 .github/
 docs/
+.eslintignore
+.eslintrc.cjs
+tsconfig.json
+vite.config.js
+index.html
+jest.config.js
