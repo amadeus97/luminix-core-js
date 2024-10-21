@@ -7,6 +7,8 @@ import ModelService from '../services/ModelService';
 import RouteService from '../services/RouteService';
 import HttpService from '../services/HttpService';
 
+import { Model } from '../types/Model';
+
 
 export default class LuminixServiceProvider extends ServiceProvider
 {
@@ -102,6 +104,13 @@ export default class LuminixServiceProvider extends ServiceProvider
 
         this.app.macro('isProduction', () => {
             return this.app.make('config').get('app.env', 'production') === 'production';
+        });
+
+        Obj.macro('isModel', function (value: unknown): value is Model {
+            return typeof value === 'object' 
+                && value !== null
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                && (value as any).__isModel === true;
         });
 
     }

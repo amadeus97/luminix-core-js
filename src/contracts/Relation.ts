@@ -1,4 +1,4 @@
-import { Collection, JsonObject, JsonValue } from '@luminix/support';
+import { Collection, JsonObject, JsonValue, Obj } from '@luminix/support';
 
 import { BaseModel, Model, ModelPaginatedResponse, RelationMetaData } from '../types/Model';
 
@@ -32,7 +32,7 @@ export default class Relation implements RelationInterface {
         protected parent: BaseModel,
         protected items: Model | Collection<Model> | null = null,
     ) {
-        if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !Obj.isModel(items) && !(items instanceof Collection && items.every(isModel))) {
             throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
         }
     }

@@ -1,7 +1,5 @@
-import { Collection } from '@luminix/support';
+import { Collection, Constructor, JsonValue } from '@luminix/support';
 import { BuilderInterface, ExtendedOperator, Scope } from './Builder';
-
-import { Constructor, JsonValue } from './Support';
 
 export type {
     BuilderInterface,

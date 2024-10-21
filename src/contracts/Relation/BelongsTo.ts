@@ -1,12 +1,11 @@
 import Relation, { RelationServices } from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 
-import { isModel } from '../../support/model';
-
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import ModelNotPersistedException from '../../exceptions/ModelNotPersistedException';
+import { Obj } from '@luminix/support';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
@@ -19,7 +18,7 @@ export default class BelongsTo extends Relation {
         protected parent: Model,
         protected items: Model | null = null,
     ) {
-        if (!isModel(items) && items !== null) {
+        if (!Obj.isModel(items) && items !== null) {
             throw new NotModelException('BelongsTo.constructor()', 'Model or null');
         }
         super(services, meta, parent, items);
@@ -50,7 +49,7 @@ export default class BelongsTo extends Relation {
 
 
     async associate(item: Model) {
-        if (!isModel(item)) {
+        if (!Obj.isModel(item)) {
             throw new NotModelException('BelongsTo.associate()');
         }
 

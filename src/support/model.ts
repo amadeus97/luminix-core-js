@@ -1,5 +1,6 @@
 import { Model } from '../types/Model';
 
+/** @deprecated */
 export function isModel(value: unknown): value is Model {
     return typeof value === 'object' 
         && value !== null

@@ -16,6 +16,8 @@ import Log from './facades/Log';
 import Model from './facades/Model';
 import Route from './facades/Route';
 
+import './extensions';
+
 
 import { isValidationError } from './facades/Error';
 

@@ -4,11 +4,6 @@ import { AppContainers, AppMacros } from '../types/App';
 
 import LuminixServiceProvider from '../providers/LuminixServiceProvider';
 
-declare module '@luminix/support' {
-    interface ApplicationInterface extends MacroableInterface<AppMacros>, AppMacros {
-    }
-}
-
 let application: Application | undefined = undefined;
 
 class AppFacade implements HasFacadeAccessor
