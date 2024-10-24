@@ -14,32 +14,36 @@ jobs:
             fetch-depth: 0
 
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v4
           with:
             node-version: 20
             registry-url: https://registry.npmjs.org/
 
-        - uses: paulhatch/semantic-version@v5.2.1
+        - uses: paulhatch/semantic-version@v5.4.0
           id: semver
           with:
-            version_format: "${major}.${minor}.${patch}-beta.${increment}"
+            tag_prefix: v
+            version_format: "${major}.${minor}.${patch}"
+            enable_prerelease_mode: true
 
         - name: Build & Tag
           run: |
             npm install
             npm run build
             npm version ${{ steps.semver.outputs.version }} --no-git-tag-version
+            echo "Version is: ${{ steps.semver.outputs.version }}"
+            echo "Version tag is: ${{ steps.semver.outputs.version_tag }}"
 
-        - name: Publish to NPM
-          uses: JS-DevTools/npm-publish@v2
-          with:
-            tag: beta
-            token: ${{ secrets.NPM_TOKEN }}
+        # - name: Publish to NPM
+        #   uses: JS-DevTools/npm-publish@v2
+        #   with:
+        #     tag: beta
+        #     token: ${{ secrets.NPM_TOKEN }}
 
         - name: Publish Github Release
-          uses: softprops/action-gh-release@v1
+          uses: softprops/action-gh-release@v2
           with:
-            tag_name: v${{ steps.semver.outputs.version }}
+            tag_name: ${{ steps.semver.outputs.version_tag }}
             target_commitish: ${{ github.sha }}
             draft: false
             prerelease: true
