@@ -34,11 +34,11 @@ jobs:
             echo "Version is: ${{ steps.semver.outputs.version }}"
             echo "Version tag is: ${{ steps.semver.outputs.version_tag }}"
 
-        # - name: Publish to NPM
-        #   uses: JS-DevTools/npm-publish@v2
-        #   with:
-        #     tag: beta
-        #     token: ${{ secrets.NPM_TOKEN }}
+        - name: Publish to NPM
+          uses: JS-DevTools/npm-publish@v2
+          with:
+            tag: beta
+            token: ${{ secrets.NPM_TOKEN }}
 
         - name: Publish Github Release
           uses: softprops/action-gh-release@v2
