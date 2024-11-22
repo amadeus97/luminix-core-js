@@ -56,5 +56,5 @@ export type { AuthFacade } from './types/Auth';
 export type { BuilderInterface, Scope } from './types/Builder';
 export type { AppConfiguration } from './types/Config';
 export type { LogFacade } from './types/Log';
-export type { Model as ModelType, BaseModel, ModelAttribute, ModelSaveOptions, ModelPaginatedResponse } from './types/Model';
+export type { Model as ModelType, BaseModel, ModelAttribute, ModelSaveOptions, ModelPaginatedResponse, ModelPaginatedLink } from './types/Model';
 export type { RouteFacade, RouteReducers, HttpMethod, RouteGenerator } from './types/Route';
