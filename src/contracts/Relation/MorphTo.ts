@@ -1,5 +1,5 @@
+import { Obj } from '@luminix/support';
 import { Model } from '../../types/Model';
-import { isModel } from '../../support/model';
 import BelongsTo from './BelongsTo';
 import NotModelException from '../../exceptions/NotModelException';
 
@@ -24,7 +24,7 @@ export default class MorphTo extends BelongsTo
     // }
     
     async associate(item: Model): Promise<void> {
-        if (!isModel(item)) {
+        if (!Obj.isModel(item)) {
             throw new NotModelException('MorphTo.associate()');
         }
 

@@ -1,8 +1,7 @@
+import { Obj } from '@luminix/support';
 
 import NotModelException from '../../exceptions/NotModelException';
 import { Model, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../support/model';
-
 
 import MorphOneOrMany from './MorphOneOrMany';
 import { RelationServices } from '../Relation';
@@ -18,7 +17,7 @@ export default class MorphOne extends MorphOneOrMany
     ) {
         super(services, meta, parent, items);
 
-        if (items !== null && !isModel(items)) {
+        if (items !== null && !Obj.isModel(items)) {
             throw new NotModelException('MorphOne.constructor()', 'Model or null');
         }
     }

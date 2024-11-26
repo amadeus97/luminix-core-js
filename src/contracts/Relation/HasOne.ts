@@ -1,5 +1,5 @@
+import { Obj } from '@luminix/support';
 import { Model, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../support/model';
 
 import HasOneOrMany from './HasOneOrMany';
 import NotModelException from '../../exceptions/NotModelException';
@@ -14,7 +14,7 @@ export default class HasOne extends HasOneOrMany
         protected parent: Model,
         protected items: Model | null = null,
     ) {
-        if (!isModel(items) && items !== null) {
+        if (!Obj.isModel(items) && items !== null) {
             throw new NotModelException('HasOne.constructor()', 'Model or null');
         }
         super(services, meta, parent, items);

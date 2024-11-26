@@ -23,8 +23,6 @@ import { isValidationError } from './facades/Error';
 
 import Plugin from './contracts/Plugin';
 
-import { isModel } from './support/model';
-
 export {
     app,
     App,
@@ -44,7 +42,6 @@ export {
     Route,
 
     isValidationError,
-    isModel,
 
     Plugin,
 

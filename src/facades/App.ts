@@ -4,26 +4,27 @@ import { AppContainers, AppMacros } from '../types/App';
 
 import LuminixServiceProvider from '../providers/LuminixServiceProvider';
 
-let application: Application | undefined = undefined;
 
 class AppFacade implements HasFacadeAccessor
 {
 
+    protected app?: Application;
+
     getFacadeAccessor(): string | object {
 
-        if (!application) {
-            application = new (Macroable(Application))([
+        if (!this.app) {
+            this.app = new (Macroable(Application))([
                 LuminixServiceProvider,
             ]);
         }
 
-        return application;
+        return this.app;
     }
 
     down() {
-        if (application) {
-            application.flush();
-            application = undefined;
+        if (this.app) {
+            this.app.flush();
+            delete this.app;
         }
     }
 

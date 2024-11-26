@@ -1,7 +1,6 @@
-import { Collection } from '@luminix/support';
+import { Collection, Obj } from '@luminix/support';
 
 import { Model, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../support/model';
 
 import MorphOneOrMany from './MorphOneOrMany';
 
@@ -18,7 +17,7 @@ export default class MorphMany extends MorphOneOrMany
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {
-        if (items !== null && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !(items instanceof Collection && items.every(Obj.isModel))) {
             throw new NotModelException('MorphMany.constructor()', 'Collection<Model> or null');
         }
         super(services, meta, parent, items);
@@ -56,7 +55,7 @@ export default class MorphMany extends MorphOneOrMany
 
     async saveManyQuietly(models: Model[])
     {
-        if (!Array.isArray(models) || !models.every(isModel)) {
+        if (!Array.isArray(models) || !models.every(Obj.isModel)) {
             throw new NotModelException('MorphMany.saveManyQuietly()');
         }
 

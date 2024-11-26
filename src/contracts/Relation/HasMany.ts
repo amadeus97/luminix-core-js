@@ -1,8 +1,7 @@
-import { Collection } from '@luminix/support';
+import { Collection, Obj } from '@luminix/support';
 
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
-import { isModel } from '../../support/model';
 
 import { Model, RelationMetaData } from '../../types/Model';
 
@@ -18,7 +17,7 @@ export default class HasMany extends HasOneOrMany
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {
-        if (items !== null && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !(items instanceof Collection && items.every(Obj.isModel))) {
             throw new NotModelException('HasMany.constructor()', 'Collection<Model> or null');
         }
         super(services, meta, parent, items);
@@ -54,7 +53,7 @@ export default class HasMany extends HasOneOrMany
 
     async saveManyQuietly(models: Model[])
     {
-        if (!Array.isArray(models) || !models.every(isModel)) {
+        if (!Array.isArray(models) || !models.every(Obj.isModel)) {
             throw new NotModelException('HasMany.saveManyQuietly()', 'Model[]');
         }
 

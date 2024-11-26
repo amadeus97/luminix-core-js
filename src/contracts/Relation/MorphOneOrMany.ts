@@ -1,6 +1,6 @@
+import { Obj } from '@luminix/support';
 import { BuilderInterface as Builder } from '../../types/Builder';
 import { Model, ModelPaginatedResponse } from '../../types/Model';
-import { isModel } from '../../support/model';
 
 import HasOneOrMany from './HasOneOrMany';
 import NotModelException from '../../exceptions/NotModelException';
@@ -29,7 +29,7 @@ export default class MorphOneOrMany extends HasOneOrMany
     }
 
     async saveQuietly(item: Model) {
-        if (!isModel(item)) {
+        if (!Obj.isModel(item)) {
             throw new NotModelException('MorphOneOrMany.saveQuietly()');
         }
 

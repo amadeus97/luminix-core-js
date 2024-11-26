@@ -10,7 +10,6 @@ import { BuilderInterface as Builder, Scope as ScopeBase, ExtendedOperator } fro
 
 import { RelationInterface as RelationBase } from '../types/Relation';
 
-import { isModel } from '../support/model';
 import { ModelFacade } from '../types/App';
 import { RouteFacade } from '../types/Route';
 
@@ -32,7 +31,7 @@ export default class Relation implements RelationInterface {
         protected parent: BaseModel,
         protected items: Model | Collection<Model> | null = null,
     ) {
-        if (items !== null && !Obj.isModel(items) && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !Obj.isModel(items) && !(items instanceof Collection && items.every(Obj.isModel))) {
             throw new NotModelException('Relation.constructor()', 'Model, Collection<Model> or null');
         }
     }
@@ -94,11 +93,11 @@ export default class Relation implements RelationInterface {
 
     set(items: Model | Collection<Model> | null)
     {
-        if (items !== null && !isModel(items) && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !Obj.isModel(items) && !(items instanceof Collection && items.every(Obj.isModel))) {
             throw new NotModelException('Relation.set()', 'Model, Collection<Model> or null');
         }
 
-        if (!this.items || isModel(this.items)) {
+        if (!this.items || Obj.isModel(this.items)) {
             this.items = items;
         } else if (items instanceof Collection) {
             this.items.splice(0, this.items.count(), ...items);
@@ -156,7 +155,7 @@ export default class Relation implements RelationInterface {
 
     isSingle(): boolean
     {
-        return isModel(this.items);
+        return Obj.isModel(this.items);
     }
 
     isMultiple(): boolean

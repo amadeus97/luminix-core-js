@@ -1,12 +1,9 @@
-import { Collection } from '@luminix/support';
+import { Collection, Obj, JsonObject } from '@luminix/support';
 import Relation, { RelationServices } from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
-import { isModel } from '../../support/model';
 
 import { BuilderInterface as Builder } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
-
-import { JsonObject } from '../../types/Support';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
@@ -18,7 +15,7 @@ export default class BelongsToMany extends Relation {
         protected parent: Model,
         protected items: Collection<Model> | null = null,
     ) {
-        if (items !== null && !(items instanceof Collection && items.every(isModel))) {
+        if (items !== null && !(items instanceof Collection && items.every(Obj.isModel))) {
             throw new NotModelException('BelongsToMany.constructor()', 'Collection<Model> or null');
         }
         super(services, meta, parent, items);

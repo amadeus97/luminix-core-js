@@ -1,6 +1,7 @@
+import { Obj } from '@luminix/support';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import NotModelException from '../../exceptions/NotModelException';
-import { isModel } from '../../support/model';
+
 import { BuilderInterface as Builder } from '../../types/Builder';
 import { Model, ModelPaginatedResponse } from '../../types/Model';
 
@@ -23,7 +24,7 @@ export default class HasOneOrMany extends Relation {
 
     
     async saveQuietly(item: Model) {
-        if (!isModel(item)) {
+        if (!Obj.isModel(item)) {
             throw new NotModelException('HasOneOrMany.saveQuietly()');
         }
 
