@@ -36,7 +36,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     constructor(
         protected services: { config: ConfigFacade, model: ModelFacade, route: RouteFacade },
         protected abstract: string,
-        protected query: ModelQuery = {},
+        query: ModelQuery = {},
     ) {
         super();
         this.bag = new PropertyBag(query);

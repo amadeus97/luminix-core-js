@@ -855,23 +855,16 @@ export function ModelFactory(ModelFacade: ModelFacade, abstract: string, CustomM
             super(attributes);
 
             return new Proxy(this, {
-                get: (target: ModelInterface, prop: string) => {
+                get: (target: ModelInterface, prop) => {
 
                     if (prop === '__isModel') {
                         return true;
                     }
 
                     // If the property exists in the target, return it.
-                    if (Reflect.has(target, prop)) {
+                    if (Reflect.has(target, prop) || typeof prop !== 'string') {
                         return Reflect.get(target, prop);
                     }
-
-                    // If the prop is not camel cased, return undefined.
-                    // if (prop !== Str.camel(prop)) {
-                    //     return undefined;
-                    // }
-
-                    // const snakeCasedProp = Str.snake(prop);
 
                     // If the property exists in attributes, return it.
                     if (Object.keys(target.attributes).includes(prop)) {
@@ -885,7 +878,6 @@ export function ModelFactory(ModelFacade: ModelFacade, abstract: string, CustomM
                     if (prop.endsWith('Relation') && Object.keys(target.relations).includes(Str.snake(prop.slice(0, -8)))) {
                         return () => target.relation(prop.slice(0, -8));
                     }
-
 
                     // If there is a reducer to handle a property, return it.
                     if (ModelFacade.hasReducer(`model${Str.studly(target.getType())}Get${Str.studly(prop)}Attribute`)) {
