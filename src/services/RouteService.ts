@@ -61,6 +61,10 @@ export class RouteService
     }
 
     url(generator: RouteGenerator): string {
+        return this.appUrl + this.path(generator);
+    }
+
+    path(generator: RouteGenerator): string {
         const [name, replace] = this.extractGenerator(generator);
         // Remove leading and trailing slashes
         const url = this.get(name)[0].replace(/^\/|\/$/g, '');
@@ -72,7 +76,7 @@ export class RouteService
                 throw new NotReducibleException('RouteFacade');
             }
             // !Reducer `replaceRouteParams`
-            return this.appUrl + this.replaceRouteParams(`/${url}`);
+            return this.replaceRouteParams(`/${url}`);
         }
 
         const matches = url.match(regex);
@@ -91,7 +95,7 @@ export class RouteService
 
         const newPath = params.reduce((acc: string, param: string) => acc.replace(`{${param}}`, `${replace[param]}`), url);
 
-        return this.appUrl + `/${newPath}`;
+        return `/${newPath}`;
     }
 
     methods(generator: RouteGenerator): HttpMethod[] {
