@@ -7,6 +7,7 @@ import { Model, RelationMetaData } from '../../types/Model';
 
 import HasOneOrMany from './HasOneOrMany';
 import { RelationServices } from '../Relation';
+import collect from '../../helpers/collect';
 
 export default class HasMany extends HasOneOrMany
 {
@@ -71,12 +72,10 @@ export default class HasMany extends HasOneOrMany
     {
         await this.saveManyQuietly(models);
 
-        const newItems = await this.all();
-
         if (this.items) {
-            this.items.splice(0, this.items.count(), ...newItems);
+            this.items.splice(0, this.items.count(), ...models);
         } else {
-            this.items = newItems;
+            this.items = collect(models);
         }
     }
 
@@ -84,7 +83,7 @@ export default class HasMany extends HasOneOrMany
         await this.saveQuietly(item);
 
         if (this.items === null) {
-            this.items = await this.all();
+            this.items = collect([item]);
         } else {
             this.items.push(item);
         }
