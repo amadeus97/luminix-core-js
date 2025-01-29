@@ -36,6 +36,6 @@
     "vite-plugin-dts": "^4.0.0-beta.1"
   },
   "peerDependencies": {
-    "@luminix/support": "^0.4.5"
+    "@luminix/support": "^0.4.6"
   }
 }
