@@ -1,3 +1,4 @@
+
 import { Reducible, EventSource, Str } from '@luminix/support';
 
 import { BaseModel, ModelSchema, ModelSchemaAttributes, Model, ModelReducers } from '../types/Model';
@@ -33,7 +34,6 @@ export class ModelService extends EventSource<GlobalModelEvents> {
         if (!this._schema) {
             return;
         }
-       
         
         Object.keys(this._schema).forEach((abstract) => {
             const modelReducer = this[`model${Str.studly(abstract)}`];
@@ -71,7 +71,6 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
     }
 
-
     make(): { [abstract: string]: typeof Model}
     make(abstract: string): typeof Model
     make(abstract?: string) {
@@ -106,11 +105,7 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
-    
-    
 
 }
 
-
 export default Reducible<ModelReducers, typeof ModelService>(ModelService);
-

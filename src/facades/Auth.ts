@@ -1,8 +1,9 @@
 
-
 import { HasFacadeAccessor, MakeFacade } from '@luminix/support';
-import AuthService from '../services/AuthService';
+
 import App from './App';
+
+import AuthService from '../services/AuthService';
 
 class AuthFacade implements HasFacadeAccessor
 {

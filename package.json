@@ -1,7 +1,6 @@
 {
   "name": "@luminix/core",
   "version": "",
-  "description": "> Projeto em desenvolvimento",
   "module": "dist/core.js",
   "types": "types/index.d.ts",
   "type": "module",
@@ -17,6 +16,7 @@
   },
   "author": "",
   "license": "MIT",
+  "description": "> Projeto em desenvolvimento",
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",

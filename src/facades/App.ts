@@ -1,9 +1,9 @@
+
 import { HasFacadeAccessor, Application, MakeFacade, Macroable, FacadeOf, MacroableInterface } from '@luminix/support';
 
 import { AppContainers, AppMacros } from '../types/App';
 
 import LuminixServiceProvider from '../providers/LuminixServiceProvider';
-
 
 class AppFacade implements HasFacadeAccessor
 {
@@ -33,4 +33,3 @@ class AppFacade implements HasFacadeAccessor
 const App: FacadeOf<Application<AppContainers> & AppMacros & MacroableInterface<AppMacros>, AppFacade> = MakeFacade(AppFacade);
 
 export default App;
-

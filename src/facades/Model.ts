@@ -1,7 +1,9 @@
 import { HasFacadeAccessor, MakeFacade, ReducibleInterface } from '@luminix/support';
 
 import { ModelService } from '../services/ModelService';
+
 import App from './App';
+
 import { ModelReducers } from '../types/Model';
 
 class ModelFacade implements HasFacadeAccessor

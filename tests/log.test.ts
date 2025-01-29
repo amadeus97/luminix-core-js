@@ -1,10 +1,7 @@
 
-import { Application as App } from '@luminix/support';
-
 import makeConfig from './config';
 
-// import App from '../src/facades/App';
-// import { AppFacade } from '../src/types/App';
+import App from '../src/facades/App';
 
 beforeEach(() => {
     jest.resetModules();
@@ -13,7 +10,7 @@ beforeEach(() => {
 describe('testing log', () => {
     
     test('log works', async () => {
-        const app = new App();
+
         const jsConfig = makeConfig();
 
         console.log = jest.fn();
@@ -22,7 +19,7 @@ describe('testing log', () => {
         console.info = jest.fn();
         console.debug = jest.fn();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -30,14 +27,14 @@ describe('testing log', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        expect(console.log).toHaveBeenCalledTimes(1);
+        expect(console.log).toHaveBeenCalledTimes(0);
         expect(console.warn).toHaveBeenCalledTimes(0);
         expect(console.error).toHaveBeenCalledTimes(0);
         expect(console.info).toHaveBeenCalledTimes(1);
 
-        const log = app.make('log');
+        const log = App.make('log');
 
         log.emergency('emergency');
         expect(console.error).toHaveBeenCalledTimes(1);

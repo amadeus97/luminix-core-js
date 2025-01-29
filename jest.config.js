@@ -10,13 +10,4 @@ export default {
     transformIgnorePatterns: [
         'node_modules/(?!nanoevents|lodash-es)',
     ],
-    // moduleDirectories: [
-    //     'node_modules'
-    // ],
-    // modulePaths: [
-    //     '<rootDir>'
-    // ],
-    // moduleNameMapper: {
-    //     '@luminix/support': require.resolve('@luminix/support'),
-    // },
 };

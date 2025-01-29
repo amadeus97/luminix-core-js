@@ -1,22 +1,23 @@
 
-import { Application as App } from '@luminix/support';
-
 import makeConfig from './config';
 
-// import App from '../src/facades/App';
+import App from '../src/facades/App';
 
 beforeEach(() => {
     jest.resetModules();
 });
 
+afterEach(() => {
+    App.down();
+});
+
 describe('testing configuration', () => {
     
     test('configuration get', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -24,22 +25,21 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
 
-            expect(config.get('app.name')).toBe('Test App');
-            expect(config.has('app.name')).toBe(true);
+            expect(config.get('App.name')).toBe('Test App');
+            expect(config.has('App.name')).toBe(true);
         });
     });
 
     test('configuration is settable', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -47,25 +47,24 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
 
-            config.set('app.name', 'New Name');
+            config.set('App.name', 'New Name');
             config.set('foo.bar.baz', 'New Value');
 
-            expect(config.get('app.name')).toBe('New Name');
+            expect(config.get('App.name')).toBe('New Name');
             expect(config.get('foo.bar.baz')).toBe('New Value');
         });
     });
 
     test('configuration merge', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -73,23 +72,22 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
             
             config.merge('app', { name: 'New Name' });
            
-            expect(config.get('app.name')).toBe('New Name');
+            expect(config.get('App.name')).toBe('New Name');
         });
     });
 
     test('configuration lock', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -97,15 +95,15 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
             
             config.lock('app');
             
-            // expect(config.get('app.name')).toBe('Test App');
-            expect(() => config.set('app.name', 'New Name')).toThrow('Cannot set a locked path "app.name"');
+            // expect(config.get('App.name')).toBe('Test App');
+            expect(() => config.set('App.name', 'New Name')).toThrow('Cannot set a locked path "App.name"');
 
             config.set('foo', { bar: 'baz' });
             config.lock('foo');
@@ -115,11 +113,10 @@ describe('testing configuration', () => {
     });
 
     test('configuration get with default', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -127,22 +124,21 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
             
-            expect(config.get('app.name', 'Default Name')).toBe('Test App');
-            expect(config.get('app.unknown', 'Default Name')).toBe('Default Name');
+            expect(config.get('App.name', 'Default Name')).toBe('Test App');
+            expect(config.get('App.unknown', 'Default Name')).toBe('Default Name');
         });
     });
 
     test('configuration delete', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -150,24 +146,22 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
             
-            config.delete('app.name');
+            config.delete('App.name');
 
-            expect(config.get('app.name')).toBeUndefined();
+            expect(config.get('App.name')).toBeUndefined();
         });
     });
 
-
     test('configuration errors', () => {
-        const app = new App();
 
         const jsConfig = makeConfig();
 
-        app.withConfiguration({
+        App.withConfiguration({
             ...jsConfig,
             app: {
                 ...jsConfig.app,
@@ -175,10 +169,10 @@ describe('testing configuration', () => {
             }
         });
 
-        app.create();
+        App.create();
 
-        app.on('ready', () => {
-            const config = app.configuration;
+        App.on('ready', () => {
+            const config = App.configuration;
             
             config.set('qux', 'quux');
 
@@ -190,5 +184,5 @@ describe('testing configuration', () => {
             expect(() => config.merge('foo.bar', { deep: { deeper: { evenDeeper: 'qux' } } })).toThrow('Cannot set a path "foo.bar" that would override a locked path');
         });
     });
-});
 
+});

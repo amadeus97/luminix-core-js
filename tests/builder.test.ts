@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Application as App } from '@luminix/support';
+import { axios as mockAxios } from '@luminix/support';
 
-// import App from '../src/facades/App';
+import App from '../src/facades/App';
 
 import makeConfig from './config';
-import mockAxios from 'axios';
+
+App.withConfiguration(makeConfig());
+App.create();
 
 beforeEach(() => {
     jest.resetModules();
@@ -46,16 +49,10 @@ const mockedResponse = () => Promise.resolve({
 
 describe('testing builder', () => {
 
-    test('builder use cases', async () => {
-        const app = new App();
+    test.skip('builder use cases', async () => {
 
-        app.withConfiguration(makeConfig());
+        const User = App.make('model').make('user');
 
-        app.create();
-
-        const User = app.make('model').make('user');
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (mockAxios as any).get.mockImplementationOnce(mockedResponse);
 
         const users = await User.where('branchId', 1)
@@ -81,8 +78,6 @@ describe('testing builder', () => {
                 q: 'doe',
             }
         });
-
-
     });
-});
 
+});

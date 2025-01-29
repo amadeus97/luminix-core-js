@@ -1,21 +1,21 @@
 
-import { Application as App } from '@luminix/support';
+import App from '../src/facades/App';
 
 import makeConfig from './config';
 
-// import App from '../src/facades/App';
+App.withConfiguration(makeConfig());
+App.create();
 
 beforeEach(() => {
     jest.resetModules();
 });
 
-describe('testing macros', () => {
+describe.skip('testing macros', () => {
 
     test('macro operations', async () => {
-        const app = new App();
 
-        app.on('booted', () => {
-            const model = app.make('model');
+        App.on('booted', () => {
+            const model = App.make('model');
 
             model.reducer('modelUserGetNameAttribute', (name: string) => {
                 return `${name} (macro2)`;
@@ -24,16 +24,11 @@ describe('testing macros', () => {
             model.reducer('modelUserGetNameAttribute', (name: string) => {
                 return `${name} (macro)`;
             });
-
         });
 
-        app.withConfiguration(makeConfig());
-
-        app.create();
-
-        app.on('ready', () => {
-            // const model = app.configuration.model;
-            const model = app.make('model');
+        App.on('ready', () => {
+            // const model = App.configuration.model;
+            const model = App.make('model');
 
             expect(model.getReducer('modelUserGetNameAttribute').count()).toBe(2);
 

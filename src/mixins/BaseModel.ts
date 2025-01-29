@@ -5,8 +5,6 @@ import {
     Client
 } from '@luminix/support';
 
-// import ModelFacade from '../facades/Model';
-
 import { 
     BaseModel, ModelSaveOptions, ModelSchemaAttributes,
     ModelPaginatedResponse, Model as ModelInterface, RelationRepository, ModelEvents,
@@ -22,16 +20,18 @@ import Relation from '../contracts/Relation';
 import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
+
 import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
 import { LogFacade } from '../types/Log';
 import { ConfigFacade } from '../types/Config';
+
 // import App from '../facades/App';
 // import Log from '../facades/Log';
 // import Route from '../facades/Route';
+// import ModelFacade from '../facades/Model';
 
 type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
 type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
-
 
 export function BaseModelFactory(
     Config: ConfigFacade,
