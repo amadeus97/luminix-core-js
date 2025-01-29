@@ -1,19 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import App from '../src/facades/App';
-import Auth from '../src/facades/Auth';
-import { AppFacade } from '../src/types/App';
+
 import makeConfig from './config';
 import mockAxios from 'axios';
+
+import { Application as App } from '@luminix/support';
+
+// import App from '../src/facades/App';
+import Auth from '../src/facades/Auth';
+// import { AppFacade } from '../src/types/App';
+
+beforeEach(() => {
+    jest.resetModules();
+});
 
 describe('testing authentication', () => {
 
     test('auth check works', async () => {
         const app = new App();
-        const config = makeConfig();
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { auth: { user: { id: 1 } } } }));
 
-        await app.boot(config);
+        app.withConfiguration(makeConfig());
+
+        app.create();
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -26,11 +35,12 @@ describe('testing authentication', () => {
 
     test('auth check fails', async () => {
         const app = new App();
-        const config = makeConfig();
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { auth: { user: null } } }));
 
-        await app.boot(config);
+        app.create();
+
+        app.withConfiguration(makeConfig());
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -43,11 +53,12 @@ describe('testing authentication', () => {
 
     test('auth user works', async () => {
         const app = new App();
-        const config = makeConfig();
 
         (mockAxios as any).get.mockImplementationOnce(() => Promise.resolve({ data: { auth: { user: { id: 1, name: 'John Doe' } } } }));
 
-        await app.boot(config);
+        app.create();
+
+        app.withConfiguration(makeConfig());
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -66,9 +77,10 @@ describe('testing authentication', () => {
 
     test('auth attempt works', async () => {
         const app = new App();
-        const config = makeConfig();
 
-        await app.boot(config);
+        app.create();
+
+        app.withConfiguration(makeConfig());
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 
@@ -90,10 +102,11 @@ describe('testing authentication', () => {
     });
 
     test('auth logout works', async () => {
-        const app: AppFacade = new App();
-        const config = makeConfig();
+        const app = new App();
 
-        await app.boot(config);
+        app.create();
+
+        app.withConfiguration(makeConfig());
 
         expect(app.make('auth')).toBeInstanceOf(Auth);
 

@@ -1,12 +1,20 @@
-import App from '../src/facades/App';
-import { AppFacade } from '../src/types/App';
+
+import { Application as App } from '@luminix/support';
+
 import makeConfig from './config';
+
+// import App from '../src/facades/App';
+// import { AppFacade } from '../src/types/App';
+
+beforeEach(() => {
+    jest.resetModules();
+});
 
 describe('testing log', () => {
     
     test('log works', async () => {
-        const app: AppFacade = new App();
-        const config = makeConfig();
+        const app = new App();
+        const jsConfig = makeConfig();
 
         console.log = jest.fn();
         console.warn = jest.fn();
@@ -14,13 +22,15 @@ describe('testing log', () => {
         console.info = jest.fn();
         console.debug = jest.fn();
 
-        await app.boot({
-            ...config,
+        app.withConfiguration({
+            ...jsConfig,
             app: {
-                ...config.app,
+                ...jsConfig.app,
                 debug: true
             }
         });
+
+        app.create();
 
         expect(console.log).toHaveBeenCalledTimes(1);
         expect(console.warn).toHaveBeenCalledTimes(0);
@@ -59,4 +69,3 @@ describe('testing log', () => {
     });
 
 });
-

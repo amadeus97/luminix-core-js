@@ -1,11 +1,18 @@
-import App from '../src/facades/App';
+
+import { Application as App } from '@luminix/support';
+
 import makeConfig from './config';
+
+// import App from '../src/facades/App';
+
+beforeEach(() => {
+    jest.resetModules();
+});
 
 describe('testing macros', () => {
 
     test('macro operations', async () => {
         const app = new App();
-
 
         app.on('booted', () => {
             const model = app.make('model');
@@ -20,7 +27,13 @@ describe('testing macros', () => {
 
         });
 
-        app.boot(makeConfig()).then(({ model }) => {
+        app.withConfiguration(makeConfig());
+
+        app.create();
+
+        app.on('ready', () => {
+            // const model = app.configuration.model;
+            const model = app.make('model');
 
             expect(model.getReducer('modelUserGetNameAttribute').count()).toBe(2);
 
@@ -42,4 +55,5 @@ describe('testing macros', () => {
             expect(user.name).toBe('John Doe');
         });
     });
+
 });

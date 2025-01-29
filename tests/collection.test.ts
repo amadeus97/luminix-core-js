@@ -1,6 +1,16 @@
-// import { collect } from '../'; // @luminix/core
-import { collect } from '../src/contracts/Collection';
 
+import { Collection } from '@luminix/support';
+
+// import { collect } from '../'; // @luminix/core
+// import { collect } from '../src/contracts/Collection';
+
+beforeEach(() => {
+    jest.resetModules();
+});
+
+function collect<T = unknown>(items: T[]) {
+    return new Collection(items);
+}
 
 describe('collection test', () => {
 
@@ -56,7 +66,5 @@ describe('collection test', () => {
             { name: 'Galaxy S6', brand: 'Samsung', type: 'phone', released: 2015 },
         ]);
     });
-
     
 });
-

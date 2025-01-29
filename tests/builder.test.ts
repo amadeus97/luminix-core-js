@@ -1,7 +1,14 @@
-import App from '../src/facades/App';
+
+import { Application as App } from '@luminix/support';
+
+// import App from '../src/facades/App';
 
 import makeConfig from './config';
 import mockAxios from 'axios';
+
+beforeEach(() => {
+    jest.resetModules();
+});
 
 const mockedResponse = () => Promise.resolve({
     data: {
@@ -37,20 +44,19 @@ const mockedResponse = () => Promise.resolve({
     }
 });
 
-
 describe('testing builder', () => {
 
     test('builder use cases', async () => {
         const app = new App();
 
-        await app.boot(makeConfig());
+        app.withConfiguration(makeConfig());
+
+        app.create();
 
         const User = app.make('model').make('user');
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (mockAxios as any).get.mockImplementationOnce(mockedResponse);
-
-        
 
         const users = await User.where('branchId', 1)
             .where('roleId', [1, 2, 3])
