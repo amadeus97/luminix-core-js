@@ -1,12 +1,51 @@
 
-import { AxiosHeaders, AxiosError, isAxiosError } from 'axios';
+import { axios } from '@luminix/support';
 
-const axios = jest.fn();
+jest.mock('axios');
 
-export {
-    AxiosHeaders,
-    AxiosError,
-    isAxiosError,
-};
+const mockAxios = axios as jest.Mocked<typeof axios>;
 
-export default axios;
+// const mockAxios = {
+//     get: (options: Record<string, unknown>) => jest.fn(() => {
+//         if (options.url === '/something') {
+//             return Promise.resolve({ 
+//                 data: options.resolve, 
+//                 status: options.status 
+//             });
+//         }
+//     }),
+//     post: (options: Record<string, unknown>) => jest.fn(() => {
+//         if (options.url === '/something') {
+//             return Promise.resolve({ 
+//                 data: options.resolve, 
+//                 status: options.status 
+//             });
+//         }
+//     }),
+//     put: (options: Record<string, unknown>) => jest.fn(() => {
+//         if (options.url === '/something') {
+//             return Promise.resolve({ 
+//                 data: options.resolve, 
+//                 status: options.status 
+//             });
+//         }
+//     }),
+//     patch: (options: Record<string, unknown>) => jest.fn(() => {
+//         if (options.url === '/something') {
+//             return Promise.resolve({ 
+//                 data: options.resolve, 
+//                 status: options.status 
+//             });
+//         }
+//     }),
+//     delete: (options: Record<string, unknown>) => jest.fn(() => {
+//         if (options.url === '/something') {
+//             return Promise.resolve({ 
+//                 data: options.resolve, 
+//                 status: options.status 
+//             });
+//         }
+//     }),
+// };
+
+export default mockAxios;

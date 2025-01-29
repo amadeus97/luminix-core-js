@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { axios as mockAxios } from '@luminix/support';
-
 import App from '../src/facades/App';
 
+import mockAxios from './__mocks__/axios';
 import makeConfig from './config';
 
 App.withConfiguration(makeConfig());
@@ -53,7 +52,7 @@ describe('testing builder', () => {
 
         const User = App.make('model').make('user');
 
-        (mockAxios as any).get.mockImplementationOnce(mockedResponse);
+        (mockAxios as any).mockImplementationOnce(mockedResponse);
 
         const users = await User.where('branchId', 1)
             .where('roleId', [1, 2, 3])
@@ -64,7 +63,7 @@ describe('testing builder', () => {
             .all(); // or .get(page) .first() .find() 
 
         expect(users.count()).toBe(2);
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
+        expect(mockAxios).toHaveBeenCalledWith('/api/luminix/users', {
             params: {
                 where: {
                     branchId: 1,

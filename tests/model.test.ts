@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { axios as mockAxios } from '@luminix/support';
-
 import App from '../src/facades/App';
 import Model from '../src/facades/Model';
 
+import mockAxios from './__mocks__/axios';
 import makeConfig from './config';
 
 import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
@@ -23,35 +22,39 @@ describe('testing models', () => {
 
         const User = App.make('model').make('user');
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ 
-            data: { 
+        const options = { 
+            resolve: { 
                 id: 1, 
                 name: 'John Doe', 
                 email: 'johndoe@example.com' 
             }, 
             status: 200 
-        }));
+        };
+
+        (mockAxios as any).mockClear();
+        (mockAxios as any).mockImplementationOnce(() => Promise.resolve(options));
+
+        // mockAxios.post(options);
 
         const user = await User.create({
             name: 'John Doe',
             email: 'johndoe@example.com'
         });
 
-        expect(mockAxios).toHaveBeenCalledTimes(1);
-        // expect(mockAxios).toHaveBeenCalledWith('/api/luminix/users', { 
-        //     name: 'John Doe', 
-        //     email: 'johndoe@example.com', 
-        //     password: null 
-        // }, {});
-        expect(mockAxios).toHaveBeenCalledWith({ 
-            url: '/api/luminix/users',
-            params: {
-                name: 'John Doe', 
-                email: 'johndoe@example.com', 
-                password: null 
-            }
-        });
+        expect(mockAxios.post).toHaveBeenCalledTimes(1);
+        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users', { 
+            name: 'John Doe', 
+            email: 'johndoe@example.com', 
+            password: null 
+        }, {});
+        // expect(mockAxios.post).toHaveBeenCalledWith({ 
+        //     url: '/api/luminix/users',
+        //     params: {
+        //         name: 'John Doe', 
+        //         email: 'johndoe@example.com', 
+        //         password: null 
+        //     }
+        // });
 
         expect(user.id).toBe(1);
 
