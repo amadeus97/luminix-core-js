@@ -3,7 +3,8 @@
 import App from '../src/facades/App';
 import Model from '../src/facades/Model';
 
-import mockAxios from './__mocks__/axios';
+import mockAxios from 'axios';
+// import mockAxios from './__mocks__/axios';
 import makeConfig from './config';
 
 import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
