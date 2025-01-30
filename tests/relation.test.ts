@@ -35,135 +35,187 @@ describe('testing relations', () => {
 
     const User = baseModel.make('user');
     const Post = baseModel.make('post');
+
+    const File = baseModel.make('file');
     const Attachment = baseModel.make('attachment');
     const Comment = baseModel.make('post_comment');
 
     const files = collect([
-        {
+        new File({
             id: 1,
             path: '/path/to/file.jpg',
             type: 'image',
+            attachment_id: 1,
+            attachment: null,
             created_at: '2021-01-01T00:00:00.000Z',
             updated_at: '2021-01-01T00:00:00.000Z',
             deleted_at: null,
-        }
+        })
     ]);
 
     const attachments = collect([
-        { 
+        new Attachment({ 
             id: 1, 
             path: '/path/to/attachment.jpg', 
             type: 'image', 
             author_id: 1, 
-            author: {
-                id: 1,
-                name: 'John Doe'
-            },
+            author: null,
             file_id: 1,
             file: null,
             attachable: null,
-            attachable_type: null,
-            attachable_id: null,
+            attachable_type: 'post',
+            attachable_id: 1,
             created_at: '2021-01-01T00:00:00.000Z',
             updated_at: '2021-01-01T00:00:00.000Z',
             deleted_at: '2021-01-01T00:00:00.000Z',
-        }
+        })
     ]);
 
     const comments = collect([
-        {
+        new Comment({
             id: 1,
             post_id: 1,
+            post: null,
             content: 'foo bar',
             user_id: 1,
+            user: null,
             created_at: '2021-01-01T00:00:00.000Z',
             updated_at: '2021-01-01T00:00:00.000Z',
             deleted_at: null,
-        },
-        {
+        }),
+        new Comment({
             id: 2,
             post_id: 1,
+            post: null,
             content: 'lorem ipsum',
             user_id: 1,
+            user: null,
             created_at: '2021-01-01T00:00:00.000Z',
             updated_at: '2021-01-01T00:00:00.000Z',
             deleted_at: '2021-01-01T00:00:00.000Z',
-        },
+        }),
     ]);
 
     const posts = collect([
-        {
+        new Post({
             id: 1,
             title: 'First Post',
             published: 1,
             content: 'foo bar',
             likes: '100',
-            user_id: 1,
-            attachments: null,
-            comments: null,
-        },
-        {
+            author_id: 1,
+            author: null,
+            // if many items, set as array of objects
+            // otherwise set as single object
+            comments: [],
+            attachments: [],
+        }),
+        new Post({
             id: 2,
             title: 'Second Post',
             published: 1,
             content: 'lorem ipsum',
             likes: '10',
-            user_id: 1,
-            attachments: null,
-            comments: null,
-        },
+            author_id: 1,
+            author: null,
+            comments: [],
+            attachments: [],
+        }),
     ]);
 
-    const user = new User({
-        id: 1,
-        name: 'John Doe',
-        email: 'johndoe@example.com',
-        password: null,
-        posts: posts.where('user_id', 1).toArray().map((post) => {
+    const users = collect([
+        new User({
+            id: 1,
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
+            posts: [],
+            comments: [],
+        })
+    ]);
 
-            const p = new Post(post);
+    /* * * * */
 
-            const _attachments = attachments.where('id', 1).toArray().map((attachment) => {
+    files.each((file) => {
+        file.setAttribute(
+            'attachment', 
+            attachments.where('id', file.attachment_id).first()?.toJson()
+        );
 
-                const a = new Attachment(attachment);
+        file.save();
+    });
 
-                a.setAttribute('file', files.first());
+    attachments.each((attachment) => {
+        attachment.setAttribute(
+            'author', 
+            users.where('id', attachment.author_id).first()?.toJson()
+        );
+        attachment.setAttribute(
+            'file', 
+            files.where('id', attachment.file_id).first()?.toJson()
+        );
+        attachment.setAttribute(
+            'attachable', 
+            posts.where('id', attachment.attachable_id).first()?.toJson()
+        );
 
-                return a;
-            });
+        attachment.save();
+    });
 
-            const _comments = comments.where('id', 1).toArray().map((comment) => new Comment(comment));
+    comments.each((comment) => {
+        comment.setAttribute(
+            'user', 
+            users.where('id', comment.user_id).first()?.toJson()
+        );
+        comment.setAttribute(
+            'post', 
+            posts.where('id', comment.post_id).first()?.toJson()
+        );
 
-            p.setAttribute(
-                'attachments', 
-                _attachments.length > 1 ? _attachments : _attachments[0]
-            );
-            p.setAttribute(
-                'comments', 
-                _comments.length > 1 ? _comments : _comments[0]
-            );
+        comment.save();
+    });
 
-            return p;
-        }),
+    posts.each((post) => {
+        post.setAttribute(
+            'author', 
+            users.where('id', post.author_id).first()?.toJson()
+        );
+        post.setAttribute(
+            'comments', 
+            comments.where('post_id', post.id).toArray()
+        );
+        post.setAttribute(
+            'attachments', 
+            attachments.where('attachable_id', post.id).toArray()
+        );
+
+        post.save();
+    });
+
+    users.each((user) => {
+        user.setAttribute(
+            'posts', 
+            posts.where('author_id', user.id).toArray()
+        );
+        user.setAttribute(
+            'comments', 
+            comments.where('user_id', user.id).toArray()
+        );
+
+        user.save();
     });
 
     /* * * * */
 
-    // console.log({ 
-    //     user,
-    //     user_relations: user.relations,
-    //     posts: user.posts.items, 
-    //     post_relations: user.posts.items[0].relations,
-    //     attachments: user.posts.items[0].attachments,
-    //     // attachment_relations: user.posts.items[0].attachments.items[0].relations,
-    //     comments: user.posts.items[0].comments,
-    //     // comment_relations: user.posts.items[0].comments.items[0].relations
-    // });
+    const user = users.first()!;
 
-    const post = user.posts ? user.posts.items[0] : null;
-    // const author = post.author ? post.author : null;
-    const attachment = post.attachments ? post.attachments.items[0] : null;
-    // const comment = post.comments ? post.comments.items[0] : null;
+    console.log({ user, posts: user.posts.items, comments: user.comments.items });
+
+    const post = user && user.posts.items && user.posts.length ? user.posts.items[0] : null;
+    // const comment = user && user.comments.items && user.comments.length ? user.comments.items[0] : null;
+
+    // const author = post && post.author ? post.author : null;
+    const attachment = post && post.attachments ? post.attachments.items[0] : null;
 
     /* * * * */
 
@@ -172,6 +224,16 @@ describe('testing relations', () => {
     // const authorRelations = author && author.relations ? author.relations : null;
     const attachmentRelations = attachment && attachment.relations ? attachment.relations : null;
     // const commentRelations = comment && comment.relations ? comment.relations : null;
+
+    // console.log({ user, post, author, attachment, comment });
+
+    // console.log({
+    //     user_relations: userRelations,
+    //     post_relations: postRelations,
+    //     author_relations: authorRelations,
+    //     attachment_relations: attachmentRelations,
+    //     comment_relations: commentRelations,
+    // });
 
     /* * * * */
 

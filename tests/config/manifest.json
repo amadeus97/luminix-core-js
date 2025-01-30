@@ -1,5 +1,27 @@
 {
     "models": {
+        "file": {
+            "fillable": [
+                "id",
+                "path",
+                "type",
+                "attachment_id"
+            ],
+            "softDeletes": true,
+            "importable": false,
+            "exportable": false,
+            "primaryKey": "id",
+            "timestamps": true,
+            "relations": {
+                "attachments": {
+                    "type": "MorphMany",
+                    "model": "attachment"
+                }
+            },
+            "casts": {
+                "id": "int"
+            }
+        },
         "attachment": {
             "fillable": [
                 "path",
@@ -8,7 +30,7 @@
                 "attachable_type",
                 "size"
             ],
-            "softDeletes": false,
+            "softDeletes": true,
             "importable": false,
             "exportable": false,
             "primaryKey": "id",
@@ -21,6 +43,10 @@
                 "author": {
                     "type": "BelongsTo",
                     "model": "user"
+                },
+                "file": {
+                    "type": "HasOne",
+                    "model": "file"
                 }
             },
             "casts": {
