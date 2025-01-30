@@ -333,6 +333,8 @@ export function BaseModelFactory(
         {
             return this._changedKeys.length > 0;
         }
+
+        /* * * * */
     
         getAttribute(key: string) {
             let value = this._attributes.get(key, null);
@@ -527,6 +529,8 @@ export function BaseModelFactory(
 
             return this.getAttribute(labeledBy) as string;
         }
+
+        /* * * * */
 
         async refresh(tap?: (client: Client) => Client) {
             if (!this.exists) {

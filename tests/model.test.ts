@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Collection } from '@luminix/support';
+
 import App from '../src/facades/App';
 import Model from '../src/facades/Model';
 
@@ -17,11 +19,20 @@ beforeEach(() => {
     jest.resetModules();
 });
 
+function collect<T = unknown>(items: T[]) {
+    return new Collection(items);
+}
+
 describe('testing models', () => {
 
-    test('model create', async () => {
+    const baseModel = App.make('model');
 
-        const User = App.make('model').make('user');
+    // const Role = baseModel.make('role');
+    const User = baseModel.make('user');
+    const Post = baseModel.make('post');
+    // const Comment = baseModel.make('comment');
+
+    test('model create', async () => {
 
         const options = { 
             resolve: { 
@@ -66,8 +77,6 @@ describe('testing models', () => {
 
     test.skip('model update', async () => {
 
-        const User = App.make('model').make('user');
-
         (mockAxios as any).mockClear();
         (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ 
             data: { id: 1, name: 'John Doe', email: 'johndoe@example.com' }, 
@@ -85,8 +94,6 @@ describe('testing models', () => {
 
     test.skip('model delete', async () => {
 
-        const User = App.make('model').make('user');
-
         (mockAxios as any).mockClear();
         (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 204 }));
 
@@ -96,8 +103,6 @@ describe('testing models', () => {
     });
 
     test.skip('model fetch and save', async () => {
-
-        const User = App.make('model').make('user');
 
         (mockAxios as any).mockClear();
         (mockAxios as any).mockImplementationOnce(() => Promise.resolve({
@@ -193,8 +198,6 @@ describe('testing models', () => {
 
     test.skip('model restore and force delete', async () => {
 
-        const User = App.make('model').make('user');
-
         (mockAxios as any).mockClear();
         (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 200 }));
 
@@ -212,10 +215,9 @@ describe('testing models', () => {
 
     test.skip('model mass delete, restore and force delete', async () => {
 
-        const User = App.make('model').make('user');
-
         (mockAxios as any).mockClear();
         (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 204 }));
+
         await User.delete([1, 2, 3]);
         expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
 
@@ -231,8 +233,6 @@ describe('testing models', () => {
     });
 
     test.skip('model fillable', async () => {
-
-        const User = App.make('model').make('user');
 
         const user = new User({
             id: 1,
@@ -283,7 +283,9 @@ describe('testing models', () => {
     test.skip('model relationships', async () => {
 
         const {
-            attachment: Attachment, user: User, post: Post
+            user: User, 
+            post: Post,
+            attachment: Attachment, 
         } = App.make('model').make();
     
         const user = new User({
@@ -434,6 +436,93 @@ describe('testing models', () => {
         expect(() => Attachment.find(1)).rejects.toThrow(RouteNotFoundException);
         expect(() => Attachment.restore(1)).rejects.toThrow(RouteNotFoundException);
         expect(() => Attachment.forceDelete(1)).rejects.toThrow(RouteNotFoundException);
+    });
+
+    /* * * * */
+
+    // const roles = collect([
+    //     new Role({ id: 1, name: 'Admin' }),
+    //     new Role({ id: 2, name: 'User' }),
+    // ]);
+
+    const user = new User({ id: 1, name: 'John Doe' });
+
+    const posts = collect([
+        new Post({ id: 1, title: 'First Post', user_id: 1 }),
+        new Post({ id: 2, title: 'Second Post', user_id: 1 }),
+    ]);
+
+    // const comments = collect([
+    //     new Comment({ id: 1, body: 'First Comment', post_id: 1 }),
+    //     new Comment({ id: 2, body: 'Second Comment', post_id: 1 }),
+    //     new Comment({ id: 3, body: 'Third Comment', post_id: 2 }),
+    // ]);
+
+    test('get model attribute', () => {
+        expect(user.getAttribute('id')).toBe(1);
+        expect(user.getAttribute('name')).toBe('John Doe');
+    });
+
+    test('get model primary key', () => {
+        expect(user.getKey()).toBe(1);
+    });
+    
+    test('get model primary key name', () => {
+        expect(user.getKeyName()).toBe('id');
+    });
+    
+    test('get model type', () => {        
+        expect(user.getType()).toBe('user');
+    });
+    
+    test('get model relation', () => {        
+        expect(user.getRelation('posts').first()).toBeInstanceOf(Post);
+        expect(user.getRelation('posts').get().pluck('title')).toEqual([ 'First Post', 'Second Post' ]);
+
+        expect(posts.first()!.getRelation('user')).toBeInstanceOf(User);
+        expect(posts.first()!.getRelation('user').getAttribute('name')).toBe('John Doe');
+    });
+
+    test('get model save route', () => {
+        expect(user.getRouteForSave()).toBe('luminix.user.store');
+
+        user.save();
+
+        expect(user.getRouteForSave()).toEqual([
+            'luminix.user.update',
+            { id: 1 },
+        ]);
+    });
+
+    test('get model update route', () => {
+        expect(user.getRouteForUpdate()).toEqual([
+            'luminix.user.update',
+            { id: 1 },
+        ]);
+    });
+
+    test('get model delete route', () => {
+        expect(user.getRouteForDelete()).toEqual([
+            'luminix.user.destroy',
+            { id: 1 },
+        ]);
+    });
+
+    test('get model refresh route', () => {
+        expect(user.getRouteForRefresh()).toEqual([
+            'luminix.user.show',
+            { id: 1 },
+        ]);
+    });
+
+    test('get model label', () => {
+        expect(user.getLabel()).toBe('User');
+    });
+
+    /* * * * */
+
+    test.skip('dump model info', () => {
+        expect(user.dump()).toEqual(console.log(user.toJson()));
     });
 
 });
