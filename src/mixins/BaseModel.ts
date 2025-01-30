@@ -693,6 +693,8 @@ export function BaseModelFactory(
             }
         }
 
+        /* * * * */
+
         static getSchemaName() {
             return abstract;
         }

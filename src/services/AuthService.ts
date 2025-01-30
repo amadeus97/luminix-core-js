@@ -114,4 +114,5 @@ export default class AuthService {
     id(): number | string | null {
         return this.user()?.getKey() || null;
     }
+    
 }

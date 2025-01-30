@@ -13,8 +13,10 @@ import BelongsTo from '../contracts/Relation/BelongsTo';
 import BelongsToMany from '../contracts/Relation/BelongsToMany';
 import HasOne from '../contracts/Relation/HasOne';
 import HasMany from '../contracts/Relation/HasMany';
+// import HasOneOrMany from '../contracts/Relation/HasOneOrMany';
 import MorphMany from '../contracts/Relation/MorphMany';
 import MorphOne from '../contracts/Relation/MorphOne';
+// import MorphOneOrMany from '../contracts/Relation/MorphOneOrMany';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
 
@@ -53,7 +55,6 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
             this._models[abstract] = ModelFactory(app.make('model'), abstract, SpecificModel);
         });
-
     }
 
     schema(): ModelSchema
@@ -68,7 +69,6 @@ export class ModelService extends EventSource<GlobalModelEvents> {
         }
 
         return this._schema;
-
     }
 
     make(): { [abstract: string]: typeof Model}
