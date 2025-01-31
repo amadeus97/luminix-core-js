@@ -28,6 +28,11 @@ class AppFacade implements HasFacadeAccessor
         }
     }
 
+    setInstance(app: Application) {
+        this.down();
+        this.app = app;
+    }
+
 }
 
 const App: FacadeOf<Application<AppContainers> & AppMacros & MacroableInterface<AppMacros>, AppFacade> = MakeFacade(AppFacade);
