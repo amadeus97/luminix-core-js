@@ -21,6 +21,9 @@ const mockHttpService = {
     patch: jest.fn(),
     delete: jest.fn(),
     //
+    withQueryParameters: jest.fn(function () {
+        return this;
+    }),
     withData: jest.fn(function () {
         return this;
     }),

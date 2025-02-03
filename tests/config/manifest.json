@@ -2,7 +2,6 @@
     "models": {
         "file": {
             "fillable": [
-                "id",
                 "path",
                 "type",
                 "attachment_id"
@@ -14,7 +13,7 @@
             "timestamps": true,
             "relations": {
                 "attachments": {
-                    "type": "MorphMany",
+                    "type": "BelongsTo",
                     "model": "attachment"
                 }
             },
@@ -135,6 +134,10 @@
                 "comments": {
                     "type": "HasMany",
                     "model": "post_comment"
+                },
+                "attachments": {
+                    "type": "HasMany",
+                    "model": "attachment"
                 }
             },
             "casts": {

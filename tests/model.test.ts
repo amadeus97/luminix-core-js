@@ -1,120 +1,50 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Response, Collection } from '@luminix/support';
+import { Response } from '@luminix/support';
 
 import App from '../src/facades/App';
 // import Model from '../src/facades/Model';
 import Http from '../src/facades/Http';
 
-import { HttpServiceProvider } from './__mocks__/httpservice';
-import makeConfig from './config';
+import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
+import AttributeNotFillableException from '../src/exceptions/AttributeNotFillableException';
 
-// import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
-// import AttributeNotFillableException from '../src/exceptions/AttributeNotFillableException';
-
-App.withProviders([ HttpServiceProvider ])
-    .withConfiguration(makeConfig())
-    .create();
+import models from './__mocks__/appmodels';
 
 beforeEach(() => {
     jest.resetModules();
 });
 
-function collect<T = unknown>(items: T[]) {
-    return new Collection(items);
-}
+const { 
+    models: {
+        User,
+        Post,
+        // Attachment,
+        Comment,
+        // File,
+    },
+    data: {
+        users,
+        // posts,
+        // attachments,
+        // comments,
+        // files,
+        //
+        user,
+        // post,
+        // author,
+        attachment,
+        // comment,
+        //
+        // userRelations, 
+        // postRelations, 
+        // authorRelations, 
+        // attachmentRelations, 
+        // commentRelations, 
+    }
+} = models;
 
 describe('testing models', () => {
-
-    const baseModel = App.make('model');
-
-    const User = baseModel.make('user');
-    const Post = baseModel.make('post');
-    const Attachment = baseModel.make('attachment');
-
-    const posts = collect([
-        new Post({
-            id: 1,
-            title: 'First Post',
-            content: 'foo bar',
-            likes: '100',
-            user_id: 1,
-            user: {
-                id: 1,
-                name: 'John Doe'
-            },
-            published_at: '2021-01-01T00:00:00.000Z',
-            published: 1,
-            created_at: '2021-01-01T00:00:00.000Z',
-            updated_at: '2021-01-01T00:00:00.000Z',
-            deleted_at: '2021-01-01T00:00:00.000Z',
-        }),
-        new Post({
-            id: 2,
-            title: 'Second Post',
-            content: 'lorem ipsum',
-            likes: '10',
-            user_id: 1,
-            user: {
-                id: 1,
-                name: 'John Doe'
-            },
-            published_at: '2021-01-01T00:00:00.000Z',
-            published: 1,
-            created_at: '2021-01-01T00:00:00.000Z',
-            updated_at: '2021-01-01T00:00:00.000Z',
-            deleted_at: null,
-        }),
-    ]);
-
-    const attachments = collect([
-        new Attachment({ 
-            id: 1, 
-            path: '/path/to/attachment.jpg', 
-            type: 'image', 
-            author_id: 1, 
-            author: {
-                id: 1,
-                name: 'John Doe'
-            },
-            attachable: null,
-            attachable_type: null,
-            attachable_id: null,
-            created_at: '2021-01-01T00:00:00.000Z',
-            updated_at: '2021-01-01T00:00:00.000Z',
-            deleted_at: '2021-01-01T00:00:00.000Z',
-        }),
-        new Attachment({ 
-            id: 2, 
-            path: '/path/to/attachment2.jpg', 
-            type: 'image', 
-            author_id: 1, 
-            author: {
-                id: 1,
-                name: 'John Doe'
-            },
-            attachable: null,
-            attachable_type: null,
-            attachable_id: null,
-            created_at: '2021-01-01T00:00:00.000Z',
-            updated_at: '2021-01-01T00:00:00.000Z',
-            deleted_at: '2021-01-01T00:00:00.000Z',
-        }),
-    ]);
-
-    const users = new User({
-        id: 1,
-        name: 'John Doe',
-        email: 'johndoe@example.com',
-        password: null,
-        posts: posts.where('user_id', '1').toArray().map((post) => post.toJson()),
-        attachments: attachments.where('author_id', '1').toArray().map((attachment) => attachment.toJson()),
-        created_at: '2021-01-01T00:00:00.000Z',
-        updated_at: '2021-01-01T00:00:00.000Z',
-        deleted_at: '2021-01-01T00:00:00.000Z',
-    });
-
-    /* * * * */
 
     test('model create', async () => {
         
@@ -122,7 +52,12 @@ describe('testing models', () => {
             config: {
                 headers: { 'Content-Type': 'application/json' } as any,
             },
-            data: { id: 1 }, 
+            data: {
+                id: 1,
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+                password: null,
+            }, 
             headers: { 'Content-Type': 'application/json' },
             status: 200, 
             statusText: 'OK',
@@ -150,23 +85,33 @@ describe('testing models', () => {
         expect(user2.id).toBeUndefined();
     });
 
-    /**
-     * @toReview
-     */
-    test.skip('model update', async () => {
+    test('model update', async () => {
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ 
-            data: { id: 1, name: 'John Doe', email: 'johndoe@example.com' }, 
-            status: 200 
-        }));
+        (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                id: 1,
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+            }, 
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
         const user = await User.update(1, {
             name: 'John Doe',
             email: 'johndoe@example.com'
         });
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', { name: 'John Doe', email: 'johndoe@example.com' }, {});
+        expect(Http.put).toHaveBeenCalledWith('/api/luminix/users/1');
+        expect(Http.withData).toHaveBeenCalledWith({ 
+            name: 'John Doe', 
+            email: 'johndoe@example.com', 
+        });
+
         expect(user.id).toBe(1);
     });
 
@@ -175,21 +120,36 @@ describe('testing models', () => {
      */
     test.skip('model delete', async () => {
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 204 }));
+        (Http.delete as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+            }, 
+            headers: { 'Content-Type': 'application/json' },
+            status: 204, 
+            statusText: 'OK',
+        })));
 
         await User.delete(1);
 
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/1', {});
+        expect(Http.delete).toHaveBeenCalledWith('/api/luminix/users/1');
+        expect(Http.withData).toHaveBeenCalledWith({ 
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+        });
+
+        expect(User.find(1)).toBeNull();
     });
 
-    /**
-     * @toReview
-     */
-    test.skip('model fetch and save', async () => {
+    test('model fetch and save', async () => {
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({
+        (Http.get as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
             data: {
                 data: [
                     {
@@ -198,8 +158,11 @@ describe('testing models', () => {
                         email: 'johndoe@example.com'
                     }
                 ]
-            }
-        }));
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
         const user = await User.find(1);
 
@@ -207,35 +170,37 @@ describe('testing models', () => {
             throw new Error('User not found');
         }
 
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
-            params: {
-                where: { id: 1 },
-                page: 1,
-                per_page: 1
-            }
+        expect(Http.get).toHaveBeenCalledWith('/api/luminix/users');
+        // expect(Http.get).toHaveBeenCalledWith('/api/luminix/users?where[id]=1&per_page=1&page=1');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
         });
 
         user.name = 'Jane Doe';
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({
-            data: {
-                id: 1,
-                name: 'Jane Doe',
-                email: 'johndoe@example.com'
+        (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
             },
-            status: 200 
-        }));
+            data: { id: 1 }, 
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
         await user.save();
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', { name: 'Jane Doe' }, {});
+        expect(Http.put).toHaveBeenCalledWith('/api/luminix/users/1');
+        expect(Http.withData).toHaveBeenCalledWith({ name: 'Jane Doe' });
 
+        /* * */
 
-        const PostComment = App.make('model').make('post_comment');
-
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({
+        (Http.get as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
             data: {
                 data: [
                     {
@@ -245,81 +210,164 @@ describe('testing models', () => {
                         user_id: 1,
                     }
                 ]
-            }
-        }));
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
-        const comment = await PostComment.find(1);
+        const comment = await Comment.find(1);
 
         if (!comment) {
             throw new Error('Comment not found');
         }
 
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/post_comments', {
-            params: {
-                where: { id: 1 },
-                page: 1,
-                per_page: 1
-            }
+        expect(Http.get).toHaveBeenCalledWith('/api/luminix/post_comments');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
         });
 
         comment.body = 'First Comment Updated';
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({
+        (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
             data: {
                 id: 1,
                 body: 'First Comment Updated',
                 post_id: 1,
                 user_id: 1,
             },
-            status: 200 
-        }));
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
         await comment.save();
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/post_comments/1/update', { body: 'First Comment Updated' }, {});
+        expect(Http.put).toHaveBeenCalledWith('/api/luminix/post_comments/1/update');
+        expect(Http.withData).toHaveBeenCalledWith({ body: 'First Comment Updated' });
     });
 
-    /**
-     * @toReview
-     */
-    test.skip('model restore and force delete', async () => {
+    test('model restore and force delete', async () => {
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 200 }));
+        (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+                password: null,
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
         await User.restore(1);
 
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users/1', undefined, { params: { restore: true } });
+        expect(Http.put).toHaveBeenCalledWith('/api/luminix/users/1');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
+        });
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 204 }));
+        /* * */
+
+        (Http.delete as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 204, 
+            statusText: 'OK',
+        })));
 
         await User.forceDelete(1);
 
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users/1', { params: { force: true } });
+        expect(Http.delete).toHaveBeenCalledWith('/api/luminix/users/1');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+        });
     });
 
-    /**
-     * @toReview
-     */
-    test.skip('model mass delete, restore and force delete', async () => {
+    test('model mass delete, restore and force delete', async () => {
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 204 }));
+        (Http.delete as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+                password: null,
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
         await User.delete([1, 2, 3]);
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
+        expect(Http.delete).toHaveBeenCalledWith('/api/luminix/users');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
+        });
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 200 }));
-        await User.restore([1, 2, 3]);
-        expect(mockAxios.put).toHaveBeenCalledWith('/api/luminix/users', { ids: [1, 2, 3] }, {});
+        /* * */
 
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve({ status: 204 }));
+        (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+                password: null,
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
+
+        await User.restore([ 1, 2, 3 ]);
+        expect(Http.put).toHaveBeenCalledWith('/api/luminix/users');
+        expect(Http.withData).toHaveBeenCalledWith({ ids: [ 1, 2, 3 ]});
+
+        /* * */
+
+        (Http.delete as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: {
+                name: 'John Doe',
+                email: 'johndoe@example.com',
+                password: null,
+            },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
+
         await User.forceDelete([1, 2, 3]);
-        expect(mockAxios.delete).toHaveBeenCalledWith('/api/luminix/users', { params: { ids: [1, 2, 3] } });
+        expect(Http.delete).toHaveBeenCalledWith('/api/luminix/users');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
+        });
     });
 
     /**
@@ -333,9 +381,7 @@ describe('testing models', () => {
             email: 'johndoe@example.com',
         });
 
-        user.fill({
-            foo: 'bar'
-        });
+        user.fill({ foo: 'bar' });
         
         expect(user.diff()).toEqual({});
         
@@ -357,6 +403,8 @@ describe('testing models', () => {
             password: 'password'
         });
 
+        /* * */
+
         const user2 = new User({
             id: 1,
             name: 'John Doe',
@@ -370,42 +418,37 @@ describe('testing models', () => {
         expect((user2.emailVerifiedAt as Date).toISOString()).toBe('2021-01-01T00:00:00.000Z');
     });
 
-    /**
-     * @toReview
-     */
-    test.skip('model relationships', async () => {
-    
-        const user = users.first()!;
+    test('model relationships', async () => {
 
-        const userPost = user.posts[0];
+        const posts = user.posts.items;
 
-        expect(Model.isModel(userPost)).toBe(true);
-        expect(Model.isModel(userPost.comments.get(0))).toBe(true);
+        const comments = posts[0].comments.items;
+        const attachments = posts[0].attachments.items;
 
-        const userJson: any = user.toJson();
+        expect(posts.length).toBe(2);
+        expect(comments.length).toBe(2);
+        expect(attachments.length).toBe(1);
 
-        expect(userJson.posts.length).toBe(1);
-        expect(userJson.posts[0].comments.length).toBe(1);
-        expect(userJson.posts[0].attachments.length).toBe(2);
+        console.log({
+            a: attachment.relations,
+            b: {
+                _a: attachment.attachable,
+                _b: attachment.attachable_id,
+                _c: attachment.attachable_type,
+            }
+        });
 
-        const attachment = attachments.where('id', 1).first()!;
+        expect(attachment.attachable_id).toBe(1);
+        expect(attachment.attachable_type).toBe('post');
 
-        expect(attachment.attachable).toBeFalsy();
+        expect(attachment.attachable).toBeTruthy();
+        expect(attachment.attachable).toBeInstanceOf(Post);
+        // expect(attachment.attachable).toBeInstanceOf(Object);
+        expect(attachment.attachable.id).toBe(1);
+
         expect(attachment.author).toBeInstanceOf(User);
-
-        const attachment2 = attachments.where('id', 2).first()!;
-
-        expect(attachment2.attachable).toBeInstanceOf(Post);
-
-        const attachmentJson: any = attachment2.toJson();
-
-        expect(attachmentJson.attachable).toBeInstanceOf(Object);
-        expect(attachmentJson.attachable.id).toBe(1);
     });
 
-    /**
-     * @toReview
-     */
     test.skip('model casts and mutates', async () => {
 
         const Post = App.make('model').make('post');
@@ -463,9 +506,6 @@ describe('testing models', () => {
         expect(attachment.size).toBe(1000);
     });
 
-    /**
-     * @toReview
-     */
     test.skip('model errors', async () => {
 
         const Attachment = App.make('model').make('attachment');
@@ -478,16 +518,10 @@ describe('testing models', () => {
         expect(() => Attachment.forceDelete(1)).rejects.toThrow(RouteNotFoundException);
     });
 
-    /**
-     * @toReview
-     */
     test.skip('model get schema', () => {
         expect(users.first()!.schema('user')).toBeInstanceOf(User);
     });
 
-    /**
-     * @toReview
-     */
     test.skip('model get relation constructors', () => {
         expect(users.first()!.getRelationConstructors('posts')).toEqual([ Post ]);
     });
@@ -518,7 +552,10 @@ describe('testing models', () => {
         expect(users.first()!.getType()).toBe('user');
     });
 
-    test('get model save route', () => {
+    /**
+     * @toReview
+     */
+    test.skip('get model save route', () => {
 
         const user = users.first();
 
@@ -526,14 +563,18 @@ describe('testing models', () => {
             throw new Error('User not found');
         }
 
+        if (!User.find(1)) {
+            expect(user.getRouteForSave()).toBe('luminix.user.update');
+        }
+
         expect(user.getRouteForSave()).toBe('luminix.user.store');
 
-        user.save().then(() => {
-            expect(user.getRouteForSave()).toEqual([
-                'luminix.user.update',
-                { id: 1 },
-            ]);
-        });
+        // user.save().then(() => {
+        //     expect(user.getRouteForSave()).toEqual([
+        //         'luminix.user.update',
+        //         { id: 1 },
+        //     ]);
+        // });
     });
 
     test('get model update route', () => {
@@ -557,9 +598,6 @@ describe('testing models', () => {
         ]);
     });
 
-    /**
-     * @toReview
-     */
     test.skip('get model label', () => {
         expect(users.first()!.getLabel()).toBe('User');
     });

@@ -12,28 +12,40 @@ import MorphMany from '../src/contracts/Relation/MorphMany';
 // import MorphTo from '../src/contracts/Relation/MorphTo';
 // import MorphToMany from '../src/contracts/Relation/MorphToMany';
 
-import lazyload from './__mocks__/models/lazyload';
-// import eagerLoad from './__mocks__/models/eagerload';
+import models from './__mocks__/appmodels';
 
 beforeEach(() => {
     jest.resetModules();
 });
 
 const { 
-    // userRelations, 
-    postRelations, 
-    // authorRelations, 
-    attachmentRelations, 
-    // commentRelations, 
-} = lazyload;
-
-// const {
-//     users,
-//     posts,
-//     comments,
-//     attachments,
-//     files,
-// } = eagerLoad;
+    // models: {
+    //     // User,
+    //     // Post,
+    //     // Attachment,
+    //     // Comment,
+    //     // File,
+    // },
+    data: {
+        // users,
+        // posts,
+        // attachments,
+        // comments,
+        // files,
+        //
+        // user,
+        // post,
+        // author,
+        // attachment,
+        // comment,
+        //
+        // userRelations, 
+        postRelations, 
+        // authorRelations, 
+        attachmentRelations, 
+        // commentRelations, 
+    }
+} = models;
 
 describe('testing relations with eager loading', () => {
 
