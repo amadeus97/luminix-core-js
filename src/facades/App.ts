@@ -11,7 +11,6 @@ class AppFacade implements HasFacadeAccessor
     protected app?: Application;
 
     getFacadeAccessor(): string | object {
-
         if (!this.app) {
             this.app = new (Macroable(Application))([
                 LuminixServiceProvider,

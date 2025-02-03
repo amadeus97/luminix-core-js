@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Collection } from '@luminix/support';
+import { Response, Collection } from '@luminix/support';
 
 import App from '../src/facades/App';
-import Model from '../src/facades/Model';
+// import Model from '../src/facades/Model';
+import Http from '../src/facades/Http';
 
-import mockAxios from 'axios';
-// import mockAxios from './__mocks__/axios';
+import { HttpServiceProvider } from './__mocks__/httpservice';
 import makeConfig from './config';
 
-import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
-import AttributeNotFillableException from '../src/exceptions/AttributeNotFillableException';
+// import RouteNotFoundException from '../src/exceptions/RouteNotFoundException';
+// import AttributeNotFillableException from '../src/exceptions/AttributeNotFillableException';
 
-App.withConfiguration(makeConfig());
-App.create();
+App.withProviders([ HttpServiceProvider ])
+    .withConfiguration(makeConfig())
+    .create();
 
 beforeEach(() => {
     jest.resetModules();
@@ -116,42 +117,33 @@ describe('testing models', () => {
     /* * * * */
 
     test('model create', async () => {
+        
+        (Http.post as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: { id: 1 }, 
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
 
-        const options = { 
-            resolve: { 
-                id: 1, 
-                name: 'John Doe', 
-                email: 'johndoe@example.com' 
-            }, 
-            status: 200 
-        };
-
-        (mockAxios as any).mockClear();
-        (mockAxios as any).mockImplementationOnce(() => Promise.resolve(options));
-
-        // mockAxios.post(options);
-
-        const user = await User.create({
+        const user1 = await User.create({
             name: 'John Doe',
-            email: 'johndoe@example.com'
+            email: 'johndoe@example.com',
         });
 
-        expect(mockAxios.post).toHaveBeenCalledTimes(1);
-        expect(mockAxios.post).toHaveBeenCalledWith('/api/luminix/users', { 
-            name: 'John Doe', 
-            email: 'johndoe@example.com', 
-            password: null 
-        }, {});
-        // expect(mockAxios.post).toHaveBeenCalledWith({ 
-        //     url: '/api/luminix/users',
-        //     params: {
-        //         name: 'John Doe', 
-        //         email: 'johndoe@example.com', 
-        //         password: null 
-        //     }
-        // });
+        expect(Http.post).toHaveBeenCalledTimes(1);
+        expect(Http.post).toHaveBeenCalledWith('/api/luminix/users');
+        expect(Http.withData).toHaveBeenCalledWith({
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+            password: null,
+        });
 
-        expect(user.id).toBe(1);
+        expect(user1.id).toBe(1);
+
+        /* * */
 
         const user2 = new User();
 
