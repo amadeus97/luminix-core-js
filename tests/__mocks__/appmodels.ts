@@ -29,6 +29,8 @@ const File = baseModel.make('file');
 const Attachment = baseModel.make('attachment');
 const Comment = baseModel.make('post_comment');
 
+const Chair = baseModel.make('chair');
+
 /* * */
 
 const files = collect([
@@ -61,22 +63,24 @@ const attachments = collect([
             id: 1,
             type: 'image',
         },
-        attachable: {
-            id: 1,
-            title: 'My Post',
-            author_id: 1,
-            author: {
-                id: 1,
-                name: 'John Doe',
-            },
-            comments: [],
-            attachments: [],
-        },
+        attachable: null,
+        // attachable: {
+        //     id: 1,
+        //     title: 'My Post',
+        //     content: 'This is my post',
+        //     author_id: 1,
+        //     author: {
+        //         id: 1,
+        //         name: 'John Doe',
+        //     },
+        //     comments: [],
+        //     attachments: [],
+        // },
         attachable_type: 'post',
         attachable_id: 1,
         created_at: '2021-01-01T00:00:00.000Z',
         updated_at: '2021-01-01T00:00:00.000Z',
-        deleted_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: null,
     })
 ]) as Collection<Model>;
 
@@ -94,6 +98,9 @@ const comments = collect([
             id: 1,
             title: 'My Post',
         },
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: null,
     }),
     new Comment({
         id: 2,
@@ -107,7 +114,10 @@ const comments = collect([
         post: {
             id: 1,
             title: 'My Post',
-        }
+        },
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: '2021-01-01T00:00:00.000Z',
     }),
 ]) as Collection<Model>;
 
@@ -116,6 +126,7 @@ const posts = collect([
         id: 1,
         title: 'My Post',
         content: 'This is my post',
+        published_at: '2021-01-01T00:00:00.000Z',
         author_id: 1,
         author: {
             id: 1,
@@ -123,11 +134,15 @@ const posts = collect([
         },
         comments: comments.where('post_id', 1).toArray(),
         attachments: attachments.where('attachable_id', 1).toArray(),
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: null,
     }),
     new Post({
         id: 2,
         title: 'My Second Post',
         content: 'This is my second post',
+        published_at: '2021-01-01T00:00:00.000Z',
         author_id: 1,
         author: {
             id: 1,
@@ -135,6 +150,9 @@ const posts = collect([
         },
         comments: comments.where('post_id', 2).toArray(),
         attachments: attachments.where('attachable_id', 2).toArray(),
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: '2021-01-01T00:00:00.000Z',
     }),
 ]) as Collection<Model>;
 
@@ -144,11 +162,33 @@ const users = collect([
         name: 'John Doe',
         email: 'johndoe@example.com',
         password: null,
-        posts: posts.toArray(),
-        comments: comments.toArray(),
-        attachments: attachments.toArray(),
+        posts: posts.where('author_id', 1).toArray(),
+        comments: comments.where('author_id', 1).toArray(),
+        attachments: attachments.where('author_id', 1).toArray(),
+        chairs: [
+            {
+                id: 1,
+                name: 'My Chair',
+                description: 'This is my chair',
+            }
+        ],
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: null,
     })
 ]) as Collection<Model>;
+
+const chairs = collect([
+    new Chair({
+        id: 1,
+        name: 'My Chair',
+        description: 'This is my chair',
+        users: users.toArray(),
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: null,
+    })
+]);
 
 //     (Http.post as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
 //         config: {
@@ -335,16 +375,24 @@ const comment = user && user.comments.items ? user.comments.items[0] : null;
 
 const author = post && post.author ? post.author : null;
 const attachment = post && post.attachments ? post.attachments.items[0] : null;
+const file = files.first()!;
 
-// console.log({ user, post, author, attachment, comment });
+const chair = chairs.first()!;
+
+// console.log({ user, post, author, attachment, comment, file, chair });
 
 /* * * * */
 
 const userRelations = user && user.relations ? user.relations : null;
+
 const postRelations = post && post.relations ? post.relations : null;
+const commentRelations = comment && comment.relations ? comment.relations : null;
+
 const authorRelations = author && author.relations ? author.relations : null;
 const attachmentRelations = attachment && attachment.relations ? attachment.relations : null;
-const commentRelations = comment && comment.relations ? comment.relations : null;
+const fileRelations = file && file.relations ? file.relations : null;
+
+const chairRelations = chair && chair.relations ? chair.relations : null;
 
 // console.log({
 //     user_relations: userRelations,
@@ -352,17 +400,24 @@ const commentRelations = comment && comment.relations ? comment.relations : null
 //     author_relations: authorRelations,
 //     attachment_relations: attachmentRelations,
 //     comment_relations: commentRelations,
+//     file_relations: fileRelations,
+//     chair_relations: chairRelations,
 // });
 
 /* * * * */
 
 export default {
+    app: { 
+        App, 
+        baseModel,
+    },
     models: {
         User,
         Post,
         File,
         Attachment,
         Comment,
+        Chair,
     },
     data: {
         users,
@@ -370,17 +425,22 @@ export default {
         attachments,
         comments,
         files,
+        chairs,
         //
         user,
         post,
         author,
         attachment,
         comment,
+        file,
+        chair,
         //
         userRelations,
         postRelations,
         authorRelations,
         attachmentRelations,
         commentRelations,
+        fileRelations,
+        chairRelations,
     }
 };

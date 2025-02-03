@@ -19,7 +19,8 @@
             },
             "casts": {
                 "id": "int"
-            }
+            },
+            "class": "App\\Models\\File"
         },
         "attachment": {
             "fillable": [
@@ -43,6 +44,10 @@
                     "type": "BelongsTo",
                     "model": "user"
                 },
+                "post": {
+                    "type": "BelongsTo",
+                    "model": "post"
+                },
                 "file": {
                     "type": "HasOne",
                     "model": "file"
@@ -51,7 +56,8 @@
             "casts": {
                 "id": "int",
                 "size": "integer"
-            }
+            },
+            "class": "App\\Models\\Attachment"
         },
         "post_comment": {
             "fillable": [
@@ -76,7 +82,8 @@
             },
             "casts": {
                 "id": "int"
-            }
+            },
+            "class": "App\\Models\\PostComment"
         },
         "post": {
             "fillable": [
@@ -113,7 +120,8 @@
                 "published_at": "datetime",
                 "published": "boolean",
                 "likes": "integer"
-            }
+            },
+            "class": "App\\Models\\Post"
         },
         "user": {
             "fillable": [
@@ -138,6 +146,10 @@
                 "attachments": {
                     "type": "HasMany",
                     "model": "attachment"
+                },
+                "chairs": {
+                    "type": "BelongsToMany",
+                    "model": "chair"
                 }
             },
             "casts": {
@@ -146,6 +158,27 @@
                 "password": "hashed"
             },
             "class": "App\\Models\\User"
+        },
+        "chair": {
+            "fillable": [
+                "name", 
+                "description"
+            ],
+            "softDeletes": false,
+            "importable": false,
+            "exportable": false,
+            "primaryKey": "id",
+            "timestamps": true,
+            "relations": {
+                "users": {
+                    "type": "BelongsToMany",
+                    "model": "user"
+                }
+            },
+            "casts": {
+                "id": "int"
+            },
+            "class": "App\\Models\\Chair"
         }
     },
     "routes": {

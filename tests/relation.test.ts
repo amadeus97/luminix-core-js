@@ -1,6 +1,10 @@
 /* eslint-disable quotes */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Response } from '@luminix/support';
+
+import Http from '../src/facades/Http';
+
 import BelongsTo from '../src/contracts/Relation/BelongsTo';
 import BelongsToMany from '../src/contracts/Relation/BelongsToMany';
 import HasMany from '../src/contracts/Relation/HasMany';
@@ -19,31 +23,24 @@ beforeEach(() => {
 });
 
 const { 
-    // models: {
-    //     // User,
-    //     // Post,
-    //     // Attachment,
-    //     // Comment,
-    //     // File,
-    // },
+    models: {
+        User,
+        // Post,
+        // Attachment,
+        // Comment,
+        // File,
+        // Chair, 
+    },
     data: {
-        // users,
-        // posts,
-        // attachments,
-        // comments,
-        // files,
+        users,
         //
-        // user,
-        // post,
-        // author,
-        // attachment,
-        // comment,
+        post,
+        author,
+        chair,
         //
-        // userRelations, 
         postRelations, 
-        // authorRelations, 
         attachmentRelations, 
-        // commentRelations, 
+        chairRelations,
     }
 } = models;
 
@@ -53,14 +50,60 @@ describe('testing relations with eager loading', () => {
         if (!postRelations) {
             throw new Error("'postRelations' is null");
         }
+
         expect(postRelations.author).toBeInstanceOf(BelongsTo);
+
+        (Http.get as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: { data: [] },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
+
+        const relation = post.authorRelation().get();
+
+        expect(relation.isSingle()).toBe(true);
+        expect(relation.isMultiple()).toBe(false);
+
+        relation.dissociate();
+
+        expect(post.relations.author).toBeNull();
+
+        relation.associate(author);
+
+        expect(post.relations.author).not.toBeNull();
+        expect(post.relations.author).toBeInstanceOf(User);
     });
 
     test("model 'belongs to many' relation", async () => {
-        if (!attachmentRelations) {
-            throw new Error("'attachmentRelations' is null");
+        if (!chairRelations) {
+            throw new Error("'chairRelations' is null");
         }
-        expect(attachmentRelations.posts).toBeInstanceOf(BelongsToMany);
+
+        expect(chairRelations.users).toBeInstanceOf(BelongsToMany);
+
+        (Http.get as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+            config: {
+                headers: { 'Content-Type': 'application/json' } as any,
+            },
+            data: { data: [] },
+            headers: { 'Content-Type': 'application/json' },
+            status: 200, 
+            statusText: 'OK',
+        })));
+
+        const relation = chair.usersRelation().get();
+
+        expect(relation.isSingle()).toBe(false);
+        expect(relation.isMultiple()).toBe(true);
+
+        const chairUsers = users.filter((user) => user.chairs.some((_chair: any) => _chair.id == chair.id));
+
+        expect(relation.all()).toEqual(chairUsers.toArray());
+        expect(relation.first()).toMatchObject(chairUsers.first()!.toJson());
     });
 
     test("model 'has one' relation", async () => {
