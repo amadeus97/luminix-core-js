@@ -13,7 +13,7 @@
             "timestamps": true,
             "relations": {
                 "attachments": {
-                    "type": "BelongsTo",
+                    "type": "MorphOne",
                     "model": "attachment"
                 }
             },
@@ -144,7 +144,7 @@
                     "model": "post_comment"
                 },
                 "attachments": {
-                    "type": "HasMany",
+                    "type": "MorphMany",
                     "model": "attachment"
                 },
                 "chairs": {

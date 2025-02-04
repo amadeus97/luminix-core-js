@@ -35,14 +35,16 @@ const Chair = baseModel.make('chair');
 
 const files = collect([
     new File({
+        id: 1,
         path: '/path/to/file.jpg',
         type: 'image',
         attachment_id: 1,
-        attachment: {
-            id: 1,
-            path: '/path/to/attachment.jpg',
-            type: 'image',
-        },
+        attachment: null,
+        // attachment: {
+        //     id: 1,
+        //     path: '/path/to/attachment.jpg',
+        //     type: 'image',
+        // },
         created_at: '2021-01-01T00:00:00.000Z',
         updated_at: '2021-01-01T00:00:00.000Z',
         deleted_at: null,
@@ -51,6 +53,7 @@ const files = collect([
 
 const attachments = collect([
     new Attachment({
+        id: 1,
         path: '/path/to/attachment.jpg',
         type: 'image',
         author_id: 1,
@@ -61,13 +64,20 @@ const attachments = collect([
         file_id: 1,
         file: {
             id: 1,
+            path: '/path/to/file.jpg',
             type: 'image',
+            attachment_id: 1,
+            attachment: null,
+            created_at: '2021-01-01T00:00:00.000Z',
+            updated_at: '2021-01-01T00:00:00.000Z',
+            deleted_at: null,
         },
         attachable: null,
         // attachable: {
         //     id: 1,
         //     title: 'My Post',
         //     content: 'This is my post',
+        //     published_at: '2021-01-01T00:00:00.000Z',
         //     author_id: 1,
         //     author: {
         //         id: 1,
@@ -75,6 +85,9 @@ const attachments = collect([
         //     },
         //     comments: [],
         //     attachments: [],
+        //     created_at: '2021-01-01T00:00:00.000Z',
+        //     updated_at: '2021-01-01T00:00:00.000Z',
+        //     deleted_at: null,
         // },
         attachable_type: 'post',
         attachable_id: 1,
@@ -175,6 +188,19 @@ const users = collect([
         created_at: '2021-01-01T00:00:00.000Z',
         updated_at: '2021-01-01T00:00:00.000Z',
         deleted_at: null,
+    }),
+    new User({
+        id: 1,
+        name: 'John Doe',
+        email: 'johndoe@example.com',
+        password: null,
+        posts: [],
+        comments: [],
+        attachments: [],
+        chairs: [],
+        created_at: '2021-01-01T00:00:00.000Z',
+        updated_at: '2021-01-01T00:00:00.000Z',
+        deleted_at: null,
     })
 ]) as Collection<Model>;
 
@@ -190,6 +216,8 @@ const chairs = collect([
     })
 ]);
 
+/* * */
+
 //     (Http.post as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
 //         config: {
 //             headers: { 'Content-Type': 'application/json' } as any,
@@ -199,8 +227,6 @@ const chairs = collect([
 //         status: 200, 
 //         statusText: 'OK',
 //     })));
-
-//     /* * */
 
 //     const file = await File.create({
 //         path: '/path/to/file.jpg',
@@ -370,11 +396,11 @@ const user = users.first()!;
 //     attachments: user.attachments.items, 
 // });
 
-const post = user && user.posts.items ? user.posts.items[0] : null;
-const comment = user && user.comments.items ? user.comments.items[0] : null;
+const post = posts.first()!;
+const comment = comments.first()!;
 
 const author = post && post.author ? post.author : null;
-const attachment = post && post.attachments ? post.attachments.items[0] : null;
+const attachment = attachments.first()!;
 const file = files.first()!;
 
 const chair = chairs.first()!;

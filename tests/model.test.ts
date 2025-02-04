@@ -33,7 +33,7 @@ const {
         Attachment,
         Comment,
         // File,
-        // Chair, 
+        // Chair,
     },
     data: {
         users,
@@ -184,7 +184,11 @@ describe('testing models', () => {
             config: {
                 headers: { 'Content-Type': 'application/json' } as any,
             },
-            data: { id: 1 }, 
+            data: { 
+                id: 1, 
+                name: 'Jane Doe',
+                email: 'johndoe@example.com',
+            }, 
             headers: { 'Content-Type': 'application/json' },
             status: 200, 
             statusText: 'OK',
