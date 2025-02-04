@@ -216,185 +216,9 @@ const chairs = collect([
     })
 ]);
 
-/* * */
-
-//     (Http.post as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
-//         config: {
-//             headers: { 'Content-Type': 'application/json' } as any,
-//         },
-//         data: { id: 1 }, 
-//         headers: { 'Content-Type': 'application/json' },
-//         status: 200, 
-//         statusText: 'OK',
-//     })));
-
-//     const file = await File.create({
-//         path: '/path/to/file.jpg',
-//         type: 'image',
-//         attachment_id: 1,
-//         attachment: null,
-//         created_at: '2021-01-01T00:00:00.000Z',
-//         updated_at: '2021-01-01T00:00:00.000Z',
-//         deleted_at: null,
-//     });
-//     lazyFiles.push(file);
-
-//     const attachment = await Attachment.create({
-//         path: '/path/to/attachment.jpg',
-//         type: 'image',
-//         author_id: 1,
-//         author: null,
-//         file_id: 1,
-//         file: null,
-//         attachable: null,
-//         attachable_type: 'post',
-//         attachable_id: 1,
-//         created_at: '2021-01-01T00:00:00.000Z',
-//         updated_at: '2021-01-01T00:00:00.000Z',
-//         deleted_at: '2021-01-01T00:00:00.000Z',
-//     });
-//     lazyAttachments.push(attachment);
-
-//     const comment_1 = await Comment.create({
-//         post_id: 1,
-//         post: null,
-//         content: 'foo bar',
-//         user_id: 1,
-//         user: null,
-//         created_at: '2021-01-01T00:00:00.000Z',
-//         updated_at: '2021-01-01T00:00:00.000Z',
-//         deleted_at: null,
-//     });
-//     lazyComments.push(comment_1);
-
-//     const comment_2 = await Comment.create({
-//         post_id: 1,
-//         post: null,
-//         content: 'lorem ipsum',
-//         user_id: 1,
-//         user: null,
-//         created_at: '2021-01-01T00:00:00.000Z',
-//         updated_at: '2021-01-01T00:00:00.000Z',
-//         deleted_at: null,
-//     });
-//     lazyComments.push(comment_2);
-
-//     const post_1 = await Post.create({
-//         title: 'First Post',
-//         published: 1,
-//         content: 'foo bar',
-//         likes: '100',
-//         author_id: 1,
-//         author: null,
-//         comments: [],
-//         attachments: [],
-//     });
-//     lazyPosts.push(post_1);
-
-//     const post_2 = await Post.create({
-//         title: 'Second Post',
-//         published: 1,
-//         content: 'lorem ipsum',
-//         likes: '10',
-//         author_id: 1,
-//         author: null,
-//         comments: [],
-//         attachments: [],
-//     });
-//     lazyPosts.push(post_2);
-
-//     const user = await User.create({
-//         name: 'John Doe',
-//         email: 'johndoe@example.com',
-//         password: null,
-//         posts: [],
-//         comments: [],
-//         attachments: [],
-//     });
-//     lazyUsers.push(user);
-
-// })();
-
-/* * * * */
-
-// lazyFiles.each((file) => {
-//     // file.relation('attachments')!
-//     //     .where('file_id', file.id)
-//     //     .first();
-
-//     file.save();
-// });
-
-// lazyAttachments.each((attachment) => {
-//     attachment.relation('author')!
-//         .where('id', attachment.author_id)
-//         .first();
-
-//     attachment.relation('file')!
-//         .where('id', attachment.file_id)
-//         .first();
-
-//     attachment.relation('attachable')!
-//         .where('id', attachment.attachable_id)
-//         .first();
-
-//     attachment.save();
-// });
-
-// lazyComments.each((comment) => {
-//     comment.relation('user')!
-//         .where('id', comment.user_id)
-//         .first();
-
-//     // comment.relation('post')!
-//     //     .where('id', comment.post_id)
-//     //     .first();
-
-//     comment.save();
-// });
-
-// lazyPosts.each((post) => {
-//     post.relation('author')!
-//         .where('id', post.author_id)
-//         .first();
-
-//     // post.relation('comments')!
-//     //     .where('post_id', post.id)
-//     //     .get();
-
-//     // post.relation('attachments')!
-//     //     .where('attachable_id', post.id)
-//     //     .get();
-
-//     post.save();
-// });
-
-// lazyUsers.each((user) => {
-//     // user.relation('posts')!
-//     //     .where('author_id', user.id)
-//     //     .get();
-
-//     // user.relation('comments')!
-//     //     .where('user_id', user.id)
-//     //     .get();
-
-//     user.relation('attachments')!
-//         .where('attachable_id', user.id)
-//         .get();
-
-//     user.save();
-// });
-
 /* * * * */
 
 const user = users.first()!;
-
-// console.log({ 
-//     user, 
-//     posts: user.posts.items, 
-//     comments: user.comments.items, 
-//     attachments: user.attachments.items, 
-// });
 
 const post = posts.first()!;
 const comment = comments.first()!;
@@ -404,8 +228,6 @@ const attachment = attachments.first()!;
 const file = files.first()!;
 
 const chair = chairs.first()!;
-
-// console.log({ user, post, author, attachment, comment, file, chair });
 
 /* * * * */
 
@@ -419,16 +241,6 @@ const attachmentRelations = attachment && attachment.relations ? attachment.rela
 const fileRelations = file && file.relations ? file.relations : null;
 
 const chairRelations = chair && chair.relations ? chair.relations : null;
-
-// console.log({
-//     user_relations: userRelations,
-//     post_relations: postRelations,
-//     author_relations: authorRelations,
-//     attachment_relations: attachmentRelations,
-//     comment_relations: commentRelations,
-//     file_relations: fileRelations,
-//     chair_relations: chairRelations,
-// });
 
 /* * * * */
 

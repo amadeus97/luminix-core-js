@@ -64,7 +64,7 @@ export default class BelongsTo extends Relation {
         });
     }
 
-    async dissociate() {
+    dissociate() {
         return this.parent.update({
             [this.getForeignKey() as string]: null,
         });
