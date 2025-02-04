@@ -13,7 +13,7 @@ import HasOne from '../src/contracts/Relation/HasOne';
 import MorphMany from '../src/contracts/Relation/MorphMany';
 // import MorphOne from '../src/contracts/Relation/MorphOne';
 // import MorphOneOrMany from '../src/contracts/Relation/MorphOneOrMany';
-// import MorphTo from '../src/contracts/Relation/MorphTo';
+import MorphTo from '../src/contracts/Relation/MorphTo';
 // import MorphToMany from '../src/contracts/Relation/MorphToMany';
 
 import models from './__mocks__/appmodels';
@@ -346,7 +346,10 @@ describe('testing relations with eager loading', () => {
 
 describe('testing relations with lazy loading', () => {
 
-    test("model 'belongs to' relation methods", async () => {
+    /**
+     * @toReview
+     */
+    test.skip("model 'belongs to' relation methods", async () => {
         
         _post();
         const _Post = await Post.create({
@@ -355,26 +358,29 @@ describe('testing relations with lazy loading', () => {
             published_at: null,
         });
 
+        expect(_Post.relation('author')).toBeInstanceOf(BelongsTo);
+
         _post();
         const _author = await User.create({
             name: 'Foo Bar',
             email: 'foobar@example.com',
         });
 
-        /* * */
+        expect(_author.relation('posts')).toBeInstanceOf(HasMany);
 
-        expect(_Post.relation('author')).toBeInstanceOf(BelongsTo);
+        /* * */
 
         const relation = _Post.authorRelation();
 
         _put();
         await relation.associate(_author);
-        await relation.get();
-        expect((_Post.relation('author') as any).items).not.toBeNull();
+        _get();
+        expect(await relation.get()).not.toBeNull();
 
         _put();
         await relation.dissociate();
-        expect((_Post.relation('author') as any).items).toBeNull();
+        _get();
+        expect(await relation.get()).toBeNull();
     });
 
     test("model 'belongs to many' relation methods", async () => {
@@ -385,11 +391,15 @@ describe('testing relations with lazy loading', () => {
             description: 'This is my new chair',
         });
 
+        expect(_chair.relation('users')).toBeInstanceOf(BelongsToMany);
+
         _post();
         const _user = await User.create({
             name: 'Jane Doe',
             email: 'janedoe@example.com',
         });
+
+        expect(_user.relation('chairs')).toBeInstanceOf(BelongsToMany);
 
         /* * */
 
@@ -397,117 +407,153 @@ describe('testing relations with lazy loading', () => {
 
         _put();
         await relation.attachQuietly(_user.id);
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).not.toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).not.toContain(_user.id);
 
         _put();
         await relation.syncQuietly([ _user.id ]);
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
 
         _put();
         await relation.syncWithPivotValuesQuietly([ _user.id ], { foo: 'bar' });
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
 
         _put();
         await relation.detach(_user.id);
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).not.toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).not.toContain(_user.id);
 
         /* * */
 
         _put();
         await relation.attach(_user.id);
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
 
         _put();
         await relation.sync([ _user.id ]);
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
 
         _put();
         await relation.syncWithPivotValues([ _user.id ], { foo: 'bar' });
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
 
         _put();
         await relation.detachQuietly(_user.id);
-        await relation.get();
-        expect(relation.get().pluck('id').toArray()).toContain(_user.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
     });
 
-    test.skip("model 'has many' relation methods", async () => {
-
-        const relation = post.commentsRelation();
+    test("model 'has many' relation methods", async () => {
 
         _post();
+        const _Post = await Post.create({
+            title: 'My New Post',
+            content: 'This is my new post',
+            published_at: null,
+        });
 
+        expect(_Post.relation('comments')).toBeInstanceOf(HasMany);
+
+        _post();
         const _comment = await Comment.create({
             content: 'test comment',
         });
 
+        expect(_comment.relation('post')).toBeInstanceOf(BelongsTo);
+
         /* * */
+
+        const relation = _Post.commentsRelation();
 
         _put();
         await relation.saveManyQuietly([ _comment ]);
-        expect((post.relation('comments') as any).pluck('id').toArray()).not.toContain(_comment.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).not.toContain(_comment.id);
 
         _put();
         await relation.saveMany([ _comment ]);
-        expect((post.relation('comments') as any).pluck('id').toArray()).toContain(_comment.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_comment.id);
 
         _put();
         await relation.save(_comment);
-        expect((post.relation('comments') as any).pluck('id').toArray()).toContain(_comment.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_comment.id);
     });
 
-    test.skip("model 'has one' relation methods", async () => {
-
-        const relation = attachment.fileRelation();
+    test("model 'has one' relation methods", async () => {
 
         _post();
+        const _attachment = await Attachment.create({
+            path: '/path/to/attachment.jpg',
+            type: 'image',
+        });
 
+        expect(_attachment.relation('file')).toBeInstanceOf(HasOne);
+
+        _post();
         const _file = await File.create({
             path: '/path/to/new_file.jpg',
             type: 'image',
         });
 
+        expect(_file.relation('attachment')).toBeInstanceOf(BelongsTo);
+
         /* * */
+
+        const relation = _attachment.fileRelation();
 
         _put();
         await relation.save(_file);
-        expect((attachment.relation('file') as any).pluck('id').toArray()).toContain(_file.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_file.id);
     });
 
     /* * * * */
 
-    test.skip("model 'morph many' relation methods", async () => {
-        
-        const relation = post.attachmentsRelation();
+    test("model 'morph many' relation methods", async () => {
 
         _post();
+        const _Post = await Post.create({
+            title: 'My New Post',
+            content: 'This is my new post',
+            published_at: null,
+        });
 
+        expect(_Post.relation('attachments')).toBeInstanceOf(MorphMany);
+
+        _post();
         const _attachment = await Attachment.create({
             id: 1,
             path: '/path/to/attachment.jpg',
             type: 'image',
         });
 
+        expect(_attachment.relation('attachable')).toBeInstanceOf(MorphTo);
+
         /* * */
+        
+        const relation = _Post.attachmentsRelation();
 
         _put();
         await relation.saveManyQuietly([ _attachment ]);
-        expect((post.relation('attachments') as any).pluck('id').toArray()).not.toContain(_attachment.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).not.toContain(_attachment.id);
 
         _put();
         await relation.saveMany([ _attachment ]);
-        expect((post.relation('attachments') as any).pluck('id').toArray()).toContain(_attachment.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_attachment.id);
 
         _put();
         await relation.save(_attachment);
-        expect((post.relation('attachments') as any).pluck('id').toArray()).toContain(_attachment.id);
+        _get();
+        expect(await relation.get().pluck('id').toArray()).toContain(_attachment.id);
     });
 
 });

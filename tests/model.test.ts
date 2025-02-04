@@ -525,7 +525,7 @@ describe('testing models', () => {
             relations: {
                 attachments: {
                     model: 'attachment',
-                    type: 'HasMany',
+                    type: 'MorphMany',
                 },
                 comments: {
                     model: 'post_comment',

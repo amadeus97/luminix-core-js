@@ -44,10 +44,6 @@
                     "type": "BelongsTo",
                     "model": "user"
                 },
-                "post": {
-                    "type": "BelongsTo",
-                    "model": "post"
-                },
                 "file": {
                     "type": "HasOne",
                     "model": "file"
