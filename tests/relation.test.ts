@@ -31,17 +31,11 @@ afterEach(() => {
 });
 
 const { 
-    // app: { 
-    //     // App, 
-    //     // baseModel, 
-    // },
     models: {
         User,
-        // Post,
         Attachment,
         Comment,
         File,
-        // Chair, 
     },
     data: {
         users,
@@ -49,7 +43,6 @@ const {
         attachments,
         files,
         //
-        user,
         post,
         attachment,
         chair,
@@ -112,10 +105,7 @@ const _put = (data = {} as any) => (Http.put as any).mockImplementationOnce(() =
 
 describe('testing relations with eager loading', () => {
 
-    /**
-     * @toReview
-     */
-    test.skip("model 'belongs to' relation", async () => {
+    test("model 'belongs to' relation", async () => {
         if (!post.relations) {
             throw new Error("'post authorRelations' is null");
         }
@@ -126,18 +116,6 @@ describe('testing relations with eager loading', () => {
 
         expect(relation.isSingle()).toBe(true);
         expect(relation.isMultiple()).toBe(false);
-
-        _post();
-        _put();
-
-        const author = post.relation('author');
-
-        relation.dissociate();
-        expect(author).toBeNull();
-
-        relation.associate(user);
-        expect(author).not.toBeNull();
-        expect(author).toBeInstanceOf(User);
     });
 
     test("model 'belongs to many' relation", async () => {
@@ -351,11 +329,26 @@ describe('testing relations with eager loading', () => {
 
 describe('testing relations with lazy loading', () => {
 
-    /**
-     * @toReview
-     */
-    test.skip("model 'belongs to' relation methods", async () => {
+    test("model 'belongs to' relation methods", async () => {
         
+        const relation = post.authorRelation();
+
+        _post();
+        _put();
+
+        const _author = await User.create({
+            name: 'Jane Doe',
+            email: 'janedoe@example.com',
+        });
+
+        /* * */
+
+        await relation.associate(_author);
+        expect(post.relation('author')).not.toBeNull();
+        expect(post.relation('author')).toBeInstanceOf(BelongsTo);
+
+        await relation.dissociate();
+        expect(post.relation('author')).toBeNull();
     });
 
     test("model 'belongs to many' relation methods", async () => {
@@ -399,7 +392,7 @@ describe('testing relations with lazy loading', () => {
         expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
     });
 
-    test.skip("model 'has many' relation methods", async () => {
+    test("model 'has many' relation methods", async () => {
 
         const relation = post.commentsRelation();
 
@@ -422,7 +415,7 @@ describe('testing relations with lazy loading', () => {
         expect((post.relation('comments') as any).pluck('id').toArray()).toContain(_comment.id);
     });
 
-    test.skip("model 'has one' relation methods", async () => {
+    test("model 'has one' relation methods", async () => {
 
         const relation = attachment.fileRelation();
 
@@ -442,7 +435,7 @@ describe('testing relations with lazy loading', () => {
 
     /* * * * */
 
-    test.skip("model 'morph many' relation methods", async () => {
+    test("model 'morph many' relation methods", async () => {
         
         const relation = post.attachmentsRelation();
 

@@ -24,16 +24,12 @@ beforeEach(() => {
 
 const { 
     app: { 
-        // App, 
         baseModel, 
     },
     models: {
         User,
-        // Post,
         Attachment,
         Comment,
-        // File,
-        // Chair,
     },
     data: {
         users,
