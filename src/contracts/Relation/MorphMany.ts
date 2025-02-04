@@ -70,17 +70,6 @@ export default class MorphMany extends MorphOneOrMany
         }));
     }
 
-    async save(item: Model)
-    {
-        await this.saveQuietly(item);
-
-        if (this.items) {
-            this.items.push(item);
-        } else {
-            this.items = await this.all();
-        }
-    }
-
     async saveMany(models: Model[])
     {
         await this.saveManyQuietly(models);
@@ -91,6 +80,17 @@ export default class MorphMany extends MorphOneOrMany
             this.items.splice(0, this.items.count(), ...newItems);
         } else {
             this.items = newItems;
+        }
+    }
+
+    async save(item: Model)
+    {
+        await this.saveQuietly(item);
+
+        if (this.items) {
+            this.items.push(item);
+        } else {
+            this.items = await this.all();
         }
     }
 

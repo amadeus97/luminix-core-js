@@ -38,9 +38,9 @@ const {
     models: {
         User,
         // Post,
-        // Attachment,
-        // Comment,
-        // File,
+        Attachment,
+        Comment,
+        File,
         // Chair, 
     },
     data: {
@@ -56,59 +56,61 @@ const {
     }
 } = models;
 
+/* * * * */
+
+const _get = (data = { data: [], meta: {} } as any) => (Http.get as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+    config: {
+        headers: { 'Content-Type': 'application/json' } as any,
+    },
+    data, 
+    headers: { 'Content-Type': 'application/json' },
+    status: 200, 
+    statusText: 'OK',
+})));
+
+const _post = (data = {} as any) => (Http.post as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+    config: {
+        headers: { 'Content-Type': 'application/json' } as any,
+    },
+    data, 
+    headers: { 'Content-Type': 'application/json' },
+    status: 200, 
+    statusText: 'OK',
+})));
+
+const _put = (data = {} as any) => (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+    config: {
+        headers: { 'Content-Type': 'application/json' } as any,
+    },
+    data, 
+    headers: { 'Content-Type': 'application/json' },
+    status: 200, 
+    statusText: 'OK',
+})));
+
+// const _patch = (data = {} as any) => (Http.patch as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+//     config: {
+//         headers: { 'Content-Type': 'application/json' } as any,
+//     },
+//     data, 
+//     headers: { 'Content-Type': 'application/json' },
+//     status: 200, 
+//     statusText: 'OK',
+// })));
+
+// const _delete = (data = {} as any) => (Http.delete as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
+//     config: {
+//         headers: { 'Content-Type': 'application/json' } as any,
+//     },
+//     data, 
+//     headers: { 'Content-Type': 'application/json' },
+//     status: 200, 
+//     statusText: 'OK',
+// })));
+
+/* * * * */
+
 describe('testing relations with eager loading', () => {
-
-    const _get = (data = { data: [], meta: {} } as any) => (Http.get as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
-        config: {
-            headers: { 'Content-Type': 'application/json' } as any,
-        },
-        data, 
-        headers: { 'Content-Type': 'application/json' },
-        status: 200, 
-        statusText: 'OK',
-    })));
-
-    const _post = (data = {} as any) => (Http.post as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
-        config: {
-            headers: { 'Content-Type': 'application/json' } as any,
-        },
-        data, 
-        headers: { 'Content-Type': 'application/json' },
-        status: 200, 
-        statusText: 'OK',
-    })));
-
-    const _put = (data = {} as any) => (Http.put as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
-        config: {
-            headers: { 'Content-Type': 'application/json' } as any,
-        },
-        data, 
-        headers: { 'Content-Type': 'application/json' },
-        status: 200, 
-        statusText: 'OK',
-    })));
-
-    // const _patch = (data = {} as any) => (Http.patch as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
-    //     config: {
-    //         headers: { 'Content-Type': 'application/json' } as any,
-    //     },
-    //     data, 
-    //     headers: { 'Content-Type': 'application/json' },
-    //     status: 200, 
-    //     statusText: 'OK',
-    // })));
-
-    // const _delete = (data = {} as any) => (Http.delete as any).mockImplementationOnce(() => Promise.resolve(new Response({ 
-    //     config: {
-    //         headers: { 'Content-Type': 'application/json' } as any,
-    //     },
-    //     data, 
-    //     headers: { 'Content-Type': 'application/json' },
-    //     status: 200, 
-    //     statusText: 'OK',
-    // })));
-
-    /* * * * */
 
     /**
      * @toReview
@@ -348,5 +350,121 @@ describe('testing relations with eager loading', () => {
 });
 
 describe('testing relations with lazy loading', () => {
+
+    /**
+     * @toReview
+     */
+    test.skip("model 'belongs to' relation methods", async () => {
+        
+    });
+
+    test("model 'belongs to many' relation methods", async () => {
+
+        const relation = chair.usersRelation();
+
+        _post();
+        _put();
+
+        const _user = await User.create({
+            name: 'Jane Doe',
+            email: 'janedoe@example.com',
+        });
+
+        /* * */
+
+        await relation.attachQuietly(_user.id, _user.toJson());
+        expect((chair.relation('users') as any).pluck('id').toArray()).not.toContain(_user.id);
+
+        await relation.syncQuietly([ _user.id ]);
+        expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
+
+        await relation.syncWithPivotValuesQuietly([ _user.id ], { foo: 'bar' });
+        expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
+
+        await relation.detach(_user.id);
+        expect((chair.relation('users') as any).pluck('id').toArray()).not.toContain(_user.id);
+
+        /* * */
+
+        await relation.attach(_user.id, _user.toJson());
+        expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
+
+        await relation.sync([ _user.id ]);
+        expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
+
+        await relation.syncWithPivotValues([ _user.id ], { foo: 'bar' });
+        expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
+
+        await relation.detachQuietly(_user.id);
+        expect((chair.relation('users') as any).pluck('id').toArray()).toContain(_user.id);
+    });
+
+    test.skip("model 'has many' relation methods", async () => {
+
+        const relation = post.commentsRelation();
+
+        _post();
+        _put();
+
+        const _comment = await Comment.create({
+            content: 'test comment',
+        });
+
+        /* * */
+
+        await relation.saveManyQuietly([ _comment ]);
+        expect((post.relation('comments') as any).pluck('id').toArray()).not.toContain(_comment.id);
+
+        await relation.saveMany([ _comment ]);
+        expect((post.relation('comments') as any).pluck('id').toArray()).toContain(_comment.id);
+
+        await relation.save(_comment);
+        expect((post.relation('comments') as any).pluck('id').toArray()).toContain(_comment.id);
+    });
+
+    test.skip("model 'has one' relation methods", async () => {
+
+        const relation = attachment.fileRelation();
+
+        _post();
+        _put();
+
+        const _file = await File.create({
+            path: '/path/to/new_file.jpg',
+            type: 'image',
+        });
+
+        /* * */
+
+        await relation.save(_file);
+        expect((attachment.relation('file') as any).pluck('id').toArray()).toContain(_file.id);
+    });
+
+    /* * * * */
+
+    test.skip("model 'morph many' relation methods", async () => {
+        
+        const relation = post.attachmentsRelation();
+
+        _post();
+        _put();
+
+        const _attachment = await Attachment.create({
+            id: 1,
+            path: '/path/to/attachment.jpg',
+            type: 'image',
+        });
+
+        /* * */
+
+        await relation.saveManyQuietly([ _attachment ]);
+        expect((post.relation('attachments') as any).pluck('id').toArray()).not.toContain(_attachment.id);
+
+        await relation.saveMany([ _attachment ]);
+        expect((post.relation('attachments') as any).pluck('id').toArray()).toContain(_attachment.id);
+
+        await relation.save(_attachment);
+        expect((post.relation('attachments') as any).pluck('id').toArray()).toContain(_attachment.id);
+    });
 
 });

@@ -190,9 +190,9 @@ const users = collect([
         deleted_at: null,
     }),
     new User({
-        id: 1,
-        name: 'John Doe',
-        email: 'johndoe@example.com',
+        id: 2,
+        name: 'Jane Doe',
+        email: 'janedoe@example.com',
         password: null,
         posts: [],
         comments: [],
