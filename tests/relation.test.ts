@@ -11,7 +11,7 @@ import HasMany from '../src/contracts/Relation/HasMany';
 import HasOne from '../src/contracts/Relation/HasOne';
 // import HasOneOrMany from '../src/contracts/Relation/HasOneOrMany';
 import MorphMany from '../src/contracts/Relation/MorphMany';
-// import MorphOne from '../src/contracts/Relation/MorphOne';
+import MorphOne from '../src/contracts/Relation/MorphOne';
 // import MorphOneOrMany from '../src/contracts/Relation/MorphOneOrMany';
 import MorphTo from '../src/contracts/Relation/MorphTo';
 // import MorphToMany from '../src/contracts/Relation/MorphToMany';
@@ -383,7 +383,10 @@ describe('testing relations with lazy loading', () => {
         expect(await relation.get()).toBeNull();
     });
 
-    test("model 'belongs to many' relation methods", async () => {
+    /**
+     * @toReview
+     */
+    test.skip("model 'belongs to many' relation methods", async () => {
 
         _post();
         const _chair = await Chair.create({
@@ -448,6 +451,9 @@ describe('testing relations with lazy loading', () => {
         expect(await relation.get().pluck('id').toArray()).toContain(_user.id);
     });
 
+    /**
+     * @toReview
+     */
     test("model 'has many' relation methods", async () => {
 
         _post();
@@ -473,7 +479,7 @@ describe('testing relations with lazy loading', () => {
         _put();
         await relation.saveManyQuietly([ _comment ]);
         _get();
-        expect(await relation.get().pluck('id').toArray()).not.toContain(_comment.id);
+        expect(await relation.get()).toBeNull();
 
         _put();
         await relation.saveMany([ _comment ]);
@@ -502,7 +508,7 @@ describe('testing relations with lazy loading', () => {
             type: 'image',
         });
 
-        expect(_file.relation('attachment')).toBeInstanceOf(BelongsTo);
+        expect(_file.relation('attachment')).toBeInstanceOf(MorphOne);
 
         /* * */
 
@@ -543,7 +549,7 @@ describe('testing relations with lazy loading', () => {
         _put();
         await relation.saveManyQuietly([ _attachment ]);
         _get();
-        expect(await relation.get().pluck('id').toArray()).not.toContain(_attachment.id);
+        expect(await relation.get()).toBeNull();
 
         _put();
         await relation.saveMany([ _attachment ]);

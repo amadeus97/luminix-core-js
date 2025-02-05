@@ -12,7 +12,7 @@
             "primaryKey": "id",
             "timestamps": true,
             "relations": {
-                "attachments": {
+                "attachment": {
                     "type": "MorphOne",
                     "model": "attachment"
                 }
@@ -179,6 +179,22 @@
     },
     "routes": {
         "luminix": {
+            "file": {
+                "index": ["api\/luminix\/files", "get"],
+                "show": ["api\/luminix\/files\/{id}", "get"],
+                "store": ["api\/luminix\/files", "post"],
+                "update": ["api\/luminix\/files\/{id}", "put"],
+                "destroy": ["api\/luminix\/files\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/files", "delete"]
+            },
+            "attachment": {
+                "index": ["api\/luminix\/attachments", "get"],
+                "show": ["api\/luminix\/attachments\/{id}", "get"],
+                "store": ["api\/luminix\/attachments", "post"],
+                "update": ["api\/luminix\/attachments\/{id}", "put"],
+                "destroy": ["api\/luminix\/attachments\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/attachments", "delete"]
+            },
             "post_comment": {
                 "index": ["api\/luminix\/post_comments", "get"],
                 "show": ["api\/luminix\/post_comments\/{id}", "get"],
@@ -203,6 +219,14 @@
                 "destroy": ["api\/luminix\/users\/{id}", "delete"],
                 "destroyMany": ["api\/luminix\/users", "delete"],
                 "restoreMany": ["api\/luminix\/users", "put"]
+            },
+            "chair": {
+                "index": ["api\/luminix\/chairs", "get"],
+                "show": ["api\/luminix\/chairs\/{id}", "get"],
+                "store": ["api\/luminix\/chairs", "post"],
+                "update": ["api\/luminix\/chairs\/{id}", "put"],
+                "destroy": ["api\/luminix\/chairs\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/chairs", "delete"]
             }
         },
         "login": ["login", "get", "post"],
