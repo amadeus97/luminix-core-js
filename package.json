@@ -2,7 +2,7 @@
   "name": "@luminix/core",
   "version": "",
   "description": "> Projeto em desenvolvimento",
-  "main": "dist/core.cjs",
+  "main": "dist/core.js",
   "module": "dist/core.js",
   "types": "types/index.d.ts",
   "type": "module",
