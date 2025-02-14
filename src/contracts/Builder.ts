@@ -162,7 +162,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
     }
 
     minified(): this {
-        this.bag.set('minified', true);
+        this.bag.set('minified', 1);
         return this;
     }
 
