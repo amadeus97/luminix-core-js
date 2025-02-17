@@ -1,7 +1,7 @@
-import { EventSource, Collection, Response, Event, Constructor } from '@luminix/support';
+import { EventSource, Collection, Response, Event, Constructor, JsonObject, JsonValue, Client } from '@luminix/support';
 
 import { RelationInterface as RawRelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
-import { JsonObject, JsonValue } from './Support';
+
 import { RouteGenerator } from './Route';
 
 type RelationInterface = RawRelationInterface<Model, ModelPaginatedResponse>;
@@ -70,11 +70,11 @@ export declare class BaseModel extends EventSource<ModelEvents> {
     diff(): JsonObject;
     getType(): string;
     dump(): void;
-    save(options?: ModelSaveOptions): Promise<Response|void>;
-    update(attributes: JsonObject): Promise<void>;
+    save(options?: ModelSaveOptions, tap?: (client: Client) => Client): Promise<Response|void>;
+    update(attributes: JsonObject, tap?: (client: Client) => Client): Promise<void>;
     delete(): Promise<Response>;
     forceDelete(): Promise<Response>;
-    restore(): Promise<Response>;
+    restore(tap?: (client: Client) => Client): Promise<Response>;
     refresh(): Promise<void>;
     relation(relationName: string): RelationInterface | undefined;
 
