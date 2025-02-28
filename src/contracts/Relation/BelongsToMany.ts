@@ -2,7 +2,7 @@ import { Collection, Obj, JsonObject } from '@luminix/support';
 import Relation, { RelationServices } from '../Relation';
 import { Model, ModelPaginatedResponse, RelationMetaData } from '../../types/Model';
 
-import { BuilderInterface as Builder } from '../../types/Builder';
+import { BuilderInterface as Builder, BuilderGetOptions } from '../../types/Builder';
 import NotModelException from '../../exceptions/NotModelException';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
@@ -40,8 +40,8 @@ export default class BelongsToMany extends Relation {
         return query;
     }
 
-    get(page = 1, replaceLinksWith?: string) {
-        return this.query().get(page, replaceLinksWith);
+    get(options?: BuilderGetOptions) {
+        return this.query().get(options);
     }
 
     all() {

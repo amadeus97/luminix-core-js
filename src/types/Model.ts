@@ -3,6 +3,7 @@ import { EventSource, Collection, Response, Event, Constructor, JsonObject, Json
 import { RelationInterface as RawRelationInterface, BuilderInterface, Scope, ExtendedOperator } from './Relation';
 
 import { RouteGenerator } from './Route';
+import { BuilderGetOptions } from './Builder';
 
 type RelationInterface = RawRelationInterface<Model, ModelPaginatedResponse>;
 
@@ -89,7 +90,7 @@ export declare class BaseModel extends EventSource<ModelEvents> {
     static getSchema(): ModelSchemaAttributes;
 
     static query(): BuilderInterface<Model, ModelPaginatedResponse>;
-    static get(page?: number, replaceLinksWith?: string): Promise<ModelPaginatedResponse>;
+    static get(options?: BuilderGetOptions): Promise<ModelPaginatedResponse>;
     static find(id: number | string): Promise<Model | null>;
     static first(): Promise<Model | null>;
 

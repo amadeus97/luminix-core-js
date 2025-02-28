@@ -7,7 +7,8 @@ import {
 
 import {
     BuilderEventMap as BuilderEvents, BuilderInterface as BuilderBase, Scope as ScopeBase,
-    ExtendedOperator
+    ExtendedOperator,
+    BuilderGetOptions
 } from '../types/Builder';
 // import { EventData } from '../types/Event';
 import {
@@ -28,6 +29,7 @@ import { ConfigFacade } from '../types/Config';
 type BuilderInterface = BuilderBase<Model, ModelPaginatedResponse>;
 type BuilderEventMap = BuilderEvents<Model, ModelPaginatedResponse>;
 type Scope = ScopeBase<Model, ModelPaginatedResponse>;
+
 
 class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
 
@@ -180,8 +182,13 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
         return this;
     }
 
-    private async exec(page = 1, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
+    private async exec(options: BuilderGetOptions = {}): Promise<ModelPaginatedResponse> {
         try {
+            const {
+                page = 1,
+                replaceLinks = false,
+            } = options;
+
             this.bag.set('page', page);            
     
             this.emit('submit', {
@@ -193,26 +200,9 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
                 `luminix.${this.abstract}.index`,
                 (client) => client.withQueryParameters(this.bag.all())
             );
-            /*{
-                params: this.bag.all(),
-                errorBag: `${this.abstract}.fetch`,
-            });*/
     
             const Model = this.services.model.make(this.abstract);
-    
-            // const models = new Collection(
-            //     ...data.data.map((item: JsonObject) => {
-            //         const value = new Model(item);
-            //         value.exists = true;
 
-            //         ModelFacade.emit('fetch', {
-            //             class: this.abstract,
-            //             model: value,
-            //         });
-
-            //         return value;
-            //     })
-            // );
             const models = new Collection<Model>(response.json('data').map((item) => {
                 const value = new Model(item);
                 value.exists = true;
@@ -227,7 +217,8 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
             }));
 
     
-            if (replaceLinksWith) {
+            if (replaceLinks) {
+                const replaceLinksWith = window.location.href;
                 const [base] = replaceLinksWith.split('?');
                 return {
                     ...response.json(),
@@ -261,8 +252,8 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
         }
     }
 
-    async get(page = 1, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
-        const result = await this.exec(page, replaceLinksWith);
+    async get(options: BuilderGetOptions = {}): Promise<ModelPaginatedResponse> {
+        const result = await this.exec(options);
         this.emit('success', {
             response: result,
             items: result.data,
@@ -273,7 +264,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
 
 
     async first(): Promise<Model | null> {
-        const result = await this.limit(1).exec(1);
+        const result = await this.limit(1).exec();
 
         this.emit('success', {
             response: result,
@@ -290,7 +281,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
             throw new ModelWithoutPrimaryKeyException(this.abstract);
         }
 
-        const result = await this.where(pk, id).limit(1).exec(1);
+        const result = await this.where(pk, id).limit(1).exec();
 
         this.emit('success', {
             response: result,
@@ -303,7 +294,7 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
 
     async all(): Promise<Collection<Model>> {
         const limit = this.services.config.get('luminix.backend.api.max_per_page', 150) as number;
-        const firstPage = await this.limit(limit).exec(1);
+        const firstPage = await this.limit(limit).exec();
 
         const pages = firstPage.meta.last_page;
 
@@ -315,15 +306,8 @@ class Builder extends EventSource<BuilderEventMap> implements BuilderInterface {
         const pagesToFetch = Array.from({ length: pages - 1 }, (_, i) => i + 2);
 
         const results = await Promise.all(
-            pagesToFetch.map((page) => this.limit(limit).exec(page))
+            pagesToFetch.map((page) => this.limit(limit).exec({ page }))
         );
-
-        // const all = new Collection(
-        //     ...results.reduce((acc, result) => {
-        //         acc.push(...result.data);
-        //         return acc;
-        //     }, firstPage.data).all()
-        // );
 
         const all = new Collection<Model>(
             results.reduce((acc, result) => {

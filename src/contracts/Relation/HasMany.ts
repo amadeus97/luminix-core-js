@@ -8,6 +8,7 @@ import { Model, RelationMetaData } from '../../types/Model';
 import HasOneOrMany from './HasOneOrMany';
 import { RelationServices } from '../Relation';
 import collect from '../../helpers/collect';
+import { BuilderGetOptions } from '../../types/Builder';
 
 export default class HasMany extends HasOneOrMany
 {
@@ -32,9 +33,9 @@ export default class HasMany extends HasOneOrMany
         return true;
     }
 
-    get(page = 1, replaceLinksWith?: string)
+    get(options?: BuilderGetOptions)
     {
-        return this.query().get(page, replaceLinksWith);
+        return this.query().get(options);
     }
 
     all()

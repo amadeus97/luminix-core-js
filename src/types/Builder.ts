@@ -8,6 +8,11 @@ export type Scope<TSingle,TMany> = (builder: BuilderInterface<TSingle,TMany>) =>
 
 export type ExtendedOperator = Operator | 'like' | 'notLike' | 'between' | 'notBetween' | 'null' | 'notNull';
 
+export type BuilderGetOptions = {
+    page?: number;
+    replaceLinks?: boolean;
+};
+
 export type BuilderInterface<TSingle, TMany = Collection<TSingle>> = EventSource<BuilderEventMap<TSingle,TMany>> & {
     lock(path: string): void;
 
@@ -31,7 +36,7 @@ export type BuilderInterface<TSingle, TMany = Collection<TSingle>> = EventSource
     limit(value: number): BuilderInterface<TSingle,TMany>;
     include(searchParams: URLSearchParams): BuilderInterface<TSingle,TMany>;
 
-    get(page?: number, replaceLinksWith?: string): Promise<TMany>;
+    get(options?: BuilderGetOptions): Promise<TMany>;
     all(): Promise<Collection<TSingle>>;
     first(): Promise<TSingle | null>;
     find(id: string | number): Promise<TSingle | null>;

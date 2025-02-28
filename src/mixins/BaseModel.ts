@@ -22,7 +22,7 @@ import Relation from '../contracts/Relation';
 import NotReducibleException from '../exceptions/NotReducibleException';
 import MethodNotImplementedException from '../exceptions/MethodNotImplementedException';
 import ModelNotPersistedException from '../exceptions/ModelNotPersistedException';
-import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator } from '../types/Builder';
+import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator, BuilderGetOptions } from '../types/Builder';
 import { LogFacade } from '../types/Log';
 import { ConfigFacade } from '../types/Config';
 // import App from '../facades/App';
@@ -61,12 +61,12 @@ export function BaseModelFactory(
             this.makeAttributes(attributes);
 
         }
-    
+
         private cast(value: unknown, cast: string) {
             if (value === null || value === undefined || !cast) {
                 return value;
             }
-    
+
             if (['boolean', 'bool'].includes(cast)) {
                 return !!value;
             }
@@ -743,8 +743,8 @@ export function BaseModelFactory(
             return this.query().limit(value);
         }
 
-        static get(page = 1, replaceLinksWith?: string): Promise<ModelPaginatedResponse> {
-            return this.query().get(page, replaceLinksWith);
+        static get(options?: BuilderGetOptions): Promise<ModelPaginatedResponse> {
+            return this.query().get(options);
         }
     
         static find(id: number | string) {

@@ -7,6 +7,7 @@ import MorphOneOrMany from './MorphOneOrMany';
 import NotModelException from '../../exceptions/NotModelException';
 import ModelInvalidRelatedTypeException from '../../exceptions/ModelInvalidRelatedTypeException';
 import { RelationServices } from '../Relation';
+import { BuilderGetOptions } from '../../types/Builder';
 
 
 export default class MorphMany extends MorphOneOrMany
@@ -33,9 +34,9 @@ export default class MorphMany extends MorphOneOrMany
     }
 
 
-    get(page = 1, replaceLinksWith?: string)
+    get(options?: BuilderGetOptions)
     {
-        return this.query().get(page, replaceLinksWith);
+        return this.query().get(options);
     }
 
     all()
