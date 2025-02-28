@@ -1,6 +1,9 @@
-import _ from 'lodash';
-import { AppConfiguration } from '../../src/types/Config';
+
+import { Obj } from '@luminix/support';
+
 import app from './app';
 import manifest from './manifest.json';
 
-export default () => _.cloneDeep({ app, manifest }) as unknown as AppConfiguration;
+import { AppConfiguration } from '../../src/types/Config';
+
+export default () => Obj.merge({ app, manifest }) as unknown as AppConfiguration;

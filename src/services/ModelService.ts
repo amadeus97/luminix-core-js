@@ -1,3 +1,4 @@
+
 import { Reducible, EventSource, Str } from '@luminix/support';
 
 import { BaseModel, ModelSchema, ModelSchemaAttributes, Model, ModelReducers } from '../types/Model';
@@ -12,8 +13,10 @@ import BelongsTo from '../contracts/Relation/BelongsTo';
 import BelongsToMany from '../contracts/Relation/BelongsToMany';
 import HasOne from '../contracts/Relation/HasOne';
 import HasMany from '../contracts/Relation/HasMany';
+// import HasOneOrMany from '../contracts/Relation/HasOneOrMany';
 import MorphMany from '../contracts/Relation/MorphMany';
 import MorphOne from '../contracts/Relation/MorphOne';
+// import MorphOneOrMany from '../contracts/Relation/MorphOneOrMany';
 import MorphTo from '../contracts/Relation/MorphTo';
 import MorphToMany from '../contracts/Relation/MorphToMany';
 
@@ -33,7 +36,6 @@ export class ModelService extends EventSource<GlobalModelEvents> {
         if (!this._schema) {
             return;
         }
-       
         
         Object.keys(this._schema).forEach((abstract) => {
             const modelReducer = this[`model${Str.studly(abstract)}`];
@@ -53,7 +55,6 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
             this._models[abstract] = ModelFactory(app.make('model'), abstract, SpecificModel);
         });
-
     }
 
     schema(): ModelSchema
@@ -68,9 +69,7 @@ export class ModelService extends EventSource<GlobalModelEvents> {
         }
 
         return this._schema;
-
     }
-
 
     make(): { [abstract: string]: typeof Model}
     make(abstract: string): typeof Model
@@ -106,11 +105,7 @@ export class ModelService extends EventSource<GlobalModelEvents> {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
-    
-    
 
 }
 
-
 export default Reducible<ModelReducers, typeof ModelService>(ModelService);
-

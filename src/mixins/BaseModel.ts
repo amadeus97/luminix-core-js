@@ -5,8 +5,6 @@ import {
     Client
 } from '@luminix/support';
 
-// import ModelFacade from '../facades/Model';
-
 import { 
     BaseModel, ModelSaveOptions, ModelSchemaAttributes,
     ModelPaginatedResponse, Model as ModelInterface, RelationRepository, ModelEvents,
@@ -25,13 +23,14 @@ import ModelNotPersistedException from '../exceptions/ModelNotPersistedException
 import { BuilderInterface as BuilderBase, Scope as ScopeBase, ExtendedOperator, BuilderGetOptions } from '../types/Builder';
 import { LogFacade } from '../types/Log';
 import { ConfigFacade } from '../types/Config';
+
 // import App from '../facades/App';
 // import Log from '../facades/Log';
 // import Route from '../facades/Route';
+// import ModelFacade from '../facades/Model';
 
 type BuilderInterface = BuilderBase<ModelInterface, ModelPaginatedResponse>;
 type Scope = ScopeBase<ModelInterface, ModelPaginatedResponse>;
-
 
 export function BaseModelFactory(
     Config: ConfigFacade,
@@ -333,6 +332,8 @@ export function BaseModelFactory(
         {
             return this._changedKeys.length > 0;
         }
+
+        /* * * * */
     
         getAttribute(key: string) {
             let value = this._attributes.get(key, null);
@@ -528,6 +529,8 @@ export function BaseModelFactory(
             return this.getAttribute(labeledBy) as string;
         }
 
+        /* * * * */
+
         async refresh(tap?: (client: Client) => Client) {
             if (!this.exists) {
                 throw new ModelNotPersistedException(abstract, 'refresh');
@@ -688,6 +691,8 @@ export function BaseModelFactory(
                 throw error;
             }
         }
+
+        /* * * * */
 
         static getSchemaName() {
             return abstract;

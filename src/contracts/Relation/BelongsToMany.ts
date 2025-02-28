@@ -126,6 +126,19 @@ export default class BelongsToMany extends Relation {
         // });
     }
 
+    async sync(ids: (string | number | JsonObject)[]) {
+        await this.syncQuietly(ids);
+
+        const newItems = await this.all();
+
+        if (this.items) {
+            this.items.splice(0, this.items.count(), ...newItems);
+        } else {
+            this.items = newItems;
+        }
+
+    }
+
     async syncWithPivotValuesQuietly(ids: (string | number)[], pivot: JsonObject) {
         await this.services.route.call([
             `luminix.${this.parent.getType()}.${this.getName()}:sync`,
@@ -145,19 +158,6 @@ export default class BelongsToMany extends Relation {
         // });
     }
 
-    async sync(ids: (string | number | JsonObject)[]) {
-        await this.syncQuietly(ids);
-
-        const newItems = await this.all();
-
-        if (this.items) {
-            this.items.splice(0, this.items.count(), ...newItems);
-        } else {
-            this.items = newItems;
-        }
-
-    }
-
     async syncWithPivotValues(ids: (string | number)[], pivot: JsonObject) {
         await this.syncWithPivotValuesQuietly(ids, pivot);
 
@@ -169,5 +169,5 @@ export default class BelongsToMany extends Relation {
             this.items = newItems;
         }
     }
-}
 
+}

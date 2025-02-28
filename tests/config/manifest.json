@@ -1,5 +1,27 @@
 {
     "models": {
+        "file": {
+            "fillable": [
+                "path",
+                "type",
+                "attachment_id"
+            ],
+            "softDeletes": true,
+            "importable": false,
+            "exportable": false,
+            "primaryKey": "id",
+            "timestamps": true,
+            "relations": {
+                "attachment": {
+                    "type": "MorphOne",
+                    "model": "attachment"
+                }
+            },
+            "casts": {
+                "id": "int"
+            },
+            "class": "App\\Models\\File"
+        },
         "attachment": {
             "fillable": [
                 "path",
@@ -8,7 +30,7 @@
                 "attachable_type",
                 "size"
             ],
-            "softDeletes": false,
+            "softDeletes": true,
             "importable": false,
             "exportable": false,
             "primaryKey": "id",
@@ -21,12 +43,17 @@
                 "author": {
                     "type": "BelongsTo",
                     "model": "user"
+                },
+                "file": {
+                    "type": "HasOne",
+                    "model": "file"
                 }
             },
             "casts": {
                 "id": "int",
                 "size": "integer"
-            }
+            },
+            "class": "App\\Models\\Attachment"
         },
         "post_comment": {
             "fillable": [
@@ -51,7 +78,8 @@
             },
             "casts": {
                 "id": "int"
-            }
+            },
+            "class": "App\\Models\\PostComment"
         },
         "post": {
             "fillable": [
@@ -88,7 +116,8 @@
                 "published_at": "datetime",
                 "published": "boolean",
                 "likes": "integer"
-            }
+            },
+            "class": "App\\Models\\Post"
         },
         "user": {
             "fillable": [
@@ -109,6 +138,14 @@
                 "comments": {
                     "type": "HasMany",
                     "model": "post_comment"
+                },
+                "attachments": {
+                    "type": "MorphMany",
+                    "model": "attachment"
+                },
+                "chairs": {
+                    "type": "BelongsToMany",
+                    "model": "chair"
                 }
             },
             "casts": {
@@ -117,10 +154,47 @@
                 "password": "hashed"
             },
             "class": "App\\Models\\User"
+        },
+        "chair": {
+            "fillable": [
+                "name", 
+                "description"
+            ],
+            "softDeletes": false,
+            "importable": false,
+            "exportable": false,
+            "primaryKey": "id",
+            "timestamps": true,
+            "relations": {
+                "users": {
+                    "type": "BelongsToMany",
+                    "model": "user"
+                }
+            },
+            "casts": {
+                "id": "int"
+            },
+            "class": "App\\Models\\Chair"
         }
     },
     "routes": {
         "luminix": {
+            "file": {
+                "index": ["api\/luminix\/files", "get"],
+                "show": ["api\/luminix\/files\/{id}", "get"],
+                "store": ["api\/luminix\/files", "post"],
+                "update": ["api\/luminix\/files\/{id}", "put"],
+                "destroy": ["api\/luminix\/files\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/files", "delete"]
+            },
+            "attachment": {
+                "index": ["api\/luminix\/attachments", "get"],
+                "show": ["api\/luminix\/attachments\/{id}", "get"],
+                "store": ["api\/luminix\/attachments", "post"],
+                "update": ["api\/luminix\/attachments\/{id}", "put"],
+                "destroy": ["api\/luminix\/attachments\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/attachments", "delete"]
+            },
             "post_comment": {
                 "index": ["api\/luminix\/post_comments", "get"],
                 "show": ["api\/luminix\/post_comments\/{id}", "get"],
@@ -145,6 +219,14 @@
                 "destroy": ["api\/luminix\/users\/{id}", "delete"],
                 "destroyMany": ["api\/luminix\/users", "delete"],
                 "restoreMany": ["api\/luminix\/users", "put"]
+            },
+            "chair": {
+                "index": ["api\/luminix\/chairs", "get"],
+                "show": ["api\/luminix\/chairs\/{id}", "get"],
+                "store": ["api\/luminix\/chairs", "post"],
+                "update": ["api\/luminix\/chairs\/{id}", "put"],
+                "destroy": ["api\/luminix\/chairs\/{id}", "delete"],
+                "destroyMany": ["api\/luminix\/chairs", "delete"]
             }
         },
         "login": ["login", "get", "post"],

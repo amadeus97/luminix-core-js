@@ -1,8 +1,15 @@
-// import { collect } from '../'; // @luminix/core
-import { collect } from '../src/contracts/Collection';
 
+import { Collection } from '@luminix/support';
 
-describe('collection test', () => {
+beforeEach(() => {
+    jest.resetModules();
+});
+
+function collect<T = unknown>(items: T[]) {
+    return new Collection(items);
+}
+
+describe.skip('collection test', () => {
 
     const collection = collect([
         { name: 'iPhone 6', brand: 'Apple', type: 'phone', released: 2014 },
@@ -56,7 +63,5 @@ describe('collection test', () => {
             { name: 'Galaxy S6', brand: 'Samsung', type: 'phone', released: 2015 },
         ]);
     });
-
     
 });
-

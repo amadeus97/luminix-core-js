@@ -9,7 +9,6 @@ import { Obj } from '@luminix/support';
 
 type BuilderInterface = Builder<Model, ModelPaginatedResponse>;
 
-
 export default class BelongsTo extends Relation {
 
     constructor(
@@ -47,7 +46,6 @@ export default class BelongsTo extends Relation {
         return this.query().first();
     }
 
-
     async associate(item: Model) {
         if (!Obj.isModel(item)) {
             throw new NotModelException('BelongsTo.associate()');
@@ -72,6 +70,4 @@ export default class BelongsTo extends Relation {
         });
     }
 
-
 }
-

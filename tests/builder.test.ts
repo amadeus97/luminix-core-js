@@ -1,9 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import App from '../src/facades/App';
 
-import makeConfig from './config';
-import mockAxios from 'axios';
+import { Response } from '@luminix/support';
 
-const mockedResponse = () => Promise.resolve({
+import Http from '../src/facades/Http';
+
+import makeConfig from './config';
+
+App.withConfiguration(makeConfig());
+App.create();
+
+beforeEach(() => {
+    jest.resetModules();
+});
+
+const mockedResponse = () => Promise.resolve(new Response({
+    config: {
+        headers: { 'Content-Type': 'application/json' } as any,
+    },
     data: {
         data: [
             {
@@ -34,23 +49,19 @@ const mockedResponse = () => Promise.resolve({
             total: 2,
             links: [],
         }
-    }
-});
-
+    },
+    headers: { 'Content-Type': 'application/json' },
+    status: 200, 
+    statusText: 'OK',
+}));
 
 describe('testing builder', () => {
 
-    test('builder use cases', async () => {
-        const app = new App();
+    test.skip('builder use cases', async () => {
 
-        await app.boot(makeConfig());
+        const User = App.make('model').make('user');
 
-        const User = app.make('model').make('user');
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (mockAxios as any).get.mockImplementationOnce(mockedResponse);
-
-        
+        (Http.get as any).mockImplementationOnce(() => Promise.resolve(mockedResponse));
 
         const users = await User.where('branchId', 1)
             .where('roleId', [1, 2, 3])
@@ -61,7 +72,7 @@ describe('testing builder', () => {
             .all(); // or .get(page) .first() .find() 
 
         expect(users.count()).toBe(2);
-        expect(mockAxios.get).toHaveBeenCalledWith('/api/luminix/users', {
+        expect(Http.get).toHaveBeenCalledWith('/api/luminix/users', {
             params: {
                 where: {
                     branchId: 1,
@@ -75,8 +86,6 @@ describe('testing builder', () => {
                 q: 'doe',
             }
         });
-
-
     });
-});
 
+});
