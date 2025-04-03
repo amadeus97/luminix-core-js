@@ -272,10 +272,15 @@ export function BaseModelFactory(
                 return a == b;
             };
 
-            if (!this._changedKeys.includes(key) && !determineValueEquality(Obj.get(this._original, key), this._attributes.get(key))) {
-                this._changedKeys.push(key);
-            } else if (this._changedKeys.includes(key) && determineValueEquality(Obj.get(this._original, key), this._attributes.get(key))) {
-                this._changedKeys.splice(this._changedKeys.indexOf(key), 1);
+            // update nested keys accordingly
+            const keyToStore = (key.includes('.') || key.includes('['))
+                ? key.split(/[.[]/)[0]
+                : key;
+
+            if (!this._changedKeys.includes(keyToStore) && !determineValueEquality(Obj.get(this._original, keyToStore), this._attributes.get(keyToStore))) {
+                this._changedKeys.push(keyToStore);
+            } else if (this._changedKeys.includes(keyToStore) && determineValueEquality(Obj.get(this._original, keyToStore), this._attributes.get(keyToStore))) {
+                this._changedKeys.splice(this._changedKeys.indexOf(keyToStore), 1);
             }
 
         }
